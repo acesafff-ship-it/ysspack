@@ -14,7 +14,7 @@ const normalize = value => String(value || '').replace(/\s+/g, ' ').trim().toLow
 export default {
   id: 'player-actions',
   name: 'Kolorowe akcje gracza',
-  version: '1.0.0',
+  version: '1.0.1',
   description: 'Ukrywa Nawiguj i koloruje najważniejsze akcje w menu gracza.',
   icon: '🎨',
 
@@ -24,14 +24,13 @@ export default {
     style.dataset.ysspackModule = 'player-actions';
     style.textContent = `
       [data-yss-player-action]{color:#fff!important;text-shadow:1px 1px #000!important}
-      [data-yss-player-action]>.background{filter:none!important}
       [data-yss-player-action="navigate"]{display:none!important}
-      [data-yss-player-action="group"],[data-yss-player-action="group"]>.background{background:linear-gradient(#347fbd,#174a7a)!important;border-color:#58a8e5!important}
-      [data-yss-player-action="friend"],[data-yss-player-action="friend"]>.background{background:linear-gradient(#3d994d,#1d632b)!important;border-color:#63c973!important}
-      [data-yss-player-action="trade"],[data-yss-player-action="trade"]>.background{background:linear-gradient(#b88b24,#70500d)!important;border-color:#e1b84c!important;color:#fff5b0!important}
-      [data-yss-player-action="profile"],[data-yss-player-action="profile"]>.background{background:linear-gradient(#8552ad,#4d276c)!important;border-color:#b47cda!important}
-      [data-yss-player-action="attack"],[data-yss-player-action="attack"]>.background{background:linear-gradient(#b6433e,#721d1a)!important;border-color:#e26a64!important}
-      [data-yss-player-action="kiss"],[data-yss-player-action="kiss"]>.background{background:linear-gradient(#d15a99,#842d61)!important;border-color:#f28bc1!important}`;
+      [data-yss-player-action="group"],[data-yss-player-action="group"]>.background{background-color:#24649a!important;background-image:none!important}
+      [data-yss-player-action="friend"],[data-yss-player-action="friend"]>.background{background-color:#277439!important;background-image:none!important}
+      [data-yss-player-action="trade"],[data-yss-player-action="trade"]>.background{background-color:#927019!important;background-image:none!important;color:#fff5b0!important}
+      [data-yss-player-action="profile"],[data-yss-player-action="profile"]>.background{background-color:#67398a!important;background-image:none!important}
+      [data-yss-player-action="attack"],[data-yss-player-action="attack"]>.background{background-color:#8e2b27!important;background-image:none!important}
+      [data-yss-player-action="kiss"],[data-yss-player-action="kiss"]>.background{background-color:#a73e77!important;background-image:none!important}`;
     document.documentElement.appendChild(style);
 
     const mark = element => {
