@@ -4,15 +4,15 @@ Panel modułowych dodatków do Margonem. Loader Tampermonkey pobiera właściwy 
 
 Wersja 0.3.2 dodaje oficjalne, przezroczyste logo YssPack do panelu, przycisku uruchamiającego i metadanych Tampermonkey.
 
-Wersja 0.4.3 rozwija moduł „Kolorowe akcje gracza”: ukrywa przycisk Nawiguj i nadaje stonowane kolory atakowi, handlowi, pocałunkowi, zaproszeniom, profilowi, wiadomościom, ekwipunkowi, zgłoszeniu i zmianie stroju bez zmiany oryginalnego kształtu przycisków.
+Wersja 0.5.0 dodaje w Bestiariuszu anonimowy licznik użytkowników aktywnych w ciągu ostatnich 3 minut. Licznik nie przesyła nicku, świata ani danych postaci. Zachowano również stonowane kolory menu akcji gracza.
 
 ## Dostępne moduły
 
-- **Bestiariusz Podręczny 2.2.34** — Elity, Elity II, Herosi, Kolosi i Tytani, przedmioty, dojścia oraz kalkulator łupu.
+- **Bestiariusz Podręczny 2.2.35** — Elity, Elity II, Herosi, Kolosi i Tytani, przedmioty, dojścia, kalkulator łupu i anonimowy licznik online.
 - **Minuty i sekundy przedmiotu 2.3.1** — dokładny czas aktywnego błogosławieństwa; poprawiona pętla odświeżania interfejsu.
 - **Asystent Aukcji 1.2.6** — wyszukiwanie ofert wybranego przedmiotu.
 - **Magazyn Postaci 1.4.1** — lokalny podgląd przedmiotów i złota innych własnych postaci.
-- **Kolorowe akcje gracza 1.0.0** — czytelniejsze menu interakcji z innymi graczami bez przycisku Nawiguj.
+- **Kolorowe akcje gracza 1.1.0** — czytelniejsze menu interakcji z innymi graczami bez przycisku Nawiguj.
 
 Każdy moduł można niezależnie włączyć lub wyłączyć w panelu YssPack. Po przeniesieniu dodatku do YssPack wyłącz jego osobny userscript w Tampermonkey, aby nie uruchamiać dwóch kopii.
 
