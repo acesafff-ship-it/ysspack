@@ -1,0 +1,14 @@
+{
+  "name": "YssPack",
+  "version": "0.1.0",
+  "author": "Król Yss",
+  "modules": [
+    {
+      "id": "hp-value",
+      "name": "HP zamiast procentu",
+      "version": "1.0.0",
+      "file": "modules/hp-value.js",
+      "description": "Pokazuje aktualną liczbę punktów życia oraz pozwala ustawić kolor i rozmiar tekstu."
+    }
+  ]
+}
