@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         YssPack
 // @namespace    acesaff-ysspack
-// @version      0.1.0
+// @version      0.2.0
 // @description  YssPack — panel dodatków działający bezpośrednio w Margonem.
 // @author       Król Yss
 // @homepageURL  https://www.margonem.pl/profile/view,10050726#char_5601,luvia
@@ -20,6 +20,8 @@
 // @grant        GM_deleteValue
 // @grant        GM_xmlhttpRequest
 // @connect      acesafff-ship-it.github.io
+// @connect      raw.githubusercontent.com
+// @connect      forum.margonem.pl
 // ==/UserScript==
 
 (() => {
@@ -28,7 +30,7 @@
   if (document.yssPack?.loaderVersion) return;
 
   const BASE_URL = 'https://acesafff-ship-it.github.io/ysspack/';
-  const LOADER_VERSION = '0.1.0';
+  const LOADER_VERSION = '0.2.0';
   const now = new Date();
   const cacheKey = [now.getFullYear(), String(now.getMonth() + 1).padStart(2, '0'), String(now.getDate()).padStart(2, '0')].join('');
 
@@ -44,12 +46,12 @@
 
   const stylesheet = document.createElement('link');
   stylesheet.rel = 'stylesheet';
-  stylesheet.href = `${BASE_URL}pack.css?t=${cacheKey}`;
+  stylesheet.href = `${BASE_URL}pack.css?t=${LOADER_VERSION}-${cacheKey}`;
   stylesheet.dataset.yssPack = 'style';
 
   const script = document.createElement('script');
   script.type = 'module';
-  script.src = `${BASE_URL}pack.js?t=${cacheKey}`;
+  script.src = `${BASE_URL}pack.js?t=${LOADER_VERSION}-${cacheKey}`;
   script.dataset.yssPack = 'script';
   script.addEventListener('error', () => console.error('[YssPack] Nie udało się pobrać pack.js. Sprawdź publikację GitHub Pages.'));
 
