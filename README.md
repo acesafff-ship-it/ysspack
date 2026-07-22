@@ -5,7 +5,7 @@ Panel modułowych dodatków do Margonem. Loader Tampermonkey pobiera właściwy 
 ## Dostępne moduły
 
 - **Bestiariusz Podręczny 2.2.34** — Elity, Elity II, Herosi, Kolosi i Tytani, przedmioty, dojścia oraz kalkulator łupu.
-- **Minuty i sekundy przedmiotu 2.3.0** — dokładny czas aktywnego błogosławieństwa.
+- **Minuty i sekundy przedmiotu 2.3.1** — dokładny czas aktywnego błogosławieństwa; poprawiona pętla odświeżania interfejsu.
 - **Asystent Aukcji 1.2.6** — wyszukiwanie ofert wybranego przedmiotu.
 - **Magazyn Postaci 1.4.1** — lokalny podgląd przedmiotów i złota innych własnych postaci.
 
