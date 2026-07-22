@@ -1,6 +1,6 @@
 {
   "name": "YssPack",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "author": "Król Yss",
   "modules": [
     {
@@ -34,7 +34,7 @@
     {
       "id": "player-actions",
       "name": "Kolorowe akcje gracza",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "file": "modules/player-actions.js",
       "description": "Ukrywa Nawiguj i koloruje najważniejsze akcje w menu gracza."
     }
