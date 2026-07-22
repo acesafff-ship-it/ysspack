@@ -6,7 +6,11 @@ const ACTIONS = new Map([
   ['handluj', 'trade'],
   ['pokaż profil', 'profile'],
   ['atakuj', 'attack'],
-  ['pocałuj', 'kiss']
+  ['pocałuj', 'kiss'],
+  ['wyślij wiadomość', 'message'],
+  ['pokaż ekwipunek', 'equipment'],
+  ['złoś się', 'report'],
+  ['zmień strój', 'outfit']
 ]);
 
 const normalize = value => String(value || '').replace(/\s+/g, ' ').trim().toLowerCase();
@@ -14,7 +18,7 @@ const normalize = value => String(value || '').replace(/\s+/g, ' ').trim().toLow
 export default {
   id: 'player-actions',
   name: 'Kolorowe akcje gracza',
-  version: '1.0.2',
+  version: '1.1.0',
   description: 'Ukrywa Nawiguj i koloruje najważniejsze akcje w menu gracza.',
   icon: '🎨',
 
@@ -30,7 +34,11 @@ export default {
       [data-yss-player-action="trade"],[data-yss-player-action="trade"]>.background{background-color:#685727!important;background-image:none!important;color:#eee1a6!important}
       [data-yss-player-action="profile"],[data-yss-player-action="profile"]>.background{background-color:#4f3b5d!important;background-image:none!important}
       [data-yss-player-action="attack"],[data-yss-player-action="attack"]>.background{background-color:#653330!important;background-image:none!important}
-      [data-yss-player-action="kiss"],[data-yss-player-action="kiss"]>.background{background-color:#704256!important;background-image:none!important}`;
+      [data-yss-player-action="kiss"],[data-yss-player-action="kiss"]>.background{background-color:#704256!important;background-image:none!important}
+      [data-yss-player-action="message"],[data-yss-player-action="message"]>.background{background-color:#315653!important;background-image:none!important}
+      [data-yss-player-action="equipment"],[data-yss-player-action="equipment"]>.background{background-color:#46525b!important;background-image:none!important}
+      [data-yss-player-action="report"],[data-yss-player-action="report"]>.background{background-color:#72502d!important;background-image:none!important}
+      [data-yss-player-action="outfit"],[data-yss-player-action="outfit"]>.background{background-color:#584735!important;background-image:none!important}`;
     document.documentElement.appendChild(style);
 
     const mark = element => {

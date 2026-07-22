@@ -4,7 +4,7 @@ Panel modułowych dodatków do Margonem. Loader Tampermonkey pobiera właściwy 
 
 Wersja 0.3.2 dodaje oficjalne, przezroczyste logo YssPack do panelu, przycisku uruchamiającego i metadanych Tampermonkey.
 
-Wersja 0.4.2 dodaje moduł „Kolorowe akcje gracza”: ukrywanie przycisku Nawiguj oraz osobne, stonowane kolory ataku, handlu, pocałunku, zaproszeń i profilu bez zmiany oryginalnego kształtu przycisków.
+Wersja 0.4.3 rozwija moduł „Kolorowe akcje gracza”: ukrywa przycisk Nawiguj i nadaje stonowane kolory atakowi, handlowi, pocałunkowi, zaproszeniom, profilowi, wiadomościom, ekwipunkowi, zgłoszeniu i zmianie stroju bez zmiany oryginalnego kształtu przycisków.
 
 ## Dostępne moduły
 
