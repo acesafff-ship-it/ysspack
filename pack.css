@@ -24,13 +24,30 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: 48px;
-  padding: 7px 10px;
+  min-height: 70px;
+  padding: 3px 10px;
   border-bottom: 2px ridge #766b5c;
   background: linear-gradient(rgba(0, 0, 0, .08), rgba(0, 0, 0, .3)), url('/img/gui/belka-gora-dol.png') repeat-x center top / auto 54px;
   color: #f4db77;
   cursor: move;
   user-select: none;
+}
+
+.mhp-brand {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.mhp-brand-logo {
+  display: block;
+  width: 118px;
+  height: 62px;
+  object-fit: contain;
+  image-rendering: auto;
+  filter: drop-shadow(0 1px 2px #000);
+  pointer-events: none;
 }
 
 .mhp-header strong {
@@ -258,6 +275,16 @@
 
 #mhp-launcher:active {
   cursor: grabbing;
+}
+
+#mhp-launcher img {
+  display: block;
+  width: 40px;
+  height: 40px;
+  margin: 1px;
+  object-fit: contain;
+  image-rendering: auto;
+  pointer-events: none;
 }
 
 #ysspack button:hover,
