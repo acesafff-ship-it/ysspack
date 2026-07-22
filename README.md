@@ -2,6 +2,8 @@
 
 Panel modułowych dodatków do Margonem. Loader Tampermonkey pobiera właściwy panel, styl oraz moduły z GitHub Pages.
 
+Wersja 0.3.2 dodaje oficjalne, przezroczyste logo YssPack do panelu, przycisku uruchamiającego i metadanych Tampermonkey.
+
 ## Dostępne moduły
 
 - **Bestiariusz Podręczny 2.2.34** — Elity, Elity II, Herosi, Kolosi i Tytani, przedmioty, dojścia oraz kalkulator łupu.
