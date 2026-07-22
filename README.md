@@ -5,8 +5,11 @@ Panel modułowych dodatków do Margonem. Loader Tampermonkey pobiera właściwy 
 ## Dostępne moduły
 
 - **Bestiariusz Podręczny 2.2.34** — Elity, Elity II, Herosi, Kolosi i Tytani, przedmioty, dojścia oraz kalkulator łupu.
+- **Minuty i sekundy przedmiotu 2.3.0** — dokładny czas aktywnego błogosławieństwa.
+- **Asystent Aukcji 1.2.6** — wyszukiwanie ofert wybranego przedmiotu.
+- **Magazyn Postaci 1.4.1** — lokalny podgląd przedmiotów i złota innych własnych postaci.
 
-Moduł można niezależnie włączyć lub wyłączyć w panelu YssPack. Jeśli używasz osobnego userscriptu Bestiariusza, wyłącz go w Tampermonkey przed uruchomieniem wersji z YssPack.
+Każdy moduł można niezależnie włączyć lub wyłączyć w panelu YssPack. Po przeniesieniu dodatku do YssPack wyłącz jego osobny userscript w Tampermonkey, aby nie uruchamiać dwóch kopii.
 
 ## Publikacja
 
