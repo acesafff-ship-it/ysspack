@@ -1,6 +1,6 @@
 {
   "name": "YssPack",
-  "version": "0.3.2",
+  "version": "0.4.0",
   "author": "Król Yss",
   "modules": [
     {
@@ -30,6 +30,13 @@
       "version": "1.4.1",
       "file": "modules/character-storage.js",
       "description": "Zapamiętuje i wyświetla zawartość toreb własnych postaci."
+    },
+    {
+      "id": "player-actions",
+      "name": "Kolorowe akcje gracza",
+      "version": "1.0.0",
+      "file": "modules/player-actions.js",
+      "description": "Ukrywa Nawiguj i koloruje najważniejsze akcje w menu gracza."
     }
   ]
 }
