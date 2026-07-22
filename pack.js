@@ -4,7 +4,7 @@ if (!host || document.querySelector('#ysspack')) {
   throw new Error('[YssPack] Loader nie jest aktywny albo panel został już uruchomiony.');
 }
 
-const PACK_VERSION = '0.3.0';
+const PACK_VERSION = '0.3.1';
 const STORAGE_PREFIX = 'ysspack_';
 const today = new Date();
 const moduleCacheKey = [today.getFullYear(), String(today.getMonth() + 1).padStart(2, '0'), String(today.getDate()).padStart(2, '0')].join('');
@@ -20,7 +20,7 @@ const cleanups = new Map();
 for (const file of moduleFiles) {
   try {
     const url = new URL(file, import.meta.url);
-    url.searchParams.set('t', moduleCacheKey);
+    url.searchParams.set('t', `${PACK_VERSION}-${moduleCacheKey}`);
     const imported = await import(url.href);
     if (imported.default?.id) modules.push(imported.default);
   } catch (error) {
