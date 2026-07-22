@@ -6,7 +6,7 @@ const EQUIPPED_BLESSING_SLOT_ID = 10;
 export default {
   id: 'item-time',
   name: 'Minuty i sekundy przedmiotu',
-  version: '2.3.0',
+  version: '2.3.1',
   description: 'Pokazuje dokładny czas błogosławieństwa na ikonie i w tooltipie.',
   icon: '⏱',
 
@@ -77,7 +77,8 @@ export default {
         element.appendChild(badge);
       }
       element.classList.add(`${BADGE_CLASS}-host`);
-      badge.textContent = formatBadge(remaining);
+      const text = formatBadge(remaining);
+      if (badge.textContent !== text) badge.textContent = text;
     });
 
     const updateTooltip = () => {
@@ -85,20 +86,30 @@ export default {
       const remaining = getRemainingSeconds(hoveredItemId);
       if (remaining === null) return;
       const line = document.querySelector('.tip-layer .tip-item-stat-ttl,.tip-layer .tip-item-stat-expires,.sticky-tips-layer .tip-item-stat-ttl,.sticky-tips-layer .tip-item-stat-expires');
-      if (line) line.textContent = `Zniknie za ${formatRemaining(remaining)}`;
+      const text = `Zniknie za ${formatRemaining(remaining)}`;
+      if (line && line.textContent !== text) line.textContent = text;
     };
 
     const update = () => { updateTooltip(); updateBadges(); };
+    let updateFrame = 0;
+    const queueUpdate = () => {
+      if (updateFrame) return;
+      updateFrame = requestAnimationFrame(() => {
+        updateFrame = 0;
+        update();
+      });
+    };
     const onMouseOver = event => { const id = getItemId(event.target); if (id) hoveredItemId = id; };
     document.addEventListener('mouseover', onMouseOver, true);
-    const observer = new MutationObserver(update);
-    observer.observe(document.documentElement, { childList: true, subtree: true, characterData: true });
-    const timer = window.setInterval(update, 200);
-    update();
+    const observer = new MutationObserver(queueUpdate);
+    observer.observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
+    const timer = window.setInterval(queueUpdate, 250);
+    queueUpdate();
 
     return () => {
       observer.disconnect();
       window.clearInterval(timer);
+      if (updateFrame) cancelAnimationFrame(updateFrame);
       document.removeEventListener('mouseover', onMouseOver, true);
       style.remove();
       document.querySelectorAll(`.${BADGE_CLASS}`).forEach(element => element.remove());
