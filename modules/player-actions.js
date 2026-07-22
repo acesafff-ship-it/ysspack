@@ -14,7 +14,7 @@ const normalize = value => String(value || '').replace(/\s+/g, ' ').trim().toLow
 export default {
   id: 'player-actions',
   name: 'Kolorowe akcje gracza',
-  version: '1.0.1',
+  version: '1.0.2',
   description: 'Ukrywa Nawiguj i koloruje najważniejsze akcje w menu gracza.',
   icon: '🎨',
 
@@ -25,12 +25,12 @@ export default {
     style.textContent = `
       [data-yss-player-action]{color:#fff!important;text-shadow:1px 1px #000!important}
       [data-yss-player-action="navigate"]{display:none!important}
-      [data-yss-player-action="group"],[data-yss-player-action="group"]>.background{background-color:#24649a!important;background-image:none!important}
-      [data-yss-player-action="friend"],[data-yss-player-action="friend"]>.background{background-color:#277439!important;background-image:none!important}
-      [data-yss-player-action="trade"],[data-yss-player-action="trade"]>.background{background-color:#927019!important;background-image:none!important;color:#fff5b0!important}
-      [data-yss-player-action="profile"],[data-yss-player-action="profile"]>.background{background-color:#67398a!important;background-image:none!important}
-      [data-yss-player-action="attack"],[data-yss-player-action="attack"]>.background{background-color:#8e2b27!important;background-image:none!important}
-      [data-yss-player-action="kiss"],[data-yss-player-action="kiss"]>.background{background-color:#a73e77!important;background-image:none!important}`;
+      [data-yss-player-action="group"],[data-yss-player-action="group"]>.background{background-color:#29485d!important;background-image:none!important}
+      [data-yss-player-action="friend"],[data-yss-player-action="friend"]>.background{background-color:#315337!important;background-image:none!important}
+      [data-yss-player-action="trade"],[data-yss-player-action="trade"]>.background{background-color:#685727!important;background-image:none!important;color:#eee1a6!important}
+      [data-yss-player-action="profile"],[data-yss-player-action="profile"]>.background{background-color:#4f3b5d!important;background-image:none!important}
+      [data-yss-player-action="attack"],[data-yss-player-action="attack"]>.background{background-color:#653330!important;background-image:none!important}
+      [data-yss-player-action="kiss"],[data-yss-player-action="kiss"]>.background{background-color:#704256!important;background-image:none!important}`;
     document.documentElement.appendChild(style);
 
     const mark = element => {
