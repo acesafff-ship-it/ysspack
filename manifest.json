@@ -1,6 +1,6 @@
 {
   "name": "YssPack",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "author": "Król Yss",
   "modules": [
     {
@@ -13,7 +13,7 @@
     {
       "id": "item-time",
       "name": "Minuty i sekundy przedmiotu",
-      "version": "2.3.0",
+      "version": "2.3.1",
       "file": "modules/item-time.js",
       "description": "Pokazuje dokładny czas błogosławieństwa na ikonie i w tooltipie."
     },
