@@ -4,7 +4,7 @@ if (!host || document.querySelector('#ysspack')) {
   throw new Error('[YssPack] Loader nie jest aktywny albo panel został już uruchomiony.');
 }
 
-const PACK_VERSION = '0.3.1';
+const PACK_VERSION = '0.3.2';
 const STORAGE_PREFIX = 'ysspack_';
 const today = new Date();
 const moduleCacheKey = [today.getFullYear(), String(today.getMonth() + 1).padStart(2, '0'), String(today.getDate()).padStart(2, '0')].join('');
@@ -45,18 +45,19 @@ const moduleKey = (id, suffix) => `module_${id}_${suffix}`;
 const isEnabled = id => Boolean(read(moduleKey(id, 'enabled'), false));
 const getSetting = (id, key, fallback) => read(moduleKey(id, `setting_${key}`), fallback);
 const setSetting = (id, key, value) => write(moduleKey(id, `setting_${key}`), value);
+const logoUrl = new URL('assets/logo-ysspack.png', import.meta.url).href;
 
 const launcher = document.createElement('button');
 launcher.id = 'mhp-launcher';
 launcher.type = 'button';
 launcher.title = 'YssPack';
-launcher.innerHTML = '<span>M</span>';
+launcher.innerHTML = `<img src="${logoUrl}" alt="">`;
 
 const panel = document.createElement('section');
 panel.id = 'ysspack';
 panel.innerHTML = `
   <header class="mhp-header">
-    <div><strong>YssPack</strong><small>v${PACK_VERSION}</small></div>
+    <div class="mhp-brand"><img class="mhp-brand-logo" src="${logoUrl}" alt="YssPack"><small>v${PACK_VERSION}</small></div>
     <button class="mhp-close" type="button" aria-label="Zamknij">X</button>
   </header>
   <div class="mhp-toolbar"><input class="mhp-search" type="search" placeholder="Szukaj dodatku..."></div>
