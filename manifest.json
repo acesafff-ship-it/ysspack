@@ -1,14 +1,14 @@
 {
   "name": "YssPack",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": "Król Yss",
   "modules": [
     {
-      "id": "hp-value",
-      "name": "HP zamiast procentu",
-      "version": "1.0.0",
-      "file": "modules/hp-value.js",
-      "description": "Pokazuje aktualną liczbę punktów życia oraz pozwala ustawić kolor i rozmiar tekstu."
+      "id": "bestiary",
+      "name": "Bestiariusz Podręczny",
+      "version": "2.2.34",
+      "file": "modules/bestiary.js",
+      "description": "Elity, Elity II, Herosi, Kolosi i Tytani wraz z przedmiotami, trasami i kalkulatorem łupu."
     }
   ]
 }
