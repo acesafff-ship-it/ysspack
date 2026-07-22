@@ -4,11 +4,11 @@ if (!host || document.querySelector('#ysspack')) {
   throw new Error('[YssPack] Loader nie jest aktywny albo panel został już uruchomiony.');
 }
 
-const PACK_VERSION = '0.1.0';
+const PACK_VERSION = '0.2.0';
 const STORAGE_PREFIX = 'ysspack_';
 const today = new Date();
 const moduleCacheKey = [today.getFullYear(), String(today.getMonth() + 1).padStart(2, '0'), String(today.getDate()).padStart(2, '0')].join('');
-const moduleFiles = ['modules/hp-value.js'];
+const moduleFiles = ['modules/bestiary.js'];
 const modules = [];
 const cleanups = new Map();
 
@@ -157,6 +157,10 @@ function saveControl(module, control) {
 function moduleContext(module) {
   return {
     packVersion: PACK_VERSION,
+    GM_xmlhttpRequest: host.GM_xmlhttpRequest,
+    GM_getValue: host.GM_getValue,
+    GM_setValue: host.GM_setValue,
+    GM_deleteValue: host.GM_deleteValue,
     getSetting: (key, fallback) => getSetting(module.id, key, fallback),
     setSetting: (key, value) => setSetting(module.id, key, value)
   };
