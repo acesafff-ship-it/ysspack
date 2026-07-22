@@ -1,6 +1,6 @@
 {
   "name": "YssPack",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "author": "Król Yss",
   "modules": [
     {
@@ -9,6 +9,27 @@
       "version": "2.2.34",
       "file": "modules/bestiary.js",
       "description": "Elity, Elity II, Herosi, Kolosi i Tytani wraz z przedmiotami, trasami i kalkulatorem łupu."
+    },
+    {
+      "id": "item-time",
+      "name": "Minuty i sekundy przedmiotu",
+      "version": "2.3.0",
+      "file": "modules/item-time.js",
+      "description": "Pokazuje dokładny czas błogosławieństwa na ikonie i w tooltipie."
+    },
+    {
+      "id": "auction-assistant",
+      "name": "Asystent Aukcji",
+      "version": "1.2.6",
+      "file": "modules/auction-assistant.js",
+      "description": "Wyszukuje aukcje przedmiotu wybranego do sprzedaży."
+    },
+    {
+      "id": "character-storage",
+      "name": "Magazyn Postaci",
+      "version": "1.4.1",
+      "file": "modules/character-storage.js",
+      "description": "Zapamiętuje i wyświetla zawartość toreb własnych postaci."
     }
   ]
 }
