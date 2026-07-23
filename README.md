@@ -4,11 +4,11 @@ Panel modułowych dodatków do Margonem. Loader Tampermonkey pobiera właściwy 
 
 Wersja 0.3.2 dodaje oficjalne, przezroczyste logo YssPack do panelu, przycisku uruchamiającego i metadanych Tampermonkey.
 
-Wersja 0.5.0 dodaje w Bestiariuszu anonimowy licznik użytkowników aktywnych w ciągu ostatnich 3 minut. Licznik nie przesyła nicku, świata ani danych postaci. Zachowano również stonowane kolory menu akcji gracza.
+Wersja 0.5.1 poprawia czytelność przedmiotów dodających złoto oraz synchronizuje anonimowy licznik online między osobnym Bestiariuszem i YssPackiem.
 
 ## Dostępne moduły
 
-- **Bestiariusz Podręczny 2.2.35** — Elity, Elity II, Herosi, Kolosi i Tytani, przedmioty, dojścia, kalkulator łupu i anonimowy licznik online.
+- **Bestiariusz Podręczny 2.2.36** — Elity, Elity II, Herosi, Kolosi i Tytani, przedmioty, dojścia, kalkulator łupu i anonimowy licznik online.
 - **Minuty i sekundy przedmiotu 2.3.1** — dokładny czas aktywnego błogosławieństwa; poprawiona pętla odświeżania interfejsu.
 - **Asystent Aukcji 1.2.6** — wyszukiwanie ofert wybranego przedmiotu.
 - **Magazyn Postaci 1.4.1** — lokalny podgląd przedmiotów i złota innych własnych postaci.
