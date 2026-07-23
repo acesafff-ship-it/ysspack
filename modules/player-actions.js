@@ -23,6 +23,7 @@ export default {
   icon: '🎨',
 
   start() {
+    if (location.hostname === 'www.margonem.pl') return () => {};
     const marked = new Set();
     const style = document.createElement('style');
     style.dataset.ysspackModule = 'player-actions';

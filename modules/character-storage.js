@@ -62,6 +62,7 @@ export default {
   icon: '🎒',
 
   start() {
+    if (location.hostname === 'www.margonem.pl') return () => {};
     let stopped = false;
     loadAndRun()
       .then(() => { if (stopped) window[CLEANUP_KEY]?.(); })

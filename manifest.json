@@ -1,6 +1,6 @@
 {
   "name": "YssPack",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "author": "Król Yss",
   "modules": [
     {
@@ -37,6 +37,13 @@
       "version": "1.1.0",
       "file": "modules/player-actions.js",
       "description": "Ukrywa Nawiguj i koloruje najważniejsze akcje w menu gracza."
+    },
+    {
+      "id": "ranking-ban-scanner",
+      "name": "Kontrola banów rankingu",
+      "version": "1.0.0",
+      "file": "modules/ranking-ban-scanner.js",
+      "description": "Sprawdza bany graczy nieaktywnych co najmniej 24 godziny na bieżącej stronie rankingu."
     }
   ]
 }

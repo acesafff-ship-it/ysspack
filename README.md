@@ -4,7 +4,7 @@ Panel modułowych dodatków do Margonem. Loader Tampermonkey pobiera właściwy 
 
 Wersja 0.3.2 dodaje oficjalne, przezroczyste logo YssPack do panelu, przycisku uruchamiającego i metadanych Tampermonkey.
 
-Wersja 0.5.1 poprawia czytelność przedmiotów dodających złoto oraz synchronizuje anonimowy licznik online między osobnym Bestiariuszem i YssPackiem.
+Wersja 0.6.0 dodaje Kontrolę banów rankingu. Moduł pomija graczy aktywnych w ciągu ostatnich 24 godzin, sprawdza pozostałe profile kolejno i zapisuje wynik lokalnie na godzinę.
 
 ## Dostępne moduły
 
@@ -13,6 +13,7 @@ Wersja 0.5.1 poprawia czytelność przedmiotów dodających złoto oraz synchron
 - **Asystent Aukcji 1.2.6** — wyszukiwanie ofert wybranego przedmiotu.
 - **Magazyn Postaci 1.4.1** — lokalny podgląd przedmiotów i złota innych własnych postaci.
 - **Kolorowe akcje gracza 1.1.0** — czytelniejsze menu interakcji z innymi graczami bez przycisku Nawiguj.
+- **Kontrola banów rankingu 1.0.0** — skan bieżącej strony rankingu z pominięciem graczy nieaktywnych krócej niż dobę.
 
 Każdy moduł można niezależnie włączyć lub wyłączyć w panelu YssPack. Po przeniesieniu dodatku do YssPack wyłącz jego osobny userscript w Tampermonkey, aby nie uruchamiać dwóch kopii.
 

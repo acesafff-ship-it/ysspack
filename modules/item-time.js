@@ -11,6 +11,7 @@ export default {
   icon: '⏱',
 
   start() {
+    if (location.hostname === 'www.margonem.pl') return () => {};
     const ttlTimers = new Map();
     let hoveredItemId = null;
 

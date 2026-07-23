@@ -73,6 +73,7 @@ export default {
   icon: 'B',
 
   start(context) {
+    if (location.hostname === 'www.margonem.pl') return () => {};
     let stopped = false;
 
     if (window[GLOBAL_FLAG]) {
