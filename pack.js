@@ -4,7 +4,7 @@ if (!host || document.querySelector('#ysspack')) {
   throw new Error('[YssPack] Loader nie jest aktywny albo panel został już uruchomiony.');
 }
 
-const PACK_VERSION = '0.6.0';
+const PACK_VERSION = '0.6.1';
 const STORAGE_PREFIX = 'ysspack_';
 const today = new Date();
 const moduleCacheKey = [today.getFullYear(), String(today.getMonth() + 1).padStart(2, '0'), String(today.getDate()).padStart(2, '0')].join('');
@@ -14,7 +14,8 @@ const moduleFiles = [
   'modules/auction-assistant.js',
   'modules/character-storage.js',
   'modules/player-actions.js',
-  'modules/ranking-ban-scanner.js'
+  'modules/ranking-ban-scanner.js',
+  'modules/tytan-help.js'
 ];
 const modules = [];
 const cleanups = new Map();
