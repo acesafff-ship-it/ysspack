@@ -19,8 +19,8 @@ const rarityOf = value => {
 export default {
   id: 'lootlog',
   name: 'LootLog Elit',
-  version: '0.2.0',
-  description: 'Samodzielnie zapisuje cenne looty z Elit i Elit II na dolnej belce gry.',
+  version: '0.2.1',
+  description: 'Samodzielnie zapisuje wszystkie looty z Elit i Elit II na dolnej belce gry.',
   icon: '✦',
 
   start() {
@@ -78,7 +78,7 @@ export default {
       const history = entries.length
         ? entries.map(entry => `<li><time>${new Date(entry.at).toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'})}</time><span>${escapeHtml(entry.elite)}</span><i>${escapeHtml(entry.item)}${entry.amount > 1 ? ' ×' + entry.amount : ''}</i></li>`).join('')
         : '<li class="empty">Historia jest jeszcze pusta.</li>';
-      root.innerHTML = `<div class="ll-bar"><span class="ll-mark">✦</span><span class="ll-title">LootLog Elit</span><div class="ll-latest">${feed}</div><span class="ll-expand">▴</span></div><div class="ll-history"><div class="ll-history-title">Ostatnie cenne looty</div><ol>${history}</ol><small>Wspólny log świata ${escapeHtml(world())} · wpisy są anonimowe.</small></div>`;
+      root.innerHTML = `<div class="ll-bar"><span class="ll-mark">✦</span><span class="ll-title">LootLog Elit</span><div class="ll-latest">${feed}</div><span class="ll-expand">▴</span></div><div class="ll-history"><div class="ll-history-title">Ostatnie looty</div><ol>${history}</ol><small>Wspólny log świata ${escapeHtml(world())} · wpisy są anonimowe.</small></div>`;
     }
 
     async function loadGlobalEntries() {
@@ -150,7 +150,7 @@ export default {
       after.forEach((item, key) => {
         const before = trackedBattle.before.get(key);
         if (!before || item.amount > before.amount) {
-          if (item.rarity !== 'normal') found.push({ ...item, amount: Math.max(1, item.amount - (before?.amount || 0)) });
+          found.push({ ...item, amount: Math.max(1, item.amount - (before?.amount || 0)) });
         }
       });
       const distinct = [...new Map(found.map(item => [item.name + '|' + item.rarity, item])).values()];
