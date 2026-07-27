@@ -4,7 +4,7 @@ if (!host || document.querySelector('#ysspack')) {
   throw new Error('[YssPack] Loader nie jest aktywny albo panel został już uruchomiony.');
 }
 
-const PACK_VERSION = '0.12.1';
+const PACK_VERSION = '0.13.0';
 const STORAGE_PREFIX = 'ysspack_';
 const today = new Date();
 const moduleCacheKey = [today.getFullYear(), String(today.getMonth() + 1).padStart(2, '0'), String(today.getDate()).padStart(2, '0')].join('');
@@ -77,13 +77,21 @@ panel.innerHTML = `
   </div>
   <div class="content"><div class="inner-content">
     <span class="mhp-version">v${PACK_VERSION}</span>
-    <div class="mhp-list-heading">Lista dodatków</div>
-    <div class="mhp-toolbar"><input class="mhp-search" type="search" placeholder="Szukaj dodatku..."></div>
-    <div class="mhp-list"></div>
-    <footer class="mhp-footer">
-      <div>Autor dodatku: <a href="https://www.margonem.pl/profile/view,10050726#char_5601,luvia" target="_blank" rel="noopener noreferrer">Król Yss</a></div>
-      <div>Grafiki są własnością <a href="https://garmory.pl/" target="_blank" rel="noopener noreferrer">Garmory</a>.</div>
-    </footer>
+    <div class="mhp-layout">
+      <section class="mhp-left-column">
+        <div class="mhp-list-heading">Lista dodatków</div>
+        <div class="mhp-toolbar"><input class="mhp-search" type="search" placeholder="Szukaj"></div>
+        <div class="mhp-list"></div>
+      </section>
+      <section class="mhp-right-column">
+        <div class="mhp-detail-header"></div>
+        <div class="mhp-detail-body"></div>
+        <footer class="mhp-footer">
+          <div>Autor dodatku: <a href="https://www.margonem.pl/profile/view,10050726#char_5601,luvia" target="_blank" rel="noopener noreferrer">Król Yss</a></div>
+          <div>Grafiki są własnością <a href="https://garmory.pl/" target="_blank" rel="noopener noreferrer">Garmory</a>.</div>
+        </footer>
+      </section>
+    </div>
   </div></div>
   <div class="c-window__bottom-bar"><div class="interface-element-bottom-bar-background-stretch"></div></div>
   <div class="close-button-corner-decor"><button class="close-button mhp-close" type="button" aria-label="Zamknij"></button></div>`;
@@ -92,6 +100,8 @@ document.body.append(launcher, panel);
 
 const list = panel.querySelector('.mhp-list');
 const search = panel.querySelector('.mhp-search');
+const detailHeader = panel.querySelector('.mhp-detail-header');
+const detailBody = panel.querySelector('.mhp-detail-body');
 let selectedModuleId = read('selected_module', modules[0]?.id || '');
 const savedPanelPosition = read('panel_position', null);
 const savedLauncherPosition = read('launcher_position', null);
@@ -106,9 +116,10 @@ modules.forEach(module => { if (isEnabled(module.id)) startModule(module); });
 search.addEventListener('input', renderModules);
 panel.addEventListener('wheel', event => {
   if (event.target.closest('input[type="range"]')) return;
-  const previous = list.scrollTop;
-  list.scrollTop += event.deltaY;
-  if (list.scrollTop !== previous) event.preventDefault();
+  const scroller = event.target.closest('.mhp-detail-body') || list;
+  const previous = scroller.scrollTop;
+  scroller.scrollTop += event.deltaY;
+  if (scroller.scrollTop !== previous) event.preventDefault();
 }, { passive: false });
 const closeCorner = panel.querySelector('.close-button-corner-decor');
 const closePanel = event => {
@@ -140,26 +151,19 @@ function renderModules() {
 
   if (!visible.length) {
     list.innerHTML = '<div class="mhp-empty">Nie znaleziono dodatków.</div>';
+    renderModuleDetails();
     return;
   }
 
   list.innerHTML = visible.map(module => {
-    const enabled = isEnabled(module.id);
-    const hasSettings = Array.isArray(module.settings) && module.settings.length > 0;
     return `
-      <article class="mhp-card one-addon-on-list${enabled ? ' enabled' : ''}${selectedModuleId === module.id ? ' selected' : ''}" data-module-id="${escapeHtml(module.id)}">
+      <article class="mhp-card one-addon-on-list${selectedModuleId === module.id ? ' selected' : ''}" data-module-id="${escapeHtml(module.id)}">
         <div class="mhp-icon-wrapper">
           <img class="mhp-module-icon" src="${escapeHtml(moduleIconUrls[module.id] || logoUrl)}" alt="">
         </div>
         <div class="mhp-card-copy">
           <div class="mhp-name">${escapeHtml(module.name)} <small>${escapeHtml(module.version || '')}</small></div>
-          <div class="mhp-description">${escapeHtml(module.description || '')}</div>
         </div>
-        ${hasSettings ? '<button class="mhp-settings-button" type="button" title="Ustawienia">⚙</button>' : ''}
-        <button class="mhp-toggle-button button small ${enabled ? 'green' : 'red'}" type="button" aria-pressed="${enabled}">
-          <span class="background"></span><span class="label">${enabled ? 'Włączone' : 'Wyłączone'}</span>
-        </button>
-        ${hasSettings ? `<div class="mhp-settings" hidden>${renderSettings(module)}</div>` : ''}
       </article>`;
   }).join('');
 
@@ -173,30 +177,43 @@ function renderModules() {
       write('selected_module', selectedModuleId);
       list.querySelectorAll('.mhp-card.selected').forEach(entry => entry.classList.remove('selected'));
       card.classList.add('selected');
+      renderModuleDetails();
     });
+  });
 
-    const toggle = card.querySelector('.mhp-toggle-button');
-    toggle.addEventListener('click', () => {
-      const enabled = toggle.getAttribute('aria-pressed') !== 'true';
-      write(moduleKey(module.id, 'enabled'), enabled);
-      if (enabled) startModule(module);
-      else stopModule(module.id);
-      card.classList.toggle('enabled', enabled);
-      toggle.classList.toggle('green', enabled);
-      toggle.classList.toggle('red', !enabled);
-      toggle.setAttribute('aria-pressed', String(enabled));
-      toggle.querySelector('.label').textContent = enabled ? 'Włączone' : 'Wyłączone';
-    });
+  renderModuleDetails();
+}
 
-    card.querySelector('.mhp-settings-button')?.addEventListener('click', () => {
-      const settings = card.querySelector('.mhp-settings');
-      settings.hidden = !settings.hidden;
-    });
+function renderModuleDetails() {
+  const module = modules.find(entry => entry.id === selectedModuleId) || modules[0];
+  if (!module) return;
 
-    card.querySelectorAll('[data-setting]').forEach(control => {
-      control.addEventListener('input', () => saveControl(module, control));
-      control.addEventListener('change', () => saveControl(module, control));
-    });
+  const enabled = isEnabled(module.id);
+  const hasSettings = Array.isArray(module.settings) && module.settings.length > 0;
+  detailHeader.innerHTML = `
+    <div class="mhp-detail-icon-wrapper"><img class="mhp-detail-icon" src="${escapeHtml(moduleIconUrls[module.id] || logoUrl)}" alt=""></div>
+    <div class="mhp-detail-title">${escapeHtml(module.name)} <small>${escapeHtml(module.version || '')}</small></div>`;
+  detailBody.innerHTML = `
+    <button class="mhp-detail-toggle button small ${enabled ? 'red' : 'green'}" type="button" aria-pressed="${enabled}">
+      <span class="background"></span><span class="label">${enabled ? 'Wyłącz' : 'Włącz'}</span>
+    </button>
+    <div class="mhp-description-label">Opis:</div>
+    <div class="mhp-detail-description">${escapeHtml(module.description || '')}</div>
+    ${hasSettings ? `<div class="mhp-settings">${renderSettings(module)}</div>` : ''}
+    <div class="mhp-pack-info">Moduł pakietu YssPack.</div>`;
+
+  detailBody.querySelector('.mhp-detail-toggle').addEventListener('click', event => {
+    const toggle = event.currentTarget;
+    const nextEnabled = toggle.getAttribute('aria-pressed') !== 'true';
+    write(moduleKey(module.id, 'enabled'), nextEnabled);
+    if (nextEnabled) startModule(module);
+    else stopModule(module.id);
+    renderModuleDetails();
+  });
+
+  detailBody.querySelectorAll('[data-setting]').forEach(control => {
+    control.addEventListener('input', () => saveControl(module, control));
+    control.addEventListener('change', () => saveControl(module, control));
   });
 }
 

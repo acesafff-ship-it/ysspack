@@ -12,8 +12,8 @@
   z-index: 2147483600 !important;
   display: block !important;
   visibility: visible !important;
-  width: 450px !important;
-  height: min(505px, calc(100vh - 24px)) !important;
+  width: 568px !important;
+  height: min(650px, calc(100vh - 24px)) !important;
   max-width: calc(100vw - 24px);
   color: #fff;
   border: 20px solid transparent !important;
@@ -30,10 +30,10 @@
   inset: 0 !important;
   width: auto !important;
   height: auto !important;
-  padding: 25px 15px 13px !important;
+  padding: 0 !important;
   overflow: hidden !important;
   color: #fff !important;
-  background: #282929 !important;
+  background: transparent !important;
 }
 
 #ysspack > .content::before {
@@ -53,6 +53,39 @@
   min-height: 0;
 }
 
+.mhp-layout {
+  display: grid;
+  grid-template-columns: 245px 283px;
+  width: 528px;
+  height: 100%;
+}
+
+.mhp-left-column,
+.mhp-right-column {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+}
+
+.mhp-left-column {
+  display: flex;
+  flex-direction: column;
+  border-width: 0 11px;
+  border-style: solid;
+  border-image: url("assets/game-middle-graphics.png") 0 11 fill / 1 / 0 round;
+  background: #282929;
+}
+
+.mhp-right-column {
+  display: flex;
+  flex-direction: column;
+  border-width: 0 11px;
+  border-style: solid;
+  border-image: url("assets/game-middle-graphics.png") 0 11 fill / 1 / 0 round;
+  background: #f1dca7;
+  color: #444;
+}
+
 #ysspack .header-label-positioner {
   z-index: 5;
   cursor: move;
@@ -69,8 +102,8 @@
 .mhp-version {
   position: absolute;
   z-index: 2;
-  top: -18px;
-  right: 3px;
+  top: 5px;
+  right: 8px;
   color: #b8aa96;
   font-size: 9px;
   text-shadow: 1px 1px #000;
@@ -84,7 +117,7 @@
   flex: 0 0 28px;
   padding: 0;
   border-bottom: 1px solid #454545;
-  background: #252525;
+  background: #282929;
 }
 
 .mhp-list-heading {
@@ -125,20 +158,18 @@
   overflow: auto;
   overscroll-behavior: contain;
   padding: 0;
-  border-width: 0 11px;
-  border-style: solid;
-  border-image: url("assets/game-middle-graphics.png") 0 11 fill / 1 / 0 round;
-  background: #282929;
+  border: 0;
+  background: transparent;
   scrollbar-color: #686868 #202020;
   scrollbar-width: thin;
 }
 
 .mhp-card {
   display: grid !important;
-  grid-template-columns: 54px minmax(0, 1fr) auto auto;
+  grid-template-columns: 52px minmax(0, 1fr);
   align-items: center;
   width: 100% !important;
-  min-height: 68px;
+  min-height: 51px;
   margin: 0 !important;
   border: 0;
   border-bottom: 1px solid #444;
@@ -152,14 +183,14 @@
 }
 
 .mhp-card.selected {
-  background: linear-gradient(90deg, #454545, #303030);
-  box-shadow: inset 3px 0 #aaa;
+  background: #454545;
+  box-shadow: inset 3px 0 #9f9f9f;
 }
 
 .mhp-icon-wrapper {
   display: flex;
-  width: 54px;
-  min-height: 67px;
+  width: 52px;
+  min-height: 50px;
   align-items: center;
   justify-content: center;
   padding: 5px 2px;
@@ -167,8 +198,8 @@
 
 .mhp-module-icon {
   display: block;
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   object-fit: cover;
   image-rendering: pixelated;
   pointer-events: none;
@@ -176,14 +207,14 @@
 
 .mhp-card-copy {
   min-width: 0;
-  padding: 7px 10px 7px 4px;
-  text-align: left;
+  padding: 6px 8px 6px 2px;
+  text-align: center;
 }
 
 .mhp-name {
   overflow: hidden;
-  color: #e0e0e0;
-  font-weight: bold;
+  color: #aaa;
+  font-weight: normal;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -194,44 +225,7 @@
   font-weight: normal;
 }
 
-.mhp-description {
-  display: -webkit-box;
-  overflow: hidden;
-  margin-top: 3px;
-  color: #aaa;
-  font-size: 10px;
-  line-height: 13px;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-}
-
-.mhp-settings-button {
-  display: flex;
-  width: 28px;
-  height: 24px;
-  padding: 0;
-  align-items: center;
-  justify-content: center;
-  margin-right: 4px;
-  border: 1px solid #111;
-  border-radius: 4px;
-  background: linear-gradient(#43372b, #1a130e);
-  color: #e8d9c1;
-  font-size: 13px;
-  cursor: pointer;
-}
-
-.mhp-toggle-button.button {
-  display: flex !important;
-  width: 76px !important;
-  height: 26px !important;
-  margin-right: 6px;
-  align-items: center !important;
-  justify-content: center !important;
-  cursor: pointer;
-}
-
-.mhp-toggle-button.button .label {
+.mhp-detail-toggle.button .label {
   position: relative !important;
   inset: auto !important;
   display: flex !important;
@@ -241,23 +235,19 @@
   align-items: center !important;
   justify-content: center !important;
   color: #e6d6bf;
-  font-size: 9px;
-  font-weight: bold;
+  font-size: 14px;
+  font-weight: normal;
   line-height: 1 !important;
   text-align: center;
 }
 
 .mhp-settings {
-  grid-column: 1 / -1;
   display: grid;
   gap: 8px;
-  padding: 8px 10px;
-  border-top: 1px solid #444;
-  background: #1c1c1c;
-}
-
-.mhp-settings[hidden] {
-  display: none;
+  margin-top: 14px;
+  padding: 10px;
+  border: 1px solid #b59a5c;
+  background: rgba(255, 248, 215, .48);
 }
 
 .mhp-settings label {
@@ -265,8 +255,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  color: #d8cabb;
-  font-size: 10px;
+  color: #444;
+  font-size: 11px;
 }
 
 .mhp-settings input[type="range"] {
@@ -279,7 +269,7 @@
   height: 25px;
   padding: 1px;
   border: 1px solid #6d5133;
-  background: #120d0a;
+  background: #f1dca7;
 }
 
 .mhp-empty {
@@ -289,13 +279,88 @@
 }
 
 .mhp-footer {
-  flex: 0 0 35px;
+  flex: 0 0 38px;
   padding: 5px 8px 3px;
-  border-top: 1px solid #444;
-  background: #282929;
-  color: #918574;
+  border-top: 1px solid #b59a5c;
+  background: rgba(241, 220, 167, .96);
+  color: #796a4d;
   font-size: 8px;
   line-height: 12px;
+  text-align: center;
+}
+
+.mhp-detail-header {
+  display: grid;
+  flex: 0 0 55px;
+  grid-template-columns: 54px minmax(0, 1fr);
+  align-items: center;
+  border: 5px solid #444;
+  border-image: url("assets/game-width-card-button.png") 5 fill / 1 / 0 repeat stretch;
+  color: #fff;
+}
+
+.mhp-detail-icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mhp-detail-icon {
+  width: 44px;
+  height: 44px;
+  object-fit: cover;
+  image-rendering: pixelated;
+}
+
+.mhp-detail-title {
+  padding: 0 8px;
+  color: #fff;
+  font-size: 12.8px;
+  line-height: 16px;
+}
+
+.mhp-detail-title small {
+  color: #bdbdbd;
+  font-size: 9px;
+}
+
+.mhp-detail-body {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow: auto;
+  padding: 15px;
+  color: #444;
+  font-size: 12.8px;
+  line-height: 16px;
+  scrollbar-color: #a98646 #dcc487;
+  scrollbar-width: thin;
+}
+
+.mhp-detail-toggle.button {
+  display: flex !important;
+  width: auto !important;
+  min-width: 62px;
+  height: 28px !important;
+  margin: 0 0 12px;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.mhp-description-label {
+  margin-bottom: 6px;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.mhp-detail-description {
+  margin: 0 0 12px 4px;
+}
+
+.mhp-pack-info {
+  padding: 12px 6px 0;
+  color: #625a48;
+  font-weight: bold;
   text-align: center;
 }
 
