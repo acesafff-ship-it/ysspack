@@ -3,7 +3,7 @@
   box-sizing: border-box;
 }
 
-#ysspack[hidden] {
+#ysspack.c-window[hidden] {
   display: none !important;
 }
 
@@ -70,16 +70,11 @@
   white-space: nowrap;
 }
 
-.mhp-header {
-  display: flex;
-  flex: 0 0 24px;
-  align-items: center;
-  justify-content: flex-end;
-  padding: 0 3px 3px;
-  border-bottom: 1px solid #665a4b;
-}
-
 .mhp-version {
+  position: absolute;
+  z-index: 2;
+  top: -18px;
+  right: 3px;
   color: #b8aa96;
   font-size: 9px;
   text-shadow: 1px 1px #000;
@@ -120,6 +115,7 @@
   min-height: 0;
   flex: 1 1 auto;
   overflow: auto;
+  overscroll-behavior: contain;
   padding: 7px 4px 2px;
   scrollbar-color: #725b3d #160f0c;
   scrollbar-width: thin;
