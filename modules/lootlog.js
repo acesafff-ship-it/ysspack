@@ -19,7 +19,7 @@ const rarityOf = value => {
 export default {
   id: 'lootlog',
   name: 'LootLog Elit',
-  version: '0.2.1',
+  version: '0.2.2',
   description: 'Samodzielnie zapisuje wszystkie looty z Elit i Elit II na dolnej belce gry.',
   icon: '✦',
 
@@ -112,10 +112,17 @@ export default {
 
     function battleElite() {
       const battle = window.Engine?.battle;
-      if (!battle || battle.endBattle !== false || battle.endBattleForMe !== false) return null;
-      const warriors = Object.values(battle.warriorsList || {});
-      const enemy = warriors.find(warrior => warrior && Number(warrior.npc) === 1 && ELITE_KEYS.has(normalize(warrior.name)));
-      return enemy ? String(enemy.name) : null;
+      if (!battle) return null;
+      const source = battle.warriorsList || battle.warriors || battle.fighters || {};
+      const warriors = source instanceof Map ? [...source.values()] : Array.isArray(source) ? source : Object.values(source);
+      const enemy = warriors.find(warrior => {
+        const data = warrior?.d || warrior?.data || warrior;
+        const name = data?.name || data?.nick;
+        const npc = data?.npc;
+        return name && (npc === true || Number(npc) === 1) && ELITE_KEYS.has(normalize(name));
+      });
+      const data = enemy?.d || enemy?.data || enemy;
+      return data?.name || data?.nick ? String(data.name || data.nick) : null;
     }
 
     function inventory() {
@@ -164,7 +171,7 @@ export default {
     const timer = window.setInterval(() => {
       const elite = battleElite();
       if (elite && !trackedBattle) trackedBattle = { elite, before: inventory() };
-      if (wasBattle && !elite && trackedBattle) window.setTimeout(() => { if (trackedBattle) finishTracking(); }, 650);
+      if (wasBattle && !elite && trackedBattle) window.setTimeout(() => { if (trackedBattle) finishTracking(); }, 1800);
       wasBattle = Boolean(elite);
     }, 350);
 
