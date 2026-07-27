@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Margonem — Asystent Aukcji
 // @namespace    krol-yss.margonem.auction-assistant
-// @version      2.0.7
+// @version      2.0.8
 // @description  Automatycznie pobiera ceny przedmiotu wybranego do sprzedaży bez otwierania listy aukcji.
 // @author       Król Yss
 // @match        https://*.margonem.pl/*
@@ -17,7 +17,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "2.0.7";
+  const VERSION = "2.0.8";
   const PANEL_ID = "kyaa-panel";
   const STYLE_ID = "kyaa-style";
   const UNDERCUT_ENABLED_KEY = "kyaa-undercut-enabled";
@@ -480,7 +480,7 @@
     style.textContent = `
       #${PANEL_ID}.c-window{display:block!important;visibility:visible!important;position:fixed!important;z-index:100!important;width:286px!important;height:298px!important;box-sizing:border-box;background:transparent!important;border-radius:12px!important;color:#fff;font:12.8px/16.64px Arimo,Calibri,"Segoe UI",Arial,sans-serif;filter:drop-shadow(0 3px 5px #000)}
       #${PANEL_ID} *{box-sizing:border-box}
-      #${PANEL_ID}>.kyaa-panel-bg{position:absolute;z-index:-1;inset:-13px;border-radius:7px;background:#1d1210;pointer-events:none}
+      #${PANEL_ID}>.kyaa-panel-bg{position:absolute;z-index:-100;inset:-13px;border-radius:7px;background:#1d1210;pointer-events:none}
       #${PANEL_ID}>.content{position:absolute;z-index:1;inset:0;width:auto!important;height:auto!important;padding:22px 10px 8px!important;background:transparent!important;color:#fff;overflow:hidden}
       #${PANEL_ID}>.content:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(255,255,255,.025),transparent 20%,transparent 80%,rgba(0,0,0,.18));pointer-events:none}
       #${PANEL_ID} .inner-content{position:relative!important;width:100%!important;height:100%!important;color:#fff!important}

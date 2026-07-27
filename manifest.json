@@ -1,6 +1,6 @@
 {
   "name": "YssPack",
-  "version": "0.9.7",
+  "version": "0.9.8",
   "author": "Król Yss",
   "modules": [
     {
@@ -20,7 +20,7 @@
     {
       "id": "auction-assistant",
       "name": "Asystent Aukcji",
-      "version": "2.0.7",
+      "version": "2.0.8",
       "file": "modules/auction-assistant.js",
       "description": "Automatycznie pobiera ceny przedmiotu bez otwierania listy aukcji."
     },
