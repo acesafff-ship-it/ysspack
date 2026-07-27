@@ -4,7 +4,7 @@ if (!host || document.querySelector('#ysspack')) {
   throw new Error('[YssPack] Loader nie jest aktywny albo panel został już uruchomiony.');
 }
 
-const PACK_VERSION = '0.9.14';
+const PACK_VERSION = '0.10.0';
 const STORAGE_PREFIX = 'ysspack_';
 const today = new Date();
 const moduleCacheKey = [today.getFullYear(), String(today.getMonth() + 1).padStart(2, '0'), String(today.getDate()).padStart(2, '0')].join('');
@@ -58,14 +58,24 @@ launcher.innerHTML = `<img src="${logoUrl}" alt="">`;
 
 const panel = document.createElement('section');
 panel.id = 'ysspack';
+panel.className = 'c-window border-window';
 panel.innerHTML = `
-  <header class="mhp-header">
-    <div class="mhp-brand"><img class="mhp-brand-logo" src="${logoUrl}" alt="YssPack"><small>v${PACK_VERSION}</small></div>
-    <button class="mhp-close" type="button" aria-label="Zamknij">X</button>
-  </header>
-  <div class="mhp-toolbar"><input class="mhp-search" type="search" placeholder="Szukaj dodatku..."></div>
-  <div class="mhp-list"></div>
-  <footer class="mhp-footer">Autor: Król Yss • ustawienia są zapisywane lokalnie</footer>`;
+  <div class="header-label-positioner mhp-drag-handle">
+    <div class="header-label">
+      <div class="left-decor"></div><div class="right-decor"></div>
+      <div class="text">Dodatki YSS</div>
+    </div>
+  </div>
+  <div class="content"><div class="inner-content">
+    <header class="mhp-header">
+      <div class="mhp-brand"><img class="mhp-brand-logo" src="${logoUrl}" alt="YssPack"><small>v${PACK_VERSION}</small></div>
+      <button class="mhp-close" type="button" aria-label="Zamknij">×</button>
+    </header>
+    <div class="mhp-toolbar"><input class="mhp-search" type="search" placeholder="Szukaj dodatku..."></div>
+    <div class="mhp-list"></div>
+    <footer class="mhp-footer">Autor: Król Yss • ustawienia są zapisywane lokalnie</footer>
+  </div></div>
+  <div class="c-window__bottom-bar"><div class="interface-element-bottom-bar-background-stretch"></div></div>`;
 
 document.body.append(launcher, panel);
 
@@ -83,7 +93,7 @@ modules.forEach(module => { if (isEnabled(module.id)) startModule(module); });
 
 search.addEventListener('input', renderModules);
 panel.querySelector('.mhp-close').addEventListener('click', () => setPanelOpen(false));
-bindDrag(panel, panel.querySelector('.mhp-header'), 'panel_position');
+bindDrag(panel, panel.querySelector('.mhp-drag-handle'), 'panel_position');
 bindLauncher();
 
 document.yssPack.api = {

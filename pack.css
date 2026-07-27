@@ -7,189 +7,223 @@
   display: none !important;
 }
 
-#ysspack {
-  position: fixed;
-  z-index: 2147483600;
-  width: 560px;
+#ysspack.c-window {
+  position: fixed !important;
+  z-index: 2147483600 !important;
+  display: block !important;
+  visibility: visible !important;
+  width: 520px !important;
+  height: min(650px, calc(100vh - 24px)) !important;
   max-width: calc(100vw - 24px);
-  max-height: min(650px, calc(100vh - 24px));
-  padding: 7px 10px 8px;
-  overflow: hidden;
-  border: 2px solid #080808;
-  outline: 1px solid #a3926d;
-  background: #11100e;
-  color: #e9e2d4;
-  box-shadow: 0 0 0 3px #24211d, 0 12px 35px #000, inset 0 0 0 1px #574d3d;
-  font: 12px/16px Verdana, Arial, sans-serif;
+  color: #fff;
+  background-color: transparent !important;
+  background-image: linear-gradient(#1d1210, #1d1210) !important;
+  background-origin: border-box !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-size: calc(100% - 20px) calc(100% - 20px) !important;
+  background-clip: border-box !important;
+  border-radius: 12px !important;
+  filter: drop-shadow(0 4px 7px #000);
+  font: 12px/16px Arimo, Calibri, "Segoe UI", Arial, sans-serif;
 }
 
-#ysspack::before,
-#ysspack::after {
-  content: '';
+#ysspack > .content {
+  position: absolute !important;
+  z-index: 1;
+  inset: 0 !important;
+  width: auto !important;
+  height: auto !important;
+  padding: 25px 15px 13px !important;
+  overflow: hidden !important;
+  color: #fff !important;
+  background: transparent !important;
+}
+
+#ysspack > .content::before {
   position: absolute;
-  z-index: 2;
-  top: -2px;
-  bottom: -2px;
-  width: 7px;
+  inset: 0;
+  content: "";
   pointer-events: none;
-  background: linear-gradient(90deg, #111, #a79a82 34%, #3a352d 48%, #090909 100%);
+  background: linear-gradient(90deg, rgba(255,255,255,.025), transparent 18%, transparent 82%, rgba(0,0,0,.18));
 }
 
-#ysspack::before { left: -2px; }
-#ysspack::after { right: -2px; transform: scaleX(-1); }
+#ysspack .inner-content {
+  position: relative !important;
+  display: flex;
+  flex-direction: column;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0;
+}
+
+#ysspack .header-label-positioner {
+  z-index: 5;
+  cursor: move;
+  user-select: none;
+  touch-action: none;
+}
+
+#ysspack .header-label .text {
+  color: #ead9c0 !important;
+  text-shadow: 1px 1px #000;
+  white-space: nowrap;
+}
 
 .mhp-header {
   display: flex;
+  flex: 0 0 39px;
   align-items: center;
   justify-content: space-between;
-  min-height: 49px;
-  padding: 2px 10px;
-  border: 1px solid #15120e;
-  border-bottom: 2px solid #79623a;
-  box-shadow: inset 0 1px #8d7250, inset 0 -1px #100b07;
-  background: repeating-linear-gradient(0deg, rgba(255,255,255,.025) 0 1px, transparent 1px 4px), linear-gradient(#654323 0%, #3d2718 44%, #22150e 52%, #3c2818 100%);
-  color: #f4db77;
-  cursor: move;
-  user-select: none;
+  padding: 1px 3px 4px;
+  border-bottom: 1px solid #665a4b;
 }
 
 .mhp-brand {
   display: flex;
   align-items: center;
-  gap: 7px;
   min-width: 0;
 }
 
 .mhp-brand-logo {
   display: block;
-  width: 104px;
-  height: 44px;
+  width: 94px;
+  height: 34px;
   object-fit: contain;
-  image-rendering: auto;
   filter: drop-shadow(0 1px 2px #000);
   pointer-events: none;
 }
 
-.mhp-header strong {
-  display: block;
-  text-shadow: 1px 1px #100b06;
-}
-
-.mhp-header small {
-  margin-left: 6px;
-  color: #b9aa91;
+.mhp-brand small {
+  margin-left: 7px;
+  color: #b8aa96;
   font-size: 9px;
-}
-
-.mhp-close,
-.mhp-settings-button {
-  border: 1px solid #0c0d0d;
-  border-radius: 7px;
-  background: linear-gradient(to top, #321411, #6a2d27);
-  box-shadow: inset 0 0 1px 1px #cecece, inset 0 0 0 3px #0c0d0d;
-  color: #f0d7cf;
-  cursor: pointer;
+  text-shadow: 1px 1px #000;
 }
 
 .mhp-close {
+  display: flex;
   width: 27px;
   height: 27px;
-  font-weight: bold;
+  padding: 0;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #0c0d0d;
+  border-radius: 6px;
+  background: linear-gradient(to top, #321411, #6a2d27);
+  box-shadow: inset 0 0 1px 1px #cecece, inset 0 0 0 3px #0c0d0d;
+  color: #f0d7cf;
+  font: bold 18px/1 Arial, sans-serif;
+  cursor: pointer;
 }
 
 .mhp-toolbar {
-  padding: 7px 5px;
-  border: 1px solid #544630;
-  border-top: 0;
-  background: linear-gradient(#131210, #0a0a09);
+  flex: 0 0 43px;
+  padding: 7px 4px;
+  border-bottom: 1px solid #665a4b;
 }
 
 .mhp-search {
   width: 100%;
-  height: 29px;
+  height: 28px;
   padding: 0 9px;
-  border: 2px inset #655b49;
-  background: #0b0b0a;
-  color: #eee9dc;
-  outline: none;
+  border: 1px solid #6d5133;
+  border-radius: 4px;
+  outline: 0;
+  background: #120d0a;
+  color: #eadfce;
+  box-shadow: inset 0 0 0 1px #080604;
+  font: 11px Arimo, Calibri, "Segoe UI", Arial, sans-serif;
+}
+
+.mhp-search:focus {
+  border-color: #a47b43;
 }
 
 .mhp-list {
-  max-height: 516px;
+  min-height: 0;
+  flex: 1 1 auto;
   overflow: auto;
-  padding: 7px 5px;
-  border-left: 1px solid #443a2b;
-  border-right: 1px solid #443a2b;
-  background: radial-gradient(circle at top, rgba(100, 85, 60, .09), transparent 45%), #11110f;
+  padding: 7px 4px 2px;
+  scrollbar-color: #725b3d #160f0c;
   scrollbar-width: thin;
-  scrollbar-color: #776d5e #171614;
 }
 
 .mhp-card {
   margin-bottom: 6px;
-  border: 1px solid #625941;
-  box-shadow: 0 0 0 1px #080808, inset 0 1px rgba(255,255,255,.06), inset 0 -10px 14px rgba(0,0,0,.45);
-  background: linear-gradient(90deg, #25241e 0, #181714 52%, #10100e 100%);
+  border: 1px solid #6d5133;
+  background: linear-gradient(135deg, rgba(31,21,14,.98), rgba(14,11,9,.99));
+  box-shadow: inset 0 0 0 1px #0b0806;
 }
 
 .mhp-card.enabled {
-  border-color: #7a9860;
-  box-shadow: 0 0 0 1px #080808, 0 0 5px rgba(112, 166, 75, .32), inset 0 1px rgba(218,255,180,.12), inset 0 -10px 14px rgba(0,0,0,.45);
+  border-color: #718f55;
+  box-shadow: inset 0 0 0 1px #0b0806, 0 0 5px rgba(105,160,67,.25);
 }
 
 .mhp-card-main {
   display: grid;
-  grid-template-columns: 38px minmax(0, 1fr) auto auto;
-  gap: 8px;
-  align-items: center;
   min-height: 57px;
   padding: 6px;
+  align-items: center;
+  gap: 8px;
+  grid-template-columns: 38px minmax(0, 1fr) auto auto;
 }
 
 .mhp-icon {
   display: flex;
-  align-items: center;
-  justify-content: center;
   width: 38px;
   height: 38px;
-  border: 1px solid #8a7957;
-  box-shadow: inset 0 0 0 2px #10100e;
-  background: #11110f;
-  color: #f0cf69;
-  font-size: 20px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #73552f;
+  background: #100c09;
+  box-shadow: inset 0 0 0 1px #050403;
+  color: #efd27f;
+  font-size: 19px;
   text-shadow: 1px 1px #000;
 }
 
 .mhp-name {
-  color: #f1df9c;
+  overflow: hidden;
+  color: #ffd75c;
   font-weight: bold;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .mhp-name small {
-  color: #9d978a;
+  color: #9f927f;
   font-size: 9px;
   font-weight: normal;
 }
 
 .mhp-description {
   margin-top: 2px;
-  color: #bdb6a7;
+  color: #cdbb9d;
   font-size: 10px;
   line-height: 13px;
 }
 
 .mhp-settings-button {
-  width: 29px;
-  height: 29px;
-  background: linear-gradient(#55534a, #292a26 52%, #1d1e1b 53%, #34342f);
-  color: #e8dfc9;
-  font-size: 15px;
+  display: flex;
+  width: 28px;
+  height: 24px;
+  padding: 0;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #6d5133;
+  border-radius: 4px;
+  background: linear-gradient(#43372b, #1a130e);
+  color: #e8d9c1;
+  font-size: 13px;
+  cursor: pointer;
 }
 
 .mhp-switch {
   position: relative;
-  width: 48px;
-  height: 26px;
+  width: 46px;
+  height: 24px;
   cursor: pointer;
 }
 
@@ -202,40 +236,41 @@
 .mhp-switch span {
   position: absolute;
   inset: 0;
-  border: 2px ridge #655f55;
-  border-radius: 13px;
-  background: #341b18;
+  border: 1px solid #6d5133;
+  border-radius: 12px;
+  background: #2b1714;
   box-shadow: inset 0 0 5px #000;
 }
 
 .mhp-switch span::after {
-  content: '';
   position: absolute;
   top: 3px;
   left: 4px;
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: #c6bca9;
+  background: #aa9d88;
   box-shadow: 0 1px 3px #000;
+  content: "";
   transition: left .12s ease, background .12s ease;
 }
 
 .mhp-switch input:checked + span {
-  background: #294c21;
+  border-color: #6a8e50;
+  background: #204619;
 }
 
 .mhp-switch input:checked + span::after {
   left: 24px;
-  background: #8fe66e;
+  background: #8fda6d;
 }
 
 .mhp-settings {
   display: grid;
   gap: 8px;
-  padding: 9px 11px;
-  border-top: 2px ridge #554f45;
-  background: #121311;
+  padding: 8px 10px;
+  border-top: 1px solid #665a4b;
+  background: #120d0a;
 }
 
 .mhp-settings[hidden] {
@@ -247,36 +282,40 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  color: #d0c7b6;
+  color: #d8cabb;
   font-size: 10px;
 }
 
-.mhp-settings input[type='range'] {
+.mhp-settings input[type="range"] {
   width: 150px;
+  accent-color: #4c942f;
 }
 
-.mhp-settings input[type='color'] {
+.mhp-settings input[type="color"] {
   width: 45px;
-  height: 27px;
+  height: 25px;
   padding: 1px;
-  border: 2px inset #70695d;
-  background: #111;
+  border: 1px solid #6d5133;
+  background: #120d0a;
 }
 
 .mhp-empty {
   padding: 20px;
-  color: #938c80;
+  color: #aa9d88;
   text-align: center;
 }
 
 .mhp-footer {
-  padding: 5px 9px;
-  border: 1px solid #655337;
-  border-top: 2px solid #271c12;
-  background: repeating-linear-gradient(0deg, rgba(255,255,255,.025) 0 1px, transparent 1px 4px), linear-gradient(#4f351e, #24170f);
-  color: #9f9788;
-  font-size: 9px;
+  flex: 0 0 27px;
+  padding: 6px 8px 4px;
+  border-top: 1px solid #665a4b;
+  color: #918574;
+  font-size: 8px;
   text-align: center;
+}
+
+#ysspack .c-window__bottom-bar {
+  pointer-events: none;
 }
 
 #mhp-launcher {
@@ -287,12 +326,9 @@
   height: 44px;
   padding: 0;
   border: 1px solid #0c0d0d;
-  border-radius: 4px;
-  background: linear-gradient(to top, #12210d, #396b29);
+  border-radius: 6px;
+  background: linear-gradient(to top, #183411, #41792f);
   box-shadow: inset 0 0 1px 1px #cecece, inset 0 0 0 3px #0c0d0d, 0 2px 5px #000;
-  color: #f5d85f;
-  font: bold 23px/40px Georgia, serif;
-  text-shadow: 1px 1px #000;
   cursor: grab;
   user-select: none;
   touch-action: none;
@@ -308,11 +344,10 @@
   height: 40px;
   margin: 1px;
   object-fit: contain;
-  image-rendering: auto;
   pointer-events: none;
 }
 
 #ysspack button:hover,
 #mhp-launcher:hover {
-  filter: brightness(1.18);
+  filter: brightness(1.16);
 }
