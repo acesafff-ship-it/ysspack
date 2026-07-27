@@ -32,7 +32,7 @@ function prepareSource(original) {
     window.removeEventListener("resize", queueUpdate);
     panel?.remove();
     document.getElementById(STYLE_ID)?.remove();
-    panel = itemLabel = statusLabel = searchButton = offersList = null;
+    panel = itemLabel = statusLabel = searchButton = offersList = undercutToggle = undercutInput = null;
     delete window.${FLAG_KEY};
     delete window.${CLEANUP_KEY};
   };
@@ -55,7 +55,7 @@ async function loadAndRun() {
 export default {
   id: 'auction-assistant',
   name: 'Asystent Aukcji',
-  version: '1.9.2',
+  version: '2.0.0',
   description: 'Automatycznie pobiera ceny przedmiotu bez otwierania listy aukcji.',
   icon: '⚖',
 

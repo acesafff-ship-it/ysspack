@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Margonem — Asystent Aukcji
 // @namespace    krol-yss.margonem.auction-assistant
-// @version      1.9.2
+// @version      2.0.0
 // @description  Automatycznie pobiera ceny przedmiotu wybranego do sprzedaży bez otwierania listy aukcji.
 // @author       Król Yss
 // @match        https://*.margonem.pl/*
@@ -17,9 +17,11 @@
 (() => {
   "use strict";
 
-  const VERSION = "1.9.2";
+  const VERSION = "2.0.0";
   const PANEL_ID = "kyaa-panel";
   const STYLE_ID = "kyaa-style";
+  const UNDERCUT_ENABLED_KEY = "kyaa-undercut-enabled";
+  const UNDERCUT_PERCENT_KEY = "kyaa-undercut-percent";
   const itemNameCache = new Map();
 
   let panel = null;
@@ -27,14 +29,37 @@
   let statusLabel = null;
   let searchButton = null;
   let offersList = null;
+  let undercutToggle = null;
+  let undercutInput = null;
   let activeSelection = null;
   let lastOffers = [];
+  let undercutEnabled = readSetting(UNDERCUT_ENABLED_KEY, "0") === "1";
+  let undercutPercent = clampPercent(readSetting(UNDERCUT_PERCENT_KEY, "10"));
+  let lastAppliedPriceKey = "";
   let lastLookupKey = "";
   let lookupSequence = 0;
   let lookupTimer = 0;
   let iconHydrationTimer = 0;
   let queued = false;
   let running = false;
+
+  function readSetting(key, fallback) {
+    try {
+      return localStorage.getItem(key) ?? fallback;
+    } catch (_) {
+      return fallback;
+    }
+  }
+
+  function writeSetting(key, value) {
+    try {
+      localStorage.setItem(key, String(value));
+    } catch (_) {}
+  }
+
+  function clampPercent(value) {
+    return Math.max(1, Math.min(30, Math.round(Number(value) || 10)));
+  }
 
   function normalize(value) {
     return String(value || "")
@@ -260,6 +285,25 @@
     });
   }
 
+  function applyUndercutPrice(offers, selection = activeSelection) {
+    if (!undercutEnabled || !selection || !getSellWindow()) return null;
+    const current = readSelection();
+    if (!current || (selection.id && current.id !== selection.id)) return null;
+    const cheapest = offers.find((offer) =>
+      offer.type === "Kup teraz" &&
+      Number.isFinite(offer.priceValue) &&
+      offer.priceValue > 0
+    );
+    const input = getSellWindow()?.querySelector(".auction-buy-now input");
+    if (!cheapest || !input) return null;
+    const price = Math.max(500, Math.floor(cheapest.priceValue * (100 - undercutPercent) / 100));
+    const applyKey = `${selection.id || selection.templateId}:${cheapest.auctionId}:${undercutPercent}:${price}`;
+    if (applyKey === lastAppliedPriceKey) return price;
+    setInput(input, price);
+    lastAppliedPriceKey = applyKey;
+    return price;
+  }
+
   async function showAuctionsList() {
     const selection = readSelection() || activeSelection;
     if (!selection) return setStatus("Najpierw wybierz przedmiot.", "#ff8b8b");
@@ -401,7 +445,13 @@
       const offers = await requestOffers(selection.name);
       if (sequence !== lookupSequence) return;
       renderOffers(offers);
-      setStatus(offers.length ? `Znaleziono ${offers.length} najtańszych ofert.` : "Brak ofert dla tego przedmiotu.", offers.length ? "#bfe38a" : "#d8cabb");
+      const suggestedPrice = applyUndercutPrice(offers, selection);
+      setStatus(
+        suggestedPrice
+          ? `Ustawiono ${formatGold(suggestedPrice)} (-${undercutPercent}%).`
+          : offers.length ? `Znaleziono ${offers.length} najtańszych ofert.` : "Brak ofert dla tego przedmiotu.",
+        suggestedPrice || offers.length ? "#bfe38a" : "#d8cabb"
+      );
     } catch (error) {
       if (sequence !== lookupSequence) return;
       console.warn("[Asystent Aukcji]", error);
@@ -428,7 +478,7 @@
     const style = document.createElement("style");
     style.id = STYLE_ID;
     style.textContent = `
-      #${PANEL_ID}.c-window{display:block!important;visibility:visible!important;position:fixed!important;z-index:100!important;width:286px!important;height:260px!important;box-sizing:border-box;background:#1d1210!important;background-clip:border-box!important;background-origin:border-box!important;border-radius:12px!important;color:#fff;font:12.8px/16.64px Arimo,Calibri,"Segoe UI",Arial,sans-serif;filter:drop-shadow(0 3px 5px #000)}
+      #${PANEL_ID}.c-window{display:block!important;visibility:visible!important;position:fixed!important;z-index:100!important;width:286px!important;height:298px!important;box-sizing:border-box;background:#1d1210!important;background-clip:border-box!important;background-origin:border-box!important;border-radius:12px!important;color:#fff;font:12.8px/16.64px Arimo,Calibri,"Segoe UI",Arial,sans-serif;filter:drop-shadow(0 3px 5px #000)}
       #${PANEL_ID} *{box-sizing:border-box}
       #${PANEL_ID}>.content{position:absolute;inset:0;width:auto!important;height:auto!important;padding:22px 10px 8px!important;background:#1d1210!important;color:#fff;overflow:hidden}
       #${PANEL_ID}>.content:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(255,255,255,.025),transparent 20%,transparent 80%,rgba(0,0,0,.18));pointer-events:none}
@@ -440,8 +490,11 @@
       #${PANEL_ID} .kyaa-search.button{display:block;width:100%!important;height:28px!important;margin:0 auto 4px;line-height:24px;cursor:pointer}
       #${PANEL_ID} .kyaa-search.button .label{width:100%;text-align:center;font-size:11px;font-weight:bold;color:#e6d6bf}
       #${PANEL_ID} .kyaa-search.button.disabled{filter:grayscale(1);opacity:.55;cursor:not-allowed}
+      #${PANEL_ID} .kyaa-undercut{display:flex;height:30px;margin-top:5px;padding:4px 6px;align-items:center;justify-content:center;gap:5px;border-top:1px solid #665a4b;color:#d8cabb;font-size:9px}
+      #${PANEL_ID} .kyaa-undercut input[type="checkbox"]{width:14px;height:14px;margin:0;accent-color:#4c942f;cursor:pointer}
+      #${PANEL_ID} .kyaa-undercut-percent{width:38px;height:20px;padding:1px 3px;border:1px solid #6d5133;border-radius:3px;background:#120d0a;color:#ffd75c;text-align:center;font:10px Arimo,Arial,sans-serif}
       #${PANEL_ID} .kyaa-status{height:30px;margin-top:7px;padding:4px 6px 0;border-top:1px solid #665a4b;background:transparent;color:#d8cabb;text-align:center;font-size:10px;line-height:12px;overflow:hidden}
-      #${PANEL_ID}.kyaa-has-offers{height:520px!important}
+      #${PANEL_ID}.kyaa-has-offers{height:558px!important}
       #${PANEL_ID}.kyaa-has-offers>.content{padding-bottom:10px!important}
       #${PANEL_ID} .kyaa-offers{margin-top:5px;border:1px solid #6d5133;background:linear-gradient(135deg,rgba(31,21,14,.98),rgba(14,11,9,.99));box-shadow:inset 0 0 0 1px #0b0806}
       #${PANEL_ID} .kyaa-offers-title{height:24px;padding:4px 7px;border-bottom:1px solid #6d5133;color:#efd27f;font-size:10px;font-weight:bold;text-shadow:1px 1px #000}
@@ -482,6 +535,7 @@
         <div class="kyaa-item">Wybierz przedmiot</div>
         <div class="kyaa-search kyaa-open button small green"><div class="background"></div><div class="label">Pokaż aukcje</div></div>
         <div class="kyaa-search kyaa-refresh button small green"><div class="background"></div><div class="label">Odśwież ceny</div></div>
+        <label class="kyaa-undercut"><input class="kyaa-undercut-toggle" type="checkbox">Obniż automatycznie o <input class="kyaa-undercut-percent" type="number" min="1" max="30" step="1">%</label>
         <div class="kyaa-status">Po wybraniu przedmiotu ceny zostaną pobrane automatycznie.</div>
         <div class="kyaa-offers" hidden><div class="kyaa-offers-title">Najtańsze aktualne oferty</div><div class="kyaa-offers-list"></div></div>
         <div class="kyaa-credits">
@@ -495,8 +549,31 @@
     statusLabel = panel.querySelector(".kyaa-status");
     searchButton = panel.querySelector(".kyaa-refresh");
     offersList = panel.querySelector(".kyaa-offers-list");
+    undercutToggle = panel.querySelector(".kyaa-undercut-toggle");
+    undercutInput = panel.querySelector(".kyaa-undercut-percent");
+    undercutToggle.checked = undercutEnabled;
+    undercutInput.value = String(undercutPercent);
     panel.querySelector(".kyaa-open").addEventListener("click", showAuctionsList);
     searchButton.addEventListener("click", () => checkPrices(readSelection() || activeSelection, true));
+    undercutToggle.addEventListener("change", () => {
+      undercutEnabled = undercutToggle.checked;
+      writeSetting(UNDERCUT_ENABLED_KEY, undercutEnabled ? "1" : "0");
+      lastAppliedPriceKey = "";
+      if (undercutEnabled && lastOffers.length) {
+        const price = applyUndercutPrice(lastOffers);
+        if (price) setStatus(`Ustawiono ${formatGold(price)} (-${undercutPercent}%).`, "#bfe38a");
+      }
+    });
+    undercutInput.addEventListener("change", () => {
+      undercutPercent = clampPercent(undercutInput.value);
+      undercutInput.value = String(undercutPercent);
+      writeSetting(UNDERCUT_PERCENT_KEY, undercutPercent);
+      lastAppliedPriceKey = "";
+      if (undercutEnabled && lastOffers.length) {
+        const price = applyUndercutPrice(lastOffers);
+        if (price) setStatus(`Ustawiono ${formatGold(price)} (-${undercutPercent}%).`, "#bfe38a");
+      }
+    });
     offersList.addEventListener("click", (event) => {
       const button = event.target.closest(".kyaa-buy[data-auction-id]");
       if (button) buyOffer(Number(button.dataset.auctionId));
@@ -523,7 +600,7 @@
       panel?.remove();
       clearTimeout(lookupTimer);
       clearTimeout(iconHydrationTimer);
-      panel = itemLabel = statusLabel = searchButton = offersList = null;
+      panel = itemLabel = statusLabel = searchButton = offersList = undercutToggle = undercutInput = null;
       return;
     }
     if (!panel) createPanel();
