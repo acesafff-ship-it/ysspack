@@ -19,7 +19,7 @@ const rarityOf = value => {
 export default {
   id: 'lootlog',
   name: 'LootLog',
-  version: '0.3.1',
+  version: '0.3.2',
   description: 'Samodzielnie zapisuje looty ze wszystkich potworów na dolnej belce gry.',
   icon: '✦',
 
@@ -35,6 +35,7 @@ export default {
     let trackedBattle = null;
     let wasBattle = false;
     let syncTimer = 0;
+    let finishTimer = 0;
 
     function clientId() {
       try {
@@ -157,7 +158,7 @@ export default {
       return state;
     }
 
-    function finishTracking() {
+    function finishTracking(force = false) {
       const after = inventory();
       const found = [];
       after.forEach((item, key) => {
@@ -167,17 +168,35 @@ export default {
         }
       });
       const distinct = [...new Map(found.map(item => [item.name + '|' + item.rarity, item])).values()];
+      if (!distinct.length && !force) return false;
       const newEntries = distinct.map(item => ({ elite: trackedBattle.elite, item: item.name, rarity: item.rarity, amount: item.amount, at: Date.now() }));
       newEntries.forEach(entry => entries.unshift(entry));
       if (distinct.length) { entries = entries.slice(0, 40); saveEntries(); render(); }
       newEntries.forEach(publish);
       trackedBattle = null;
+      if (finishTimer) window.clearInterval(finishTimer);
+      finishTimer = 0;
+      return distinct.length > 0;
+    }
+
+    function waitForLoot() {
+      if (finishTimer) return;
+      const deadline = Date.now() + 45000;
+      finishTimer = window.setInterval(() => {
+        if (!trackedBattle) {
+          window.clearInterval(finishTimer);
+          finishTimer = 0;
+          return;
+        }
+        if (finishTracking(false)) return;
+        if (Date.now() >= deadline) finishTracking(true);
+      }, 500);
     }
 
     const timer = window.setInterval(() => {
       const opponent = battleOpponent();
       if (opponent && !trackedBattle) trackedBattle = { elite: opponent, before: inventory() };
-      if (wasBattle && !opponent && trackedBattle) window.setTimeout(() => { if (trackedBattle) finishTracking(); }, 1800);
+      if (wasBattle && !opponent && trackedBattle) waitForLoot();
       wasBattle = Boolean(opponent);
     }, 350);
 
@@ -186,6 +205,6 @@ export default {
     loadGlobalEntries();
     syncTimer = window.setInterval(loadGlobalEntries, 30000);
 
-    return () => { window.clearInterval(timer); window.clearInterval(syncTimer); root.remove(); style.remove(); };
+    return () => { window.clearInterval(timer); window.clearInterval(syncTimer); window.clearInterval(finishTimer); root.remove(); style.remove(); };
   }
 };

@@ -1,6 +1,6 @@
 {
   "name": "YssPack",
-  "version": "0.6.7",
+  "version": "0.6.8",
   "author": "Król Yss",
   "modules": [
     {
@@ -55,7 +55,7 @@
     {
       "id": "lootlog",
       "name": "LootLog",
-      "version": "0.3.1",
+      "version": "0.3.2",
       "file": "modules/lootlog.js",
       "description": "Samodzielnie zapisuje looty ze wszystkich potworów na dolnej belce gry."
     }
