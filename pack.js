@@ -4,7 +4,7 @@ if (!host || document.querySelector('#ysspack')) {
   throw new Error('[YssPack] Loader nie jest aktywny albo panel został już uruchomiony.');
 }
 
-const PACK_VERSION = '0.12.0';
+const PACK_VERSION = '0.12.1';
 const STORAGE_PREFIX = 'ysspack_';
 const today = new Date();
 const moduleCacheKey = [today.getFullYear(), String(today.getMonth() + 1).padStart(2, '0'), String(today.getDate()).padStart(2, '0')].join('');
@@ -92,6 +92,7 @@ document.body.append(launcher, panel);
 
 const list = panel.querySelector('.mhp-list');
 const search = panel.querySelector('.mhp-search');
+let selectedModuleId = read('selected_module', modules[0]?.id || '');
 const savedPanelPosition = read('panel_position', null);
 const savedLauncherPosition = read('launcher_position', null);
 
@@ -146,7 +147,7 @@ function renderModules() {
     const enabled = isEnabled(module.id);
     const hasSettings = Array.isArray(module.settings) && module.settings.length > 0;
     return `
-      <article class="mhp-card one-addon-on-list${enabled ? ' enabled' : ''}" data-module-id="${escapeHtml(module.id)}">
+      <article class="mhp-card one-addon-on-list${enabled ? ' enabled' : ''}${selectedModuleId === module.id ? ' selected' : ''}" data-module-id="${escapeHtml(module.id)}">
         <div class="mhp-icon-wrapper">
           <img class="mhp-module-icon" src="${escapeHtml(moduleIconUrls[module.id] || logoUrl)}" alt="">
         </div>
@@ -165,6 +166,14 @@ function renderModules() {
   list.querySelectorAll('.mhp-card').forEach(card => {
     const module = modules.find(entry => entry.id === card.dataset.moduleId);
     if (!module) return;
+
+    card.addEventListener('click', event => {
+      if (event.target.closest('button, input, label')) return;
+      selectedModuleId = module.id;
+      write('selected_module', selectedModuleId);
+      list.querySelectorAll('.mhp-card.selected').forEach(entry => entry.classList.remove('selected'));
+      card.classList.add('selected');
+    });
 
     const toggle = card.querySelector('.mhp-toggle-button');
     toggle.addEventListener('click', () => {

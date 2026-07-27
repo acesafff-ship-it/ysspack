@@ -12,17 +12,13 @@
   z-index: 2147483600 !important;
   display: block !important;
   visibility: visible !important;
-  width: 390px !important;
+  width: 450px !important;
   height: min(505px, calc(100vh - 24px)) !important;
   max-width: calc(100vw - 24px);
   color: #fff;
-  background-color: transparent !important;
-  background-image: linear-gradient(#252525, #252525) !important;
-  background-origin: border-box !important;
-  background-position: center !important;
-  background-repeat: no-repeat !important;
-  background-size: calc(100% - 20px) calc(100% - 20px) !important;
-  background-clip: border-box !important;
+  border: 20px solid transparent !important;
+  border-image: url("assets/game-window-frame.png") 32 20 fill / 1 / 0 stretch !important;
+  background: transparent !important;
   border-radius: 12px !important;
   filter: drop-shadow(0 4px 7px #000);
   font: 12px/16px Arimo, Calibri, "Segoe UI", Arial, sans-serif;
@@ -37,7 +33,7 @@
   padding: 25px 15px 13px !important;
   overflow: hidden !important;
   color: #fff !important;
-  background: #252525 !important;
+  background: #282929 !important;
 }
 
 #ysspack > .content::before {
@@ -96,9 +92,10 @@
   flex: 0 0 36px;
   align-items: center;
   justify-content: center;
-  border: 1px solid #111;
-  background: linear-gradient(#777, #4b4b4b);
-  box-shadow: inset 0 0 0 1px #a1a1a1;
+  border: 5px solid #444;
+  border-image: url("assets/game-width-card-button.png") 5 fill / 1 / 0 repeat stretch;
+  background: transparent;
+  box-shadow: none;
   color: #111;
   font-size: 17px;
   text-shadow: 0 1px rgba(255,255,255,.25);
@@ -128,21 +125,24 @@
   overflow: auto;
   overscroll-behavior: contain;
   padding: 0;
-  background: #252525;
+  border-width: 0 11px;
+  border-style: solid;
+  border-image: url("assets/game-middle-graphics.png") 0 11 fill / 1 / 0 round;
+  background: #282929;
   scrollbar-color: #686868 #202020;
   scrollbar-width: thin;
 }
 
 .mhp-card {
   display: grid !important;
-  grid-template-columns: 47px minmax(0, 1fr) auto auto;
+  grid-template-columns: 54px minmax(0, 1fr) auto auto;
   align-items: center;
   width: 100% !important;
   min-height: 68px;
   margin: 0 !important;
   border: 0;
   border-bottom: 1px solid #444;
-  background: #252525;
+  background: transparent;
   box-shadow: none;
   cursor: pointer;
 }
@@ -151,19 +151,24 @@
   background: rgb(32, 32, 32);
 }
 
+.mhp-card.selected {
+  background: linear-gradient(90deg, #454545, #303030);
+  box-shadow: inset 3px 0 #aaa;
+}
+
 .mhp-icon-wrapper {
   display: flex;
-  width: 47px;
+  width: 54px;
   min-height: 67px;
   align-items: center;
   justify-content: center;
-  padding: 5px 0 2px 5px;
+  padding: 5px 2px;
 }
 
 .mhp-module-icon {
   display: block;
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   object-fit: cover;
   image-rendering: pixelated;
   pointer-events: none;
@@ -171,7 +176,7 @@
 
 .mhp-card-copy {
   min-width: 0;
-  padding: 6px 8px;
+  padding: 7px 10px 7px 4px;
   text-align: left;
 }
 
@@ -218,7 +223,7 @@
 
 .mhp-toggle-button.button {
   display: flex !important;
-  width: 82px !important;
+  width: 76px !important;
   height: 26px !important;
   margin-right: 6px;
   align-items: center !important;
@@ -287,7 +292,7 @@
   flex: 0 0 35px;
   padding: 5px 8px 3px;
   border-top: 1px solid #444;
-  background: #252525;
+  background: #282929;
   color: #918574;
   font-size: 8px;
   line-height: 12px;
