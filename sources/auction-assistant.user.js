@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Margonem — Asystent Aukcji
 // @namespace    krol-yss.margonem.auction-assistant
-// @version      1.8.0
+// @version      1.9.0
 // @description  Automatycznie pobiera ceny przedmiotu wybranego do sprzedaży bez otwierania listy aukcji.
 // @author       Król Yss
 // @match        https://*.margonem.pl/*
@@ -17,7 +17,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "1.8.0";
+  const VERSION = "1.9.0";
   const PANEL_ID = "kyaa-panel";
   const STYLE_ID = "kyaa-style";
   const itemNameCache = new Map();
@@ -339,7 +339,7 @@
       ? offers.map((offer, index) => `
           <div class="kyaa-offer">
             <span class="kyaa-rank">${index + 1}.</span>
-            <span class="kyaa-offer-icon">${offer.itemId ? `<canvas width="32" height="32" data-item-id="${offer.itemId}"></canvas>` : "?"}</span>
+            <span class="kyaa-offer-icon" data-item-id="${offer.itemId || ""}">${offer.itemId ? "" : "?"}</span>
             <span class="kyaa-offer-price">${escapeHtml(offer.price)}</span>
             ${offer.type === "Kup teraz" && offer.auctionId
               ? `<span class="kyaa-buy button small green" data-auction-id="${offer.auctionId}"><span class="background"></span><span class="label">Kup teraz</span></span>`
@@ -356,18 +356,22 @@
     clearTimeout(iconHydrationTimer);
     if (!offersList) return;
     let pending = false;
-    for (const target of offersList.querySelectorAll("canvas[data-item-id]")) {
+    for (const target of offersList.querySelectorAll(".kyaa-offer-icon[data-item-id]")) {
+      if (target.querySelector(".item")) continue;
       const item = itemDataById(Number(target.dataset.itemId));
-      const source = item?.$canvasIcon?.[0] || item?.ctx?.canvas;
-      if (!source || !source.width || !source.height) {
+      if (!item?.imgLoaded || typeof window.Engine?.items?.createViewIcon !== "function") {
         pending = true;
         continue;
       }
       try {
-        const context = target.getContext("2d");
-        context.clearRect(0, 0, target.width, target.height);
-        context.drawImage(source, 0, 0, target.width, target.height);
-        if (!item?.imgLoaded) pending = true;
+        const view = window.Engine.items.createViewIcon(Number(target.dataset.itemId));
+        const element = view?.[0]?.[0];
+        if (!element) {
+          pending = true;
+          continue;
+        }
+        target.replaceChildren(element);
+        element.classList.add("kyaa-game-item");
       } catch (_) {
         pending = true;
       }
@@ -437,15 +441,16 @@
       #${PANEL_ID} .kyaa-search.button .label{width:100%;text-align:center;font-size:11px;font-weight:bold;color:#e6d6bf}
       #${PANEL_ID} .kyaa-search.button.disabled{filter:grayscale(1);opacity:.55;cursor:not-allowed}
       #${PANEL_ID} .kyaa-status{height:30px;margin-top:7px;padding:4px 6px 0;border-top:1px solid #665a4b;background:transparent;color:#d8cabb;text-align:center;font-size:10px;line-height:12px;overflow:hidden}
-      #${PANEL_ID}.kyaa-has-offers{height:500px!important}
+      #${PANEL_ID}.kyaa-has-offers{height:520px!important}
       #${PANEL_ID}.kyaa-has-offers>.content{padding-bottom:10px!important}
       #${PANEL_ID} .kyaa-offers{margin-top:5px;border:1px solid #6d5133;background:linear-gradient(135deg,rgba(31,21,14,.98),rgba(14,11,9,.99));box-shadow:inset 0 0 0 1px #0b0806}
       #${PANEL_ID} .kyaa-offers-title{height:24px;padding:4px 7px;border-bottom:1px solid #6d5133;color:#efd27f;font-size:10px;font-weight:bold;text-shadow:1px 1px #000}
-      #${PANEL_ID} .kyaa-offer{display:grid;grid-template-columns:14px 32px 43px 70px 1fr;align-items:center;min-height:34px;padding:3px 5px;border-bottom:1px solid rgba(122,91,53,.32);font-size:9px;line-height:12px}
+      #${PANEL_ID} .kyaa-offer{display:grid;grid-template-columns:14px 34px 43px 70px 1fr;align-items:center;min-height:38px;padding:3px 5px;border-bottom:1px solid rgba(122,91,53,.32);font-size:9px;line-height:12px}
       #${PANEL_ID} .kyaa-offer:last-child{border-bottom:0}
       #${PANEL_ID} .kyaa-rank{color:#9c8c75}
-      #${PANEL_ID} .kyaa-offer-icon{display:flex;width:30px;height:30px;align-items:center;justify-content:center;border:1px solid #73552f;background:#100c09;color:#88765e;box-shadow:inset 0 0 0 1px #050403}
-      #${PANEL_ID} .kyaa-offer-icon canvas{display:block;width:28px;height:28px}
+      #${PANEL_ID} .kyaa-offer-icon{display:flex;width:34px;height:34px;align-items:center;justify-content:center;border:1px solid #73552f;background:#100c09;color:#88765e;box-shadow:inset 0 0 0 1px #050403}
+      #${PANEL_ID} .kyaa-offer-icon .item.kyaa-game-item{position:relative!important;inset:auto!important;display:block!important;width:32px!important;height:32px!important;margin:0!important}
+      #${PANEL_ID} .kyaa-offer-icon .item.kyaa-game-item canvas{display:block;width:32px!important;height:32px!important}
       #${PANEL_ID} .kyaa-offer-price{color:#ffd75c;font-weight:bold;text-align:right}
       #${PANEL_ID} .kyaa-offer-type{padding-left:7px;color:#cdbb9d}
       #${PANEL_ID} .kyaa-offer-time{color:#9fb9c4;text-align:right}
