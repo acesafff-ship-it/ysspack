@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Margonem — Asystent Aukcji
 // @namespace    krol-yss.margonem.auction-assistant
-// @version      2.0.1
+// @version      2.0.2
 // @description  Automatycznie pobiera ceny przedmiotu wybranego do sprzedaży bez otwierania listy aukcji.
 // @author       Król Yss
 // @match        https://*.margonem.pl/*
@@ -17,7 +17,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "2.0.1";
+  const VERSION = "2.0.2";
   const PANEL_ID = "kyaa-panel";
   const STYLE_ID = "kyaa-style";
   const UNDERCUT_ENABLED_KEY = "kyaa-undercut-enabled";
@@ -492,7 +492,11 @@
       #${PANEL_ID} .kyaa-search.button.disabled{filter:grayscale(1);opacity:.55;cursor:not-allowed}
       #${PANEL_ID} .kyaa-undercut{display:flex;height:30px;margin-top:5px;padding:4px 6px;align-items:center;justify-content:center;gap:5px;border-top:1px solid #665a4b;color:#d8cabb;font-size:9px}
       #${PANEL_ID} .kyaa-undercut input[type="checkbox"]{width:14px;height:14px;margin:0;accent-color:#4c942f;cursor:pointer}
-      #${PANEL_ID} .kyaa-undercut-percent{width:52px;height:22px;padding:1px 5px;border:1px solid #6d5133;border-radius:3px;background:#120d0a;color:#ffd75c;text-align:center;font:10px Arimo,Arial,sans-serif}
+      #${PANEL_ID} .kyaa-percent-control{display:flex;width:76px;height:24px;overflow:hidden;border:1px solid #6d5133;border-radius:4px;background:#120d0a}
+      #${PANEL_ID} .kyaa-undercut-percent{width:38px;height:22px;padding:1px 2px;border:0;background:#120d0a;color:#ffd75c;text-align:center;font:11px Arimo,Arial,sans-serif;outline:0}
+      #${PANEL_ID} .kyaa-percent-step{display:flex;width:18px;height:22px;padding:0;align-items:center;justify-content:center;border:0;background:linear-gradient(#b6aa98,#817361);color:#211810;font:bold 13px/1 Arial,sans-serif;cursor:pointer}
+      #${PANEL_ID} .kyaa-percent-step:hover{background:linear-gradient(#d2c5b1,#9a8a74);color:#0b0806}
+      #${PANEL_ID} .kyaa-percent-step:active{background:#6e6253}
       #${PANEL_ID} .kyaa-status{height:30px;margin-top:7px;padding:4px 6px 0;border-top:1px solid #665a4b;background:transparent;color:#d8cabb;text-align:center;font-size:10px;line-height:12px;overflow:hidden}
       #${PANEL_ID}.kyaa-has-offers{height:558px!important}
       #${PANEL_ID}.kyaa-has-offers>.content{padding-bottom:10px!important}
@@ -535,7 +539,7 @@
         <div class="kyaa-item">Wybierz przedmiot</div>
         <div class="kyaa-search kyaa-open button small green"><div class="background"></div><div class="label">Pokaż aukcje</div></div>
         <div class="kyaa-search kyaa-refresh button small green"><div class="background"></div><div class="label">Odśwież ceny</div></div>
-        <label class="kyaa-undercut"><input class="kyaa-undercut-toggle" type="checkbox">Obniż automatycznie o <input class="kyaa-undercut-percent" type="number" min="1" max="30" step="1">%</label>
+        <label class="kyaa-undercut"><input class="kyaa-undercut-toggle" type="checkbox">Obniż automatycznie o <span class="kyaa-percent-control"><button class="kyaa-percent-step kyaa-percent-down" type="button" aria-label="Zmniejsz procent">−</button><input class="kyaa-undercut-percent" type="text" inputmode="numeric" aria-label="Procent obniżki"><button class="kyaa-percent-step kyaa-percent-up" type="button" aria-label="Zwiększ procent">+</button></span>%</label>
         <div class="kyaa-status">Po wybraniu przedmiotu ceny zostaną pobrane automatycznie.</div>
         <div class="kyaa-offers" hidden><div class="kyaa-offers-title">Najtańsze aktualne oferty</div><div class="kyaa-offers-list"></div></div>
         <div class="kyaa-credits">
@@ -564,8 +568,8 @@
         if (price) setStatus(`Ustawiono ${formatGold(price)} (-${undercutPercent}%).`, "#bfe38a");
       }
     });
-    undercutInput.addEventListener("change", () => {
-      undercutPercent = clampPercent(undercutInput.value);
+    const updateUndercutPercent = (value) => {
+      undercutPercent = clampPercent(value);
       undercutInput.value = String(undercutPercent);
       writeSetting(UNDERCUT_PERCENT_KEY, undercutPercent);
       lastAppliedPriceKey = "";
@@ -573,7 +577,16 @@
         const price = applyUndercutPrice(lastOffers);
         if (price) setStatus(`Ustawiono ${formatGold(price)} (-${undercutPercent}%).`, "#bfe38a");
       }
+    };
+    undercutInput.addEventListener("change", () => {
+      updateUndercutPercent(undercutInput.value);
     });
+    panel.querySelector(".kyaa-percent-down").addEventListener("click", () => updateUndercutPercent(undercutPercent - 1));
+    panel.querySelector(".kyaa-percent-up").addEventListener("click", () => updateUndercutPercent(undercutPercent + 1));
+    panel.querySelector(".kyaa-percent-control").addEventListener("wheel", (event) => {
+      event.preventDefault();
+      updateUndercutPercent(undercutPercent + (event.deltaY < 0 ? 1 : -1));
+    }, { passive: false });
     offersList.addEventListener("click", (event) => {
       const button = event.target.closest(".kyaa-buy[data-auction-id]");
       if (button) buyOffer(Number(button.dataset.auctionId));
