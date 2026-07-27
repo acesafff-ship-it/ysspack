@@ -54,22 +54,25 @@
 }
 
 .mhp-layout {
-  display: grid;
-  grid-template-columns: 245px 283px;
+  position: relative;
   width: 528px;
   height: 100%;
 }
 
 .mhp-left-column,
 .mhp-right-column {
-  position: relative;
+  position: absolute;
+  top: -2px;
+  bottom: -5px;
   min-width: 0;
   min-height: 0;
 }
 
 .mhp-left-column {
+  left: -10px;
   display: flex;
   flex-direction: column;
+  width: 255px;
   border-width: 0 11px;
   border-style: solid;
   border-image: url("assets/game-middle-graphics.png") 0 11 fill / 1 / 0 round;
@@ -77,8 +80,10 @@
 }
 
 .mhp-right-column {
+  left: 245px;
   display: flex;
   flex-direction: column;
+  width: 292px;
   border-width: 0 11px;
   border-style: solid;
   border-image: url("assets/game-middle-graphics.png") 0 11 fill / 1 / 0 round;
