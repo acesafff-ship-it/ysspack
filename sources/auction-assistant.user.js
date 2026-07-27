@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Margonem — Asystent Aukcji
 // @namespace    krol-yss.margonem.auction-assistant
-// @version      2.0.0
+// @version      2.0.1
 // @description  Automatycznie pobiera ceny przedmiotu wybranego do sprzedaży bez otwierania listy aukcji.
 // @author       Król Yss
 // @match        https://*.margonem.pl/*
@@ -17,7 +17,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "2.0.0";
+  const VERSION = "2.0.1";
   const PANEL_ID = "kyaa-panel";
   const STYLE_ID = "kyaa-style";
   const UNDERCUT_ENABLED_KEY = "kyaa-undercut-enabled";
@@ -492,7 +492,7 @@
       #${PANEL_ID} .kyaa-search.button.disabled{filter:grayscale(1);opacity:.55;cursor:not-allowed}
       #${PANEL_ID} .kyaa-undercut{display:flex;height:30px;margin-top:5px;padding:4px 6px;align-items:center;justify-content:center;gap:5px;border-top:1px solid #665a4b;color:#d8cabb;font-size:9px}
       #${PANEL_ID} .kyaa-undercut input[type="checkbox"]{width:14px;height:14px;margin:0;accent-color:#4c942f;cursor:pointer}
-      #${PANEL_ID} .kyaa-undercut-percent{width:38px;height:20px;padding:1px 3px;border:1px solid #6d5133;border-radius:3px;background:#120d0a;color:#ffd75c;text-align:center;font:10px Arimo,Arial,sans-serif}
+      #${PANEL_ID} .kyaa-undercut-percent{width:52px;height:22px;padding:1px 5px;border:1px solid #6d5133;border-radius:3px;background:#120d0a;color:#ffd75c;text-align:center;font:10px Arimo,Arial,sans-serif}
       #${PANEL_ID} .kyaa-status{height:30px;margin-top:7px;padding:4px 6px 0;border-top:1px solid #665a4b;background:transparent;color:#d8cabb;text-align:center;font-size:10px;line-height:12px;overflow:hidden}
       #${PANEL_ID}.kyaa-has-offers{height:558px!important}
       #${PANEL_ID}.kyaa-has-offers>.content{padding-bottom:10px!important}
@@ -507,8 +507,8 @@
       #${PANEL_ID} .kyaa-offer-price{color:#ffd75c;font-weight:bold;text-align:right}
       #${PANEL_ID} .kyaa-offer-type{padding-left:7px;color:#cdbb9d}
       #${PANEL_ID} .kyaa-offer-time{color:#9fb9c4;text-align:right}
-      #${PANEL_ID} .kyaa-buy.button{display:block;width:66px!important;height:22px!important;margin-left:3px;line-height:18px;cursor:pointer}
-      #${PANEL_ID} .kyaa-buy.button .label{width:100%;text-align:center;color:#e6d6bf;font-size:8px;font-weight:bold;white-space:nowrap}
+      #${PANEL_ID} .kyaa-buy.button{display:flex!important;width:66px!important;height:22px!important;margin-left:3px;align-items:center!important;justify-content:center!important;line-height:18px;cursor:pointer}
+      #${PANEL_ID} .kyaa-buy.button .label{position:relative!important;inset:auto!important;display:flex!important;width:100%!important;height:100%!important;align-items:center!important;justify-content:center!important;padding:0!important;text-align:center!important;color:#e6d6bf;font-size:8px;font-weight:bold;line-height:1!important;white-space:nowrap}
       #${PANEL_ID} .kyaa-empty{padding:15px 8px;color:#aa9d88;text-align:center;font-size:10px}
       #${PANEL_ID} .kyaa-credits{margin-top:8px;padding-top:6px;border-top:1px solid #665a4b;color:#918574;text-align:center;font-size:8px;line-height:12px}
       #${PANEL_ID} .kyaa-credits a{color:#d8ba70;text-decoration:none}
