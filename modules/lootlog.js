@@ -19,7 +19,7 @@ const rarityOf = value => {
 export default {
   id: 'lootlog',
   name: 'LootLog',
-  version: '0.3.0',
+  version: '0.3.1',
   description: 'Samodzielnie zapisuje looty ze wszystkich potworów na dolnej belce gry.',
   icon: '✦',
 
@@ -113,6 +113,11 @@ export default {
     function battleOpponent() {
       const battle = window.Engine?.battle;
       if (!battle) return null;
+      try {
+        const enemies = typeof battle.getFlist2 === 'function' ? battle.getFlist2() : [];
+        const names = [...new Set((Array.isArray(enemies) ? enemies : []).map(enemy => String(enemy?.name || enemy?.nick || '').trim()).filter(Boolean))];
+        if (names.length) return names.length > 1 ? `${names[0]} +${names.length - 1}` : names[0];
+      } catch (_) { /* zapasowy odczyt poniżej */ }
       const source = battle.warriorsList || battle.warriors || battle.fighters || {};
       const warriors = source instanceof Map ? [...source.values()] : Array.isArray(source) ? source : Object.values(source);
       const enemies = warriors.map(warrior => {
@@ -146,7 +151,7 @@ export default {
         else if (collection && typeof collection === 'object') Object.entries(collection).forEach(([key, value]) => add(value, key));
       };
       sources.forEach(source => {
-        ['getDrawableList', 'getList', 'getAll'].forEach(method => { try { if (typeof source?.[method] === 'function') addCollection(source[method]()); } catch (_) {} });
+        ['getViews', 'getDrawableList', 'getList', 'getAll'].forEach(method => { try { if (typeof source?.[method] === 'function') addCollection(source[method]()); } catch (_) {} });
         addCollection(source); addCollection(source.items); addCollection(source.list); addCollection(source.data);
       });
       return state;
