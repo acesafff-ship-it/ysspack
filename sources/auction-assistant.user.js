@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Margonem — Asystent Aukcji
 // @namespace    krol-yss.margonem.auction-assistant
-// @version      1.6.2
+// @version      1.7.0
 // @description  Automatycznie pobiera ceny przedmiotu wybranego do sprzedaży bez otwierania listy aukcji.
 // @author       Król Yss
 // @match        https://*.margonem.pl/*
@@ -17,7 +17,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "1.6.2";
+  const VERSION = "1.7.0";
   const PANEL_ID = "kyaa-panel";
   const STYLE_ID = "kyaa-style";
   const itemNameCache = new Map();
@@ -229,8 +229,9 @@
         time: formatTime(offer?.time),
         amount: 1,
         itemId: Number(offer?.item_id) || null,
+        auctionId: Number(offer?.id) || null,
       };
-    }).filter(Boolean).sort((left, right) => left.priceValue - right.priceValue).slice(0, 6);
+    }).filter(Boolean).sort((left, right) => left.priceValue - right.priceValue).slice(0, 5);
   }
 
   function requestOffers(itemName) {
@@ -284,12 +285,49 @@
         setInput(auctionWindow.querySelector(`input[placeholder="${placeholder}"]`), "");
       }
       setInput(nameInput, selection.name);
+      const auctionSort = window.Engine?.auctions?.getAuctionSort?.();
+      if (auctionSort?.getSortType?.() !== 3 || auctionSort?.getSortOrder?.() !== 1) {
+        auctionSort?.callChangeSort?.(3);
+        await sleep(350);
+      }
+      if (auctionSort?.getSortType?.() !== 3 || auctionSort?.getSortOrder?.() !== 1) {
+        auctionSort?.callChangeSort?.(3);
+        await sleep(350);
+      }
       const refreshButton = findButton(auctionWindow.querySelector(".refresh-button-wrapper"), "Odśwież");
       if (!nativeClick(refreshButton)) throw new Error("Nie znaleziono przycisku Odśwież.");
       setStatus("Lista aukcji przedmiotu została otwarta.", "#bfe38a");
     } catch (error) {
       console.warn("[Asystent Aukcji]", error);
       setStatus(error?.message || "Nie udało się otworzyć aukcji.", "#ff8b8b");
+    }
+  }
+
+  function buyOffer(auctionId) {
+    const offer = lastOffers.find((entry) => entry.auctionId === auctionId);
+    if (!offer?.auctionId || offer.type !== "Kup teraz") return;
+    const itemName = activeSelection?.name || "ten przedmiot";
+    const question = `Kupić ${itemName} za ${offer.price}?`;
+    const perform = () => {
+      if (typeof window._g !== "function") {
+        setStatus("Silnik aukcji nie jest gotowy.", "#ff8b8b");
+        return;
+      }
+      setStatus("Kupuję przedmiot…", "#7fd7ff");
+      window._g(`ah&action=buyout&auction=${offer.auctionId}`, (response) => {
+        if (response?.alert) {
+          setStatus(String(response.alert), "#d8cabb");
+        } else {
+          setStatus("Przedmiot został kupiony.", "#bfe38a");
+        }
+        lastLookupKey = "";
+        setTimeout(() => checkPrices(activeSelection, true), 500);
+      });
+    };
+    if (typeof window.confirmWithCallback === "function") {
+      window.confirmWithCallback({ msg: question, clb: perform });
+    } else if (window.confirm(question)) {
+      perform();
     }
   }
 
@@ -303,7 +341,9 @@
             <span class="kyaa-rank">${index + 1}.</span>
             <span class="kyaa-offer-icon">${offer.itemId ? `<canvas width="32" height="32" data-item-id="${offer.itemId}"></canvas>` : "?"}</span>
             <span class="kyaa-offer-price">${escapeHtml(offer.price)}</span>
-            <span class="kyaa-offer-type">${escapeHtml(offer.type)}</span>
+            ${offer.type === "Kup teraz" && offer.auctionId
+              ? `<span class="kyaa-buy button small green" data-auction-id="${offer.auctionId}"><span class="background"></span><span class="label">Kup teraz</span></span>`
+              : `<span class="kyaa-offer-type">${escapeHtml(offer.type)}</span>`}
             <span class="kyaa-offer-time">${escapeHtml(offer.time)}${offer.amount > 1 ? ` · ×${offer.amount}` : ""}</span>
           </div>`).join("")
       : '<div class="kyaa-empty">Brak aktualnych ofert dla tego przedmiotu.</div>';
@@ -397,11 +437,12 @@
       #${PANEL_ID} .kyaa-search.button .label{width:100%;text-align:center;font-size:11px;font-weight:bold;color:#e6d6bf}
       #${PANEL_ID} .kyaa-search.button.disabled{filter:grayscale(1);opacity:.55;cursor:not-allowed}
       #${PANEL_ID} .kyaa-status{height:30px;margin-top:7px;padding:4px 6px 0;border-top:1px solid #665a4b;background:transparent;color:#d8cabb;text-align:center;font-size:10px;line-height:12px;overflow:hidden}
-      #${PANEL_ID}.kyaa-has-offers{height:432px!important}
+      #${PANEL_ID}.kyaa-has-offers{height:398px!important}
       #${PANEL_ID}.kyaa-has-offers>.content{padding-bottom:10px!important}
       #${PANEL_ID} .kyaa-offers{margin-top:5px;border:1px solid #6d5133;background:linear-gradient(135deg,rgba(31,21,14,.98),rgba(14,11,9,.99));box-shadow:inset 0 0 0 1px #0b0806}
-      #${PANEL_ID} .kyaa-offers-title{height:24px;padding:4px 7px;border-bottom:1px solid #6d5133;color:#efd27f;font-size:10px;font-weight:bold;text-shadow:1px 1px #000}
-      #${PANEL_ID} .kyaa-offer{display:grid;grid-template-columns:16px 32px 48px 63px 1fr;align-items:center;min-height:34px;padding:3px 5px;border-bottom:1px solid rgba(122,91,53,.32);font-size:9px;line-height:12px}
+      #${PANEL_ID} .kyaa-offers-title{display:flex;height:24px;padding:4px 7px;align-items:center;justify-content:space-between;border-bottom:1px solid #6d5133;color:#efd27f;font-size:10px;font-weight:bold;text-shadow:1px 1px #000}
+      #${PANEL_ID} .kyaa-seller-note{color:#9c8c75;font-size:8px;font-weight:normal}
+      #${PANEL_ID} .kyaa-offer{display:grid;grid-template-columns:14px 32px 45px 62px 1fr;align-items:center;min-height:34px;padding:3px 5px;border-bottom:1px solid rgba(122,91,53,.32);font-size:9px;line-height:12px}
       #${PANEL_ID} .kyaa-offer:last-child{border-bottom:0}
       #${PANEL_ID} .kyaa-rank{color:#9c8c75}
       #${PANEL_ID} .kyaa-offer-icon{display:flex;width:30px;height:30px;align-items:center;justify-content:center;border:1px solid #73552f;background:#100c09;color:#88765e;box-shadow:inset 0 0 0 1px #050403}
@@ -409,6 +450,8 @@
       #${PANEL_ID} .kyaa-offer-price{color:#ffd75c;font-weight:bold;text-align:right}
       #${PANEL_ID} .kyaa-offer-type{padding-left:7px;color:#cdbb9d}
       #${PANEL_ID} .kyaa-offer-time{color:#9fb9c4;text-align:right}
+      #${PANEL_ID} .kyaa-buy.button{display:block;width:58px!important;height:22px!important;margin-left:4px;line-height:18px;cursor:pointer}
+      #${PANEL_ID} .kyaa-buy.button .label{width:100%;text-align:center;color:#e6d6bf;font-size:9px;font-weight:bold}
       #${PANEL_ID} .kyaa-empty{padding:15px 8px;color:#aa9d88;text-align:center;font-size:10px}
       #${PANEL_ID} .c-window__bottom-bar{pointer-events:none}
     `;
@@ -433,7 +476,7 @@
         <div class="kyaa-search kyaa-open button small green"><div class="background"></div><div class="label">Pokaż aukcje</div></div>
         <div class="kyaa-search kyaa-refresh button small green"><div class="background"></div><div class="label">Odśwież ceny</div></div>
         <div class="kyaa-status">Po wybraniu przedmiotu ceny zostaną pobrane automatycznie.</div>
-        <div class="kyaa-offers" hidden><div class="kyaa-offers-title">Najtańsze aktualne oferty</div><div class="kyaa-offers-list"></div></div>
+        <div class="kyaa-offers" hidden><div class="kyaa-offers-title"><span>Najtańsze aktualne oferty</span><span class="kyaa-seller-note">sprzedawcy anonimowi</span></div><div class="kyaa-offers-list"></div></div>
       </div></div>
       <div class="c-window__bottom-bar"><div class="interface-element-bottom-bar-background-stretch"></div></div>`;
     document.documentElement.appendChild(panel);
@@ -443,6 +486,10 @@
     offersList = panel.querySelector(".kyaa-offers-list");
     panel.querySelector(".kyaa-open").addEventListener("click", showAuctionsList);
     searchButton.addEventListener("click", () => checkPrices(readSelection() || activeSelection, true));
+    offersList.addEventListener("click", (event) => {
+      const button = event.target.closest(".kyaa-buy[data-auction-id]");
+      if (button) buyOffer(Number(button.dataset.auctionId));
+    });
     if (lastOffers.length) renderOffers(lastOffers);
   }
 
