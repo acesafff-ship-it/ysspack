@@ -4,7 +4,7 @@ if (!host || document.querySelector('#ysspack')) {
   throw new Error('[YssPack] Loader nie jest aktywny albo panel został już uruchomiony.');
 }
 
-const PACK_VERSION = '0.10.1';
+const PACK_VERSION = '0.10.2';
 const STORAGE_PREFIX = 'ysspack_';
 const today = new Date();
 const moduleCacheKey = [today.getFullYear(), String(today.getMonth() + 1).padStart(2, '0'), String(today.getDate()).padStart(2, '0')].join('');
@@ -68,7 +68,7 @@ panel.innerHTML = `
   </div>
   <div class="content"><div class="inner-content">
     <header class="mhp-header">
-      <div class="mhp-brand"><img class="mhp-brand-logo" src="${logoUrl}" alt="YssPack"><small>v${PACK_VERSION}</small></div>
+      <span class="mhp-version">v${PACK_VERSION}</span>
     </header>
     <div class="mhp-toolbar"><input class="mhp-search" type="search" placeholder="Szukaj dodatku..."></div>
     <div class="mhp-list"></div>
@@ -95,7 +95,19 @@ renderModules();
 modules.forEach(module => { if (isEnabled(module.id)) startModule(module); });
 
 search.addEventListener('input', renderModules);
-panel.querySelector('.mhp-close').addEventListener('click', () => setPanelOpen(false));
+const closeCorner = panel.querySelector('.close-button-corner-decor');
+const closePanel = event => {
+  event.preventDefault();
+  event.stopPropagation();
+  event.stopImmediatePropagation();
+  setPanelOpen(false);
+};
+closeCorner.addEventListener('pointerdown', event => {
+  event.stopPropagation();
+  event.stopImmediatePropagation();
+}, true);
+closeCorner.addEventListener('pointerup', closePanel, true);
+panel.querySelector('.mhp-close').addEventListener('click', closePanel, true);
 bindDrag(panel, panel.querySelector('.mhp-drag-handle'), 'panel_position');
 bindLauncher();
 
