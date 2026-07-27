@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Margonem — Asystent Aukcji
 // @namespace    krol-yss.margonem.auction-assistant
-// @version      2.0.11
+// @version      2.0.12
 // @description  Automatycznie pobiera ceny przedmiotu wybranego do sprzedaży bez otwierania listy aukcji.
 // @author       Król Yss
 // @match        https://*.margonem.pl/*
@@ -17,7 +17,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "2.0.11";
+  const VERSION = "2.0.12";
   const PANEL_ID = "kyaa-panel";
   const STYLE_ID = "kyaa-style";
   const UNDERCUT_ENABLED_KEY = "kyaa-undercut-enabled";
@@ -212,7 +212,12 @@
     const id = classNumber(item, "item-id-");
     if (!Number.isFinite(id)) return;
     const name = nameFromData(itemDataById(id));
-    if (name) itemNameCache.set(id, name);
+    if (name) {
+      itemNameCache.set(id, name);
+      setTimeout(queueUpdate, 0);
+      setTimeout(queueUpdate, 60);
+      setTimeout(queueUpdate, 150);
+    }
   }
 
   document.addEventListener("pointerdown", (event) => rememberItemName(event.target), true);
@@ -629,7 +634,7 @@
       const lookupKey = `${selection.id || selection.templateId || ""}:${normalize(selection.name)}`;
       if (lookupKey !== lastLookupKey && !running) {
         clearTimeout(lookupTimer);
-        lookupTimer = setTimeout(() => checkPrices(selection), 250);
+        lookupTimer = setTimeout(() => checkPrices(selection), 40);
       }
     }
   }
