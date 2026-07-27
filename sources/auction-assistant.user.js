@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Margonem — Asystent Aukcji
 // @namespace    krol-yss.margonem.auction-assistant
-// @version      1.6.0
+// @version      1.6.1
 // @description  Automatycznie pobiera ceny przedmiotu wybranego do sprzedaży bez otwierania listy aukcji.
 // @author       Król Yss
 // @match        https://*.margonem.pl/*
@@ -17,7 +17,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "1.6.0";
+  const VERSION = "1.6.1";
   const PANEL_ID = "kyaa-panel";
   const STYLE_ID = "kyaa-style";
   const itemNameCache = new Map();
@@ -32,6 +32,7 @@
   let lastLookupKey = "";
   let lookupSequence = 0;
   let lookupTimer = 0;
+  let iconHydrationTimer = 0;
   let queued = false;
   let running = false;
 
@@ -209,12 +210,10 @@
 
   function offersFromResponse(response) {
     const rawOffers = response?.auctions?.show?.offers ?? response?.ah?.show?.offers;
-    const items = response?.item || {};
     const offers = Array.isArray(rawOffers)
       ? rawOffers
       : rawOffers && typeof rawOffers === "object" ? Object.values(rawOffers) : [];
     return offers.map((offer) => {
-      const item = items?.[offer?.item_id] || items?.[String(offer?.item_id)] || {};
       const buyGold = Number(offer?.bo_g) || 0;
       const buyPremium = Number(offer?.bo_c) || 0;
       const bidGold = Number(offer?.bid_g) || 0;
@@ -229,7 +228,7 @@
         type: isBuyNow ? "Kup teraz" : "Licytacja",
         time: formatTime(offer?.time),
         amount: 1,
-        icon: item?.icon ? `${location.origin}/obrazki/itemy/${String(item.icon).replace(/^\/+/, "")}` : "",
+        itemId: Number(offer?.item_id) || null,
       };
     }).filter(Boolean).sort((left, right) => left.priceValue - right.priceValue).slice(0, 6);
   }
@@ -302,14 +301,40 @@
       ? offers.map((offer, index) => `
           <div class="kyaa-offer">
             <span class="kyaa-rank">${index + 1}.</span>
-            <span class="kyaa-offer-icon">${offer.icon ? `<img src="${escapeHtml(offer.icon)}" alt="">` : "?"}</span>
+            <span class="kyaa-offer-icon">${offer.itemId ? `<canvas width="32" height="32" data-item-id="${offer.itemId}"></canvas>` : "?"}</span>
             <span class="kyaa-offer-price">${escapeHtml(offer.price)}</span>
             <span class="kyaa-offer-type">${escapeHtml(offer.type)}</span>
             <span class="kyaa-offer-time">${escapeHtml(offer.time)}${offer.amount > 1 ? ` · ×${offer.amount}` : ""}</span>
           </div>`).join("")
       : '<div class="kyaa-empty">Brak aktualnych ofert dla tego przedmiotu.</div>';
     offersList.parentElement.hidden = false;
+    hydrateOfferIcons();
     positionPanel();
+  }
+
+  function hydrateOfferIcons(attempt = 0) {
+    clearTimeout(iconHydrationTimer);
+    if (!offersList) return;
+    let pending = false;
+    for (const target of offersList.querySelectorAll("canvas[data-item-id]")) {
+      const item = itemDataById(Number(target.dataset.itemId));
+      const source = item?.$canvasIcon?.[0] || item?.ctx?.canvas;
+      if (!source || !source.width || !source.height) {
+        pending = true;
+        continue;
+      }
+      try {
+        const context = target.getContext("2d");
+        context.clearRect(0, 0, target.width, target.height);
+        context.drawImage(source, 0, 0, target.width, target.height);
+        if (!item?.imgLoaded) pending = true;
+      } catch (_) {
+        pending = true;
+      }
+    }
+    if (pending && attempt < 30) {
+      iconHydrationTimer = setTimeout(() => hydrateOfferIcons(attempt + 1), 150);
+    }
   }
 
   async function checkPrices(selection = readSelection(), force = false) {
@@ -380,7 +405,7 @@
       #${PANEL_ID} .kyaa-offer:last-child{border-bottom:0}
       #${PANEL_ID} .kyaa-rank{color:#9c8c75}
       #${PANEL_ID} .kyaa-offer-icon{display:flex;width:30px;height:30px;align-items:center;justify-content:center;border:1px solid #73552f;background:#100c09;color:#88765e;box-shadow:inset 0 0 0 1px #050403}
-      #${PANEL_ID} .kyaa-offer-icon img{display:block;max-width:28px;max-height:28px;image-rendering:auto}
+      #${PANEL_ID} .kyaa-offer-icon canvas{display:block;width:28px;height:28px}
       #${PANEL_ID} .kyaa-offer-price{color:#ffd75c;font-weight:bold;text-align:right}
       #${PANEL_ID} .kyaa-offer-type{padding-left:7px;color:#cdbb9d}
       #${PANEL_ID} .kyaa-offer-time{color:#9fb9c4;text-align:right}
@@ -439,6 +464,7 @@
     if (!sellWindow && !(auctionWindow && activeSelection) && !running) {
       panel?.remove();
       clearTimeout(lookupTimer);
+      clearTimeout(iconHydrationTimer);
       panel = itemLabel = statusLabel = searchButton = offersList = null;
       return;
     }

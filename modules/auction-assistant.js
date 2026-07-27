@@ -28,6 +28,7 @@ function prepareSource(original) {
     observer.disconnect();
     clearInterval(ysspackInterval);
     clearTimeout(lookupTimer);
+    clearTimeout(iconHydrationTimer);
     window.removeEventListener("resize", queueUpdate);
     panel?.remove();
     document.getElementById(STYLE_ID)?.remove();
@@ -54,7 +55,7 @@ async function loadAndRun() {
 export default {
   id: 'auction-assistant',
   name: 'Asystent Aukcji',
-  version: '1.6.0',
+  version: '1.6.1',
   description: 'Automatycznie pobiera ceny przedmiotu bez otwierania listy aukcji.',
   icon: '⚖',
 
