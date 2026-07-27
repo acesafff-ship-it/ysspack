@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Margonem — Asystent Aukcji
 // @namespace    krol-yss.margonem.auction-assistant
-// @version      2.0.12
+// @version      2.0.13
 // @description  Automatycznie pobiera ceny przedmiotu wybranego do sprzedaży bez otwierania listy aukcji.
 // @author       Król Yss
 // @match        https://*.margonem.pl/*
@@ -17,7 +17,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "2.0.12";
+  const VERSION = "2.0.13";
   const PANEL_ID = "kyaa-panel";
   const STYLE_ID = "kyaa-style";
   const UNDERCUT_ENABLED_KEY = "kyaa-undercut-enabled";
@@ -37,6 +37,7 @@
   let undercutPercent = clampPercent(readSetting(UNDERCUT_PERCENT_KEY, "10"));
   let lastAppliedPriceKey = "";
   let lastLookupKey = "";
+  let pendingLookupKey = "";
   let lookupSequence = 0;
   let lookupTimer = 0;
   let iconHydrationTimer = 0;
@@ -618,6 +619,8 @@
       panel?.remove();
       clearTimeout(lookupTimer);
       clearTimeout(iconHydrationTimer);
+      lookupTimer = 0;
+      pendingLookupKey = "";
       panel = itemLabel = statusLabel = searchButton = offersList = undercutToggle = undercutInput = null;
       return;
     }
@@ -632,9 +635,14 @@
     itemLabel.title = itemLabel.textContent;
     if (sellWindow && selection?.name) {
       const lookupKey = `${selection.id || selection.templateId || ""}:${normalize(selection.name)}`;
-      if (lookupKey !== lastLookupKey && !running) {
+      if (lookupKey !== lastLookupKey && lookupKey !== pendingLookupKey && !running) {
         clearTimeout(lookupTimer);
-        lookupTimer = setTimeout(() => checkPrices(selection), 40);
+        pendingLookupKey = lookupKey;
+        lookupTimer = setTimeout(() => {
+          lookupTimer = 0;
+          pendingLookupKey = "";
+          checkPrices(selection);
+        }, 40);
       }
     }
   }
