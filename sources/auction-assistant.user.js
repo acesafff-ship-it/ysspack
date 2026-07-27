@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Margonem — Asystent Aukcji
 // @namespace    krol-yss.margonem.auction-assistant
-// @version      1.7.2
+// @version      1.8.0
 // @description  Automatycznie pobiera ceny przedmiotu wybranego do sprzedaży bez otwierania listy aukcji.
 // @author       Król Yss
 // @match        https://*.margonem.pl/*
@@ -17,7 +17,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "1.7.2";
+  const VERSION = "1.8.0";
   const PANEL_ID = "kyaa-panel";
   const STYLE_ID = "kyaa-style";
   const itemNameCache = new Map();
@@ -424,7 +424,7 @@
     const style = document.createElement("style");
     style.id = STYLE_ID;
     style.textContent = `
-      #${PANEL_ID}.c-window{display:block!important;visibility:visible!important;position:fixed!important;z-index:2147483000!important;width:286px!important;height:222px!important;box-sizing:border-box;background:#1d1210!important;background-clip:border-box!important;background-origin:border-box!important;border-radius:12px!important;color:#fff;font:12.8px/16.64px Arimo,Calibri,"Segoe UI",Arial,sans-serif;filter:drop-shadow(0 3px 5px #000)}
+      #${PANEL_ID}.c-window{display:block!important;visibility:visible!important;position:fixed!important;z-index:2147483000!important;width:286px!important;height:260px!important;box-sizing:border-box;background:#1d1210!important;background-clip:border-box!important;background-origin:border-box!important;border-radius:12px!important;color:#fff;font:12.8px/16.64px Arimo,Calibri,"Segoe UI",Arial,sans-serif;filter:drop-shadow(0 3px 5px #000)}
       #${PANEL_ID} *{box-sizing:border-box}
       #${PANEL_ID}>.content{position:absolute;inset:0;width:auto!important;height:auto!important;padding:22px 10px 8px!important;background:#1d1210!important;color:#fff;overflow:hidden}
       #${PANEL_ID}>.content:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(255,255,255,.025),transparent 20%,transparent 80%,rgba(0,0,0,.18));pointer-events:none}
@@ -437,11 +437,10 @@
       #${PANEL_ID} .kyaa-search.button .label{width:100%;text-align:center;font-size:11px;font-weight:bold;color:#e6d6bf}
       #${PANEL_ID} .kyaa-search.button.disabled{filter:grayscale(1);opacity:.55;cursor:not-allowed}
       #${PANEL_ID} .kyaa-status{height:30px;margin-top:7px;padding:4px 6px 0;border-top:1px solid #665a4b;background:transparent;color:#d8cabb;text-align:center;font-size:10px;line-height:12px;overflow:hidden}
-      #${PANEL_ID}.kyaa-has-offers{height:458px!important}
+      #${PANEL_ID}.kyaa-has-offers{height:500px!important}
       #${PANEL_ID}.kyaa-has-offers>.content{padding-bottom:10px!important}
       #${PANEL_ID} .kyaa-offers{margin-top:5px;border:1px solid #6d5133;background:linear-gradient(135deg,rgba(31,21,14,.98),rgba(14,11,9,.99));box-shadow:inset 0 0 0 1px #0b0806}
-      #${PANEL_ID} .kyaa-offers-title{display:flex;height:24px;padding:4px 7px;align-items:center;justify-content:space-between;border-bottom:1px solid #6d5133;color:#efd27f;font-size:10px;font-weight:bold;text-shadow:1px 1px #000}
-      #${PANEL_ID} .kyaa-seller-note{color:#9c8c75;font-size:8px;font-weight:normal}
+      #${PANEL_ID} .kyaa-offers-title{height:24px;padding:4px 7px;border-bottom:1px solid #6d5133;color:#efd27f;font-size:10px;font-weight:bold;text-shadow:1px 1px #000}
       #${PANEL_ID} .kyaa-offer{display:grid;grid-template-columns:14px 32px 43px 70px 1fr;align-items:center;min-height:34px;padding:3px 5px;border-bottom:1px solid rgba(122,91,53,.32);font-size:9px;line-height:12px}
       #${PANEL_ID} .kyaa-offer:last-child{border-bottom:0}
       #${PANEL_ID} .kyaa-rank{color:#9c8c75}
@@ -453,6 +452,9 @@
       #${PANEL_ID} .kyaa-buy.button{display:block;width:66px!important;height:22px!important;margin-left:3px;line-height:18px;cursor:pointer}
       #${PANEL_ID} .kyaa-buy.button .label{width:100%;text-align:center;color:#e6d6bf;font-size:8px;font-weight:bold;white-space:nowrap}
       #${PANEL_ID} .kyaa-empty{padding:15px 8px;color:#aa9d88;text-align:center;font-size:10px}
+      #${PANEL_ID} .kyaa-credits{margin-top:8px;padding-top:6px;border-top:1px solid #665a4b;color:#918574;text-align:center;font-size:8px;line-height:12px}
+      #${PANEL_ID} .kyaa-credits a{color:#d8ba70;text-decoration:none}
+      #${PANEL_ID} .kyaa-credits a:hover{color:#ffe19a;text-decoration:underline}
       #${PANEL_ID} .c-window__bottom-bar{pointer-events:none}
     `;
     document.documentElement.appendChild(style);
@@ -476,7 +478,11 @@
         <div class="kyaa-search kyaa-open button small green"><div class="background"></div><div class="label">Pokaż aukcje</div></div>
         <div class="kyaa-search kyaa-refresh button small green"><div class="background"></div><div class="label">Odśwież ceny</div></div>
         <div class="kyaa-status">Po wybraniu przedmiotu ceny zostaną pobrane automatycznie.</div>
-        <div class="kyaa-offers" hidden><div class="kyaa-offers-title"><span>Najtańsze aktualne oferty</span><span class="kyaa-seller-note">sprzedawcy anonimowi</span></div><div class="kyaa-offers-list"></div></div>
+        <div class="kyaa-offers" hidden><div class="kyaa-offers-title">Najtańsze aktualne oferty</div><div class="kyaa-offers-list"></div></div>
+        <div class="kyaa-credits">
+          <div>Autor dodatku: <a href="https://www.margonem.pl/profile/view,10050726#char_5601,luvia" target="_blank" rel="noopener noreferrer">Król Yss</a></div>
+          <div>Grafiki są własnością <a href="https://garmory.pl/" target="_blank" rel="noopener noreferrer">Garmory</a>.</div>
+        </div>
       </div></div>
       <div class="c-window__bottom-bar"><div class="interface-element-bottom-bar-background-stretch"></div></div>`;
     document.documentElement.appendChild(panel);
