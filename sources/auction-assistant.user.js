@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Margonem — Asystent Aukcji
 // @namespace    krol-yss.margonem.auction-assistant
-// @version      1.3.0
-// @description  Wyszukuje na aukcji przedmiot wybrany do sprzedaży i pozostawia decyzję o cenie graczowi.
+// @version      1.4.0
+// @description  Automatycznie pobiera ceny przedmiotu wybranego do sprzedaży bez otwierania listy aukcji.
 // @author       Król Yss
 // @match        https://*.margonem.pl/*
 // @match        https://*.margonem.com/*
@@ -17,7 +17,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "1.3.0";
+  const VERSION = "1.4.0";
   const PANEL_ID = "kyaa-panel";
   const STYLE_ID = "kyaa-style";
   const itemNameCache = new Map();
@@ -29,6 +29,9 @@
   let offersList = null;
   let activeSelection = null;
   let lastOffers = [];
+  let lastLookupKey = "";
+  let lookupSequence = 0;
+  let lookupTimer = 0;
   let queued = false;
   let running = false;
 
@@ -46,12 +49,27 @@
     );
   }
 
-  function priceValue(label) {
-    const text = normalize(label).replace(/\s+/g, "").replace(",", ".");
-    const match = text.match(/([\d.]+)\s*([kmg])?/i);
-    if (!match) return Number.POSITIVE_INFINITY;
-    const multiplier = { k: 1e3, m: 1e6, g: 1e9 }[match[2]?.toLowerCase()] || 1;
-    return (Number(match[1]) || 0) * multiplier;
+  function formatGold(value) {
+    const number = Math.max(0, Number(value) || 0);
+    const units = [[1e9, "g"], [1e6, "m"], [1e3, "k"]];
+    for (const [divisor, suffix] of units) {
+      if (number < divisor) continue;
+      return `${(number / divisor).toFixed(number < divisor * 10 ? 1 : 0).replace(".0", "")}${suffix}`;
+    }
+    return Math.round(number).toLocaleString("pl-PL");
+  }
+
+  function formatTime(seconds) {
+    const value = Math.max(0, Number(seconds) || 0);
+    if (typeof window.getSecondLeft === "function") {
+      try {
+        return window.getSecondLeft(value, { short: true });
+      } catch (_) {}
+    }
+    if (value >= 86400) return `${Math.ceil(value / 86400)}d`;
+    if (value >= 3600) return `${Math.ceil(value / 3600)}h`;
+    if (value >= 60) return `${Math.ceil(value / 60)}m`;
+    return `${Math.ceil(value)}s`;
   }
 
   function visible(element) {
@@ -189,47 +207,54 @@
     };
   }
 
-  async function closeSellWindow() {
-    const sellWindow = getSellWindow();
-    if (!sellWindow) return true;
-    const cancelButton = findButton(sellWindow, "Anuluj");
-    nativeClick(cancelButton || sellWindow.querySelector(".close-button"));
-    return Boolean(await waitFor(() => !getSellWindow(), 3000));
-  }
-
-  async function openPlayerAuctions() {
-    const auctionWindow = getAuctionWindow();
-    const tab = auctionWindow?.querySelector(".ALL_AUCTION-tab");
-    if (!tab) return false;
-    nativeClick(tab);
-    return Boolean(await waitFor(() => tab.classList.contains("active"), 3000));
-  }
-
-  function clearOtherTextFilters(auctionWindow) {
-    for (const placeholder of ["Min. cena", "Max. cena", "Min. poziom", "Max. poziom"]) {
-      setInput(auctionWindow.querySelector(`input[placeholder="${placeholder}"]`), "");
-    }
-  }
-
-  function readOffers(auctionWindow, itemName) {
-    const wanted = normalize(itemName);
-    const rows = Array.from(auctionWindow?.querySelectorAll(".auction-table tr") || []);
-    return rows.map((row) => {
-      const name = row.querySelector(".item-name-td")?.textContent?.trim() || "";
-      if (!name || normalize(name) !== wanted) return null;
-      const buyNow = row.querySelector(".item-buy-now-td .auction-cost-label")?.textContent?.trim() || "";
-      const bid = row.querySelector(".item-bid-td .auction-cost-label")?.textContent?.trim() || "";
-      const price = buyNow || bid;
-      if (!price) return null;
+  function offersFromResponse(response) {
+    const rawOffers = response?.ah?.show?.offers;
+    const offers = Array.isArray(rawOffers)
+      ? rawOffers
+      : rawOffers && typeof rawOffers === "object" ? Object.values(rawOffers) : [];
+    return offers.map((offer) => {
+      const buyGold = Number(offer?.bo_g) || 0;
+      const buyPremium = Number(offer?.bo_c) || 0;
+      const bidGold = Number(offer?.bid_g) || 0;
+      const bidPremium = Number(offer?.bid_c) || 0;
+      const isBuyNow = buyGold > 0 || buyPremium > 0;
+      const gold = isBuyNow ? buyGold : bidGold;
+      const premium = isBuyNow ? buyPremium : bidPremium;
+      if (!gold && !premium) return null;
       return {
-        name,
-        price,
-        priceValue: priceValue(price),
-        type: buyNow ? "Kup teraz" : "Licytacja",
-        time: row.querySelector(".item-time-td")?.textContent?.trim() || "—",
-        amount: Math.max(1, Number(row.querySelector(".item-slot-td .amount")?.textContent) || 1),
+        price: `${gold ? formatGold(gold) : ""}${gold && premium ? " + " : ""}${premium ? `${premium} SŁ` : ""}`,
+        priceValue: premium ? Number.POSITIVE_INFINITY : gold,
+        type: isBuyNow ? "Kup teraz" : "Licytacja",
+        time: formatTime(offer?.time),
+        amount: 1,
       };
     }).filter(Boolean).sort((left, right) => left.priceValue - right.priceValue).slice(0, 6);
+  }
+
+  function requestOffers(itemName) {
+    return new Promise((resolve, reject) => {
+      if (typeof window._g !== "function") return reject(new Error("Silnik aukcji nie jest jeszcze gotowy."));
+      const filter = `||||||0|4|0|1|${encodeURIComponent(itemName)}`;
+      const query = `ah&cat=0&filter=${filter}&sort=1|1`;
+      let settled = false;
+      const timeout = setTimeout(() => {
+        if (settled) return;
+        settled = true;
+        reject(new Error("Serwer aukcji nie odpowiedział."));
+      }, 7000);
+      try {
+        window._g(query, (response) => {
+          if (settled) return;
+          settled = true;
+          clearTimeout(timeout);
+          if (response?.alert) return reject(new Error(String(response.alert)));
+          resolve(offersFromResponse(response));
+        });
+      } catch (error) {
+        clearTimeout(timeout);
+        reject(error);
+      }
+    });
   }
 
   function renderOffers(offers) {
@@ -249,40 +274,34 @@
     positionPanel();
   }
 
-  async function showAuctions() {
+  async function checkPrices(selection = readSelection(), force = false) {
     if (running) return;
-    const selection = readSelection();
     if (!selection) return setStatus("Najpierw wybierz przedmiot.", "#ff8b8b");
     if (!selection.name) return setStatus("Nie udało się odczytać nazwy przedmiotu. Wybierz go ponownie.", "#ff8b8b");
 
+    const lookupKey = `${selection.id || selection.templateId || ""}:${normalize(selection.name)}`;
+    if (!force && lookupKey === lastLookupKey) return;
+    lastLookupKey = lookupKey;
+    const sequence = ++lookupSequence;
     running = true;
     activeSelection = selection;
     renderOffers([]);
     searchButton.classList.add("disabled");
     searchButton.setAttribute("aria-disabled", "true");
-    setStatus("Otwieram aukcje i wyszukuję nazwę…", "#7fd7ff");
+    setStatus("Sprawdzam aktualne ceny w tle…", "#7fd7ff");
 
     try {
-      if (!(await closeSellWindow())) throw new Error("Nie udało się zamknąć formularza wystawiania.");
-      if (!(await openPlayerAuctions())) throw new Error("Nie udało się otworzyć karty Aukcje Graczy.");
-      const auctionWindow = getAuctionWindow();
-      const nameInput = auctionWindow?.querySelector('input[placeholder="Nazwa przedmiotu"]');
-      if (!nameInput) throw new Error("Nie znaleziono pola nazwy przedmiotu.");
-
-      clearOtherTextFilters(auctionWindow);
-      setInput(nameInput, selection.name);
-      const refreshButton = findButton(auctionWindow.querySelector(".refresh-button-wrapper"), "Odśwież");
-      if (!nativeClick(refreshButton)) throw new Error("Nie znaleziono przycisku Odśwież.");
-      const offers = await waitFor(() => {
-        const current = readOffers(auctionWindow, selection.name);
-        return current.length ? current : null;
-      }, 5000);
-      renderOffers(offers || []);
-      setStatus(offers?.length ? `Znaleziono ${offers.length} najtańszych ofert.` : "Brak ofert dla tego przedmiotu.", offers?.length ? "#bfe38a" : "#d8cabb");
+      const offers = await requestOffers(selection.name);
+      if (sequence !== lookupSequence) return;
+      renderOffers(offers);
+      setStatus(offers.length ? `Znaleziono ${offers.length} najtańszych ofert.` : "Brak ofert dla tego przedmiotu.", offers.length ? "#bfe38a" : "#d8cabb");
     } catch (error) {
+      if (sequence !== lookupSequence) return;
       console.warn("[Asystent Aukcji]", error);
-      setStatus(error?.message || "Nie udało się otworzyć ofert.", "#ff8b8b");
+      lastLookupKey = "";
+      setStatus(error?.message || "Nie udało się pobrać cen.", "#ff8b8b");
     } finally {
+      if (sequence !== lookupSequence) return;
       running = false;
       if (searchButton) {
         searchButton.classList.remove("disabled");
@@ -346,8 +365,8 @@
       <div class="content"><div class="inner-content">
         <span class="kyaa-version">v${VERSION}</span>
         <div class="kyaa-item">Wybierz przedmiot</div>
-        <div class="kyaa-search button small green"><div class="background"></div><div class="label">Pokaż aukcje przedmiotu</div></div>
-        <div class="kyaa-status">Wyszuka nazwę i pozostawi otwartą listę ofert. Cenę wybierasz sam.</div>
+        <div class="kyaa-search button small green"><div class="background"></div><div class="label">Odśwież ceny</div></div>
+        <div class="kyaa-status">Po wybraniu przedmiotu ceny zostaną pobrane automatycznie.</div>
         <div class="kyaa-offers" hidden><div class="kyaa-offers-title">Najtańsze aktualne oferty</div><div class="kyaa-offers-list"></div></div>
       </div></div>
       <div class="c-window__bottom-bar"><div class="interface-element-bottom-bar-background-stretch"></div></div>`;
@@ -356,7 +375,7 @@
     statusLabel = panel.querySelector(".kyaa-status");
     searchButton = panel.querySelector(".kyaa-search");
     offersList = panel.querySelector(".kyaa-offers-list");
-    searchButton.addEventListener("click", showAuctions);
+    searchButton.addEventListener("click", () => checkPrices(readSelection() || activeSelection, true));
     if (lastOffers.length) renderOffers(lastOffers);
   }
 
@@ -377,6 +396,7 @@
     const auctionWindow = getAuctionWindow();
     if (!sellWindow && !(auctionWindow && activeSelection) && !running) {
       panel?.remove();
+      clearTimeout(lookupTimer);
       panel = itemLabel = statusLabel = searchButton = offersList = null;
       return;
     }
@@ -387,6 +407,13 @@
       ? `${selection.name}${selection.amount > 1 ? ` ×${selection.amount}` : ""}`
       : selection ? `Przedmiot #${selection.templateId || selection.id || "?"}` : "Wybierz przedmiot";
     itemLabel.title = itemLabel.textContent;
+    if (sellWindow && selection?.name) {
+      const lookupKey = `${selection.id || selection.templateId || ""}:${normalize(selection.name)}`;
+      if (lookupKey !== lastLookupKey && !running) {
+        clearTimeout(lookupTimer);
+        lookupTimer = setTimeout(() => checkPrices(selection), 250);
+      }
+    }
   }
 
   function queueUpdate() {

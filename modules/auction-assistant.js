@@ -27,10 +27,11 @@ function prepareSource(original) {
     ysspackStopped = true;
     observer.disconnect();
     clearInterval(ysspackInterval);
+    clearTimeout(lookupTimer);
     window.removeEventListener("resize", queueUpdate);
     panel?.remove();
     document.getElementById(STYLE_ID)?.remove();
-    panel = itemLabel = statusLabel = searchButton = null;
+    panel = itemLabel = statusLabel = searchButton = offersList = null;
     delete window.${FLAG_KEY};
     delete window.${CLEANUP_KEY};
   };
@@ -53,8 +54,8 @@ async function loadAndRun() {
 export default {
   id: 'auction-assistant',
   name: 'Asystent Aukcji',
-  version: '1.3.0',
-  description: 'Wyszukuje aukcje przedmiotu wybranego do sprzedaży.',
+  version: '1.4.0',
+  description: 'Automatycznie pobiera ceny przedmiotu bez otwierania listy aukcji.',
   icon: '⚖',
 
   start() {
