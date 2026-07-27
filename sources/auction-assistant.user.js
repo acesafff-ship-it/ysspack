@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Margonem — Asystent Aukcji
 // @namespace    krol-yss.margonem.auction-assistant
-// @version      1.4.1
+// @version      1.5.0
 // @description  Automatycznie pobiera ceny przedmiotu wybranego do sprzedaży bez otwierania listy aukcji.
 // @author       Król Yss
 // @match        https://*.margonem.pl/*
@@ -17,7 +17,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "1.4.1";
+  const VERSION = "1.5.0";
   const PANEL_ID = "kyaa-panel";
   const STYLE_ID = "kyaa-style";
   const itemNameCache = new Map();
@@ -257,6 +257,40 @@
     });
   }
 
+  async function showAuctionsList() {
+    const selection = readSelection() || activeSelection;
+    if (!selection) return setStatus("Najpierw wybierz przedmiot.", "#ff8b8b");
+    if (!selection.name) return setStatus("Nie udało się odczytać nazwy przedmiotu.", "#ff8b8b");
+    activeSelection = selection;
+    setStatus("Otwieram listę aukcji…", "#7fd7ff");
+
+    try {
+      const sellWindow = getSellWindow();
+      if (sellWindow) {
+        nativeClick(findButton(sellWindow, "Anuluj") || sellWindow.querySelector(".close-button"));
+        if (!(await waitFor(() => !getSellWindow(), 3000))) throw new Error("Nie udało się zamknąć formularza.");
+      }
+      const auctionWindow = getAuctionWindow();
+      const tab = auctionWindow?.querySelector(".ALL_AUCTION-tab");
+      if (!auctionWindow || !tab) throw new Error("Nie znaleziono listy aukcji.");
+      nativeClick(tab);
+      await waitFor(() => tab.classList.contains("active"), 3000);
+
+      const nameInput = auctionWindow.querySelector('input[placeholder="Nazwa przedmiotu"]');
+      if (!nameInput) throw new Error("Nie znaleziono pola nazwy przedmiotu.");
+      for (const placeholder of ["Min. cena", "Max. cena", "Min. poziom", "Max. poziom"]) {
+        setInput(auctionWindow.querySelector(`input[placeholder="${placeholder}"]`), "");
+      }
+      setInput(nameInput, selection.name);
+      const refreshButton = findButton(auctionWindow.querySelector(".refresh-button-wrapper"), "Odśwież");
+      if (!nativeClick(refreshButton)) throw new Error("Nie znaleziono przycisku Odśwież.");
+      setStatus("Lista aukcji przedmiotu została otwarta.", "#bfe38a");
+    } catch (error) {
+      console.warn("[Asystent Aukcji]", error);
+      setStatus(error?.message || "Nie udało się otworzyć aukcji.", "#ff8b8b");
+    }
+  }
+
   function renderOffers(offers) {
     lastOffers = offers;
     if (!offersList || !panel) return;
@@ -321,7 +355,7 @@
     const style = document.createElement("style");
     style.id = STYLE_ID;
     style.textContent = `
-      #${PANEL_ID}.c-window{display:block!important;visibility:visible!important;position:fixed!important;z-index:2147483000!important;width:286px!important;height:190px!important;box-sizing:border-box;background:#1d1210!important;background-clip:border-box!important;background-origin:border-box!important;border-radius:12px!important;color:#fff;font:12.8px/16.64px Arimo,Calibri,"Segoe UI",Arial,sans-serif;filter:drop-shadow(0 3px 5px #000)}
+      #${PANEL_ID}.c-window{display:block!important;visibility:visible!important;position:fixed!important;z-index:2147483000!important;width:286px!important;height:222px!important;box-sizing:border-box;background:#1d1210!important;background-clip:border-box!important;background-origin:border-box!important;border-radius:12px!important;color:#fff;font:12.8px/16.64px Arimo,Calibri,"Segoe UI",Arial,sans-serif;filter:drop-shadow(0 3px 5px #000)}
       #${PANEL_ID} *{box-sizing:border-box}
       #${PANEL_ID}>.content{position:absolute;inset:0;width:auto!important;height:auto!important;padding:22px 10px 8px!important;background:#1d1210!important;color:#fff;overflow:hidden}
       #${PANEL_ID}>.content:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(255,255,255,.025),transparent 20%,transparent 80%,rgba(0,0,0,.18));pointer-events:none}
@@ -330,11 +364,11 @@
       #${PANEL_ID} .header-label .text{color:#ead9c0!important;text-shadow:1px 1px #000;white-space:nowrap}
       #${PANEL_ID} .kyaa-version{position:absolute;right:2px;top:-17px;color:#b8aa96;font-size:9px;text-shadow:1px 1px #000}
       #${PANEL_ID} .kyaa-item{height:22px;padding:1px 2px 4px;color:#ffd75c;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center}
-      #${PANEL_ID} .kyaa-search.button{display:block;width:100%!important;height:28px!important;margin:0 auto;line-height:24px;cursor:pointer}
+      #${PANEL_ID} .kyaa-search.button{display:block;width:100%!important;height:28px!important;margin:0 auto 4px;line-height:24px;cursor:pointer}
       #${PANEL_ID} .kyaa-search.button .label{width:100%;text-align:center;font-size:11px;font-weight:bold;color:#e6d6bf}
       #${PANEL_ID} .kyaa-search.button.disabled{filter:grayscale(1);opacity:.55;cursor:not-allowed}
       #${PANEL_ID} .kyaa-status{height:30px;margin-top:7px;padding:4px 6px 0;border-top:1px solid #665a4b;background:transparent;color:#d8cabb;text-align:center;font-size:10px;line-height:12px;overflow:hidden}
-      #${PANEL_ID}.kyaa-has-offers{height:340px!important}
+      #${PANEL_ID}.kyaa-has-offers{height:372px!important}
       #${PANEL_ID}.kyaa-has-offers>.content{padding-bottom:10px!important}
       #${PANEL_ID} .kyaa-offers{margin-top:5px;border:1px solid #6d5133;background:linear-gradient(135deg,rgba(31,21,14,.98),rgba(14,11,9,.99));box-shadow:inset 0 0 0 1px #0b0806}
       #${PANEL_ID} .kyaa-offers-title{height:24px;padding:4px 7px;border-bottom:1px solid #6d5133;color:#efd27f;font-size:10px;font-weight:bold;text-shadow:1px 1px #000}
@@ -365,7 +399,8 @@
       <div class="content"><div class="inner-content">
         <span class="kyaa-version">v${VERSION}</span>
         <div class="kyaa-item">Wybierz przedmiot</div>
-        <div class="kyaa-search button small green"><div class="background"></div><div class="label">Odśwież ceny</div></div>
+        <div class="kyaa-search kyaa-open button small green"><div class="background"></div><div class="label">Pokaż aukcje</div></div>
+        <div class="kyaa-search kyaa-refresh button small green"><div class="background"></div><div class="label">Odśwież ceny</div></div>
         <div class="kyaa-status">Po wybraniu przedmiotu ceny zostaną pobrane automatycznie.</div>
         <div class="kyaa-offers" hidden><div class="kyaa-offers-title">Najtańsze aktualne oferty</div><div class="kyaa-offers-list"></div></div>
       </div></div>
@@ -373,8 +408,9 @@
     document.documentElement.appendChild(panel);
     itemLabel = panel.querySelector(".kyaa-item");
     statusLabel = panel.querySelector(".kyaa-status");
-    searchButton = panel.querySelector(".kyaa-search");
+    searchButton = panel.querySelector(".kyaa-refresh");
     offersList = panel.querySelector(".kyaa-offers-list");
+    panel.querySelector(".kyaa-open").addEventListener("click", showAuctionsList);
     searchButton.addEventListener("click", () => checkPrices(readSelection() || activeSelection, true));
     if (lastOffers.length) renderOffers(lastOffers);
   }
