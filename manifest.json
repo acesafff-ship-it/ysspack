@@ -1,6 +1,6 @@
 {
   "name": "YssPack",
-  "version": "0.6.5",
+  "version": "0.6.6",
   "author": "Król Yss",
   "modules": [
     {
@@ -54,10 +54,10 @@
     },
     {
       "id": "lootlog",
-      "name": "LootLog Elit",
-      "version": "0.2.2",
+      "name": "LootLog",
+      "version": "0.3.0",
       "file": "modules/lootlog.js",
-      "description": "Samodzielnie zapisuje wszystkie looty z Elit i Elit II na dolnej belce gry."
+      "description": "Samodzielnie zapisuje looty ze wszystkich potworów na dolnej belce gry."
     }
   ]
 }

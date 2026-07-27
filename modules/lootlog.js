@@ -18,9 +18,9 @@ const rarityOf = value => {
 
 export default {
   id: 'lootlog',
-  name: 'LootLog Elit',
-  version: '0.2.2',
-  description: 'Samodzielnie zapisuje wszystkie looty z Elit i Elit II na dolnej belce gry.',
+  name: 'LootLog',
+  version: '0.3.0',
+  description: 'Samodzielnie zapisuje looty ze wszystkich potworów na dolnej belce gry.',
   icon: '✦',
 
   start() {
@@ -52,7 +52,7 @@ export default {
 
     const root = document.createElement('section');
     root.id = ROOT_ID;
-    root.title = 'LootLog Elit — kliknij, aby rozwinąć historię';
+    root.title = 'LootLog — kliknij, aby rozwinąć historię';
     document.body.append(root);
 
     const style = document.createElement('style');
@@ -74,11 +74,11 @@ export default {
       const latest = entries[0];
       const feed = latest
         ? `<b>${escapeHtml(latest.elite)}</b><span>—</span><em class="rarity-${escapeHtml(latest.rarity)}">${escapeHtml(latest.item)}${latest.amount > 1 ? ' ×' + latest.amount : ''}</em>`
-        : '<span class="waiting">LootLog Elit: oczekiwanie na zdobyty łup…</span>';
+        : '<span class="waiting">LootLog: oczekiwanie na zdobyty łup…</span>';
       const history = entries.length
         ? entries.map(entry => `<li><time>${new Date(entry.at).toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'})}</time><span>${escapeHtml(entry.elite)}</span><i>${escapeHtml(entry.item)}${entry.amount > 1 ? ' ×' + entry.amount : ''}</i></li>`).join('')
         : '<li class="empty">Historia jest jeszcze pusta.</li>';
-      root.innerHTML = `<div class="ll-bar"><span class="ll-mark">✦</span><span class="ll-title">LootLog Elit</span><div class="ll-latest">${feed}</div><span class="ll-expand">▴</span></div><div class="ll-history"><div class="ll-history-title">Ostatnie looty</div><ol>${history}</ol><small>Wspólny log świata ${escapeHtml(world())} · wpisy są anonimowe.</small></div>`;
+      root.innerHTML = `<div class="ll-bar"><span class="ll-mark">✦</span><span class="ll-title">LootLog</span><div class="ll-latest">${feed}</div><span class="ll-expand">▴</span></div><div class="ll-history"><div class="ll-history-title">Ostatnie looty</div><ol>${history}</ol><small>Wspólny log świata ${escapeHtml(world())} · wpisy są anonimowe.</small></div>`;
     }
 
     async function loadGlobalEntries() {
@@ -110,19 +110,20 @@ export default {
       } catch (_) { /* zapis lokalny działa niezależnie od serwera */ }
     }
 
-    function battleElite() {
+    function battleOpponent() {
       const battle = window.Engine?.battle;
       if (!battle) return null;
       const source = battle.warriorsList || battle.warriors || battle.fighters || {};
       const warriors = source instanceof Map ? [...source.values()] : Array.isArray(source) ? source : Object.values(source);
-      const enemy = warriors.find(warrior => {
+      const enemies = warriors.map(warrior => {
         const data = warrior?.d || warrior?.data || warrior;
         const name = data?.name || data?.nick;
         const npc = data?.npc;
-        return name && (npc === true || Number(npc) === 1) && ELITE_KEYS.has(normalize(name));
-      });
-      const data = enemy?.d || enemy?.data || enemy;
-      return data?.name || data?.nick ? String(data.name || data.nick) : null;
+        return name && (npc === true || Number(npc) === 1) ? String(name) : null;
+      }).filter(Boolean);
+      if (!enemies.length) return null;
+      const unique = [...new Set(enemies)];
+      return unique.length > 1 ? `${unique[0]} +${unique.length - 1}` : unique[0];
     }
 
     function inventory() {
@@ -169,10 +170,10 @@ export default {
     }
 
     const timer = window.setInterval(() => {
-      const elite = battleElite();
-      if (elite && !trackedBattle) trackedBattle = { elite, before: inventory() };
-      if (wasBattle && !elite && trackedBattle) window.setTimeout(() => { if (trackedBattle) finishTracking(); }, 1800);
-      wasBattle = Boolean(elite);
+      const opponent = battleOpponent();
+      if (opponent && !trackedBattle) trackedBattle = { elite: opponent, before: inventory() };
+      if (wasBattle && !opponent && trackedBattle) window.setTimeout(() => { if (trackedBattle) finishTracking(); }, 1800);
+      wasBattle = Boolean(opponent);
     }, 350);
 
     root.addEventListener('click', () => root.classList.toggle('expanded'));
