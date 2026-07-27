@@ -4,7 +4,7 @@ if (!host || document.querySelector('#ysspack')) {
   throw new Error('[YssPack] Loader nie jest aktywny albo panel został już uruchomiony.');
 }
 
-const PACK_VERSION = '0.13.2';
+const PACK_VERSION = '0.14.0';
 const STORAGE_PREFIX = 'ysspack_';
 const today = new Date();
 const moduleCacheKey = [today.getFullYear(), String(today.getMonth() + 1).padStart(2, '0'), String(today.getDate()).padStart(2, '0')].join('');
@@ -50,14 +50,18 @@ const getSetting = (id, key, fallback) => read(moduleKey(id, `setting_${key}`), 
 const setSetting = (id, key, value) => write(moduleKey(id, `setting_${key}`), value);
 const logoUrl = new URL('assets/logo-ysspack-puzzle.png', import.meta.url).href;
 const moduleIconUrls = Object.fromEntries([
-  ['bestiary', 'assets/module-bestiary.png'],
-  ['item-time', 'assets/module-item-time.png'],
-  ['auction-assistant', 'assets/module-auction-assistant.png'],
-  ['character-storage', 'assets/module-character-storage.png'],
-  ['player-actions', 'assets/module-player-actions.png'],
-  ['ranking-ban-scanner', 'assets/module-ranking-ban-scanner.png'],
-  ['tytan-help', 'assets/module-tytan-help.png']
-].map(([id, file]) => [id, new URL(file, import.meta.url).href]));
+  'bestiary',
+  'item-time',
+  'auction-assistant',
+  'character-storage',
+  'player-actions',
+  'ranking-ban-scanner',
+  'tytan-help'
+].map(id => [id, {
+  enabled: new URL(`assets/module-${id}-enabled.png`, import.meta.url).href,
+  disabled: new URL(`assets/module-${id}-disabled.png`, import.meta.url).href
+}]));
+const moduleIconUrl = (id, enabled = isEnabled(id)) => moduleIconUrls[id]?.[enabled ? 'enabled' : 'disabled'] || logoUrl;
 
 const launcher = document.createElement('button');
 launcher.id = 'mhp-launcher';
@@ -159,7 +163,7 @@ function renderModules() {
     return `
       <article class="mhp-card one-addon-on-list${selectedModuleId === module.id ? ' selected' : ''}" data-module-id="${escapeHtml(module.id)}">
         <div class="mhp-icon-wrapper">
-          <img class="mhp-module-icon" src="${escapeHtml(moduleIconUrls[module.id] || logoUrl)}" alt="">
+          <img class="mhp-module-icon" src="${escapeHtml(moduleIconUrl(module.id))}" alt="">
         </div>
         <div class="mhp-card-copy">
           <div class="mhp-name">${escapeHtml(module.name)} <small>${escapeHtml(module.version || '')}</small></div>
@@ -191,7 +195,7 @@ function renderModuleDetails() {
   const enabled = isEnabled(module.id);
   const hasSettings = Array.isArray(module.settings) && module.settings.length > 0;
   detailHeader.innerHTML = `
-    <div class="mhp-detail-icon-wrapper"><img class="mhp-detail-icon" src="${escapeHtml(moduleIconUrls[module.id] || logoUrl)}" alt=""></div>
+    <div class="mhp-detail-icon-wrapper"><img class="mhp-detail-icon" src="${escapeHtml(moduleIconUrl(module.id, enabled))}" alt=""></div>
     <div class="mhp-detail-title">${escapeHtml(module.name)} <small>${escapeHtml(module.version || '')}</small></div>`;
   detailBody.innerHTML = `
     <button class="mhp-detail-toggle button small ${enabled ? 'red' : 'green'}" type="button" aria-pressed="${enabled}">
@@ -208,7 +212,7 @@ function renderModuleDetails() {
     write(moduleKey(module.id, 'enabled'), nextEnabled);
     if (nextEnabled) startModule(module);
     else stopModule(module.id);
-    renderModuleDetails();
+    renderModules();
   });
 
   detailBody.querySelectorAll('[data-setting]').forEach(control => {
