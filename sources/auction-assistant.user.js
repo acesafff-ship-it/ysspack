@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Margonem — Asystent Aukcji
 // @namespace    krol-yss.margonem.auction-assistant
-// @version      1.2.6
+// @version      1.3.0
 // @description  Wyszukuje na aukcji przedmiot wybrany do sprzedaży i pozostawia decyzję o cenie graczowi.
 // @author       Król Yss
 // @match        https://*.margonem.pl/*
@@ -17,7 +17,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "1.2.6";
+  const VERSION = "1.3.0";
   const PANEL_ID = "kyaa-panel";
   const STYLE_ID = "kyaa-style";
   const itemNameCache = new Map();
@@ -26,6 +26,9 @@
   let itemLabel = null;
   let statusLabel = null;
   let searchButton = null;
+  let offersList = null;
+  let activeSelection = null;
+  let lastOffers = [];
   let queued = false;
   let running = false;
 
@@ -35,6 +38,20 @@
       .replace(/\s+/g, " ")
       .trim()
       .toLocaleLowerCase("pl-PL");
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? "").replace(/[&<>"']/g, (character) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[character]
+    );
+  }
+
+  function priceValue(label) {
+    const text = normalize(label).replace(/\s+/g, "").replace(",", ".");
+    const match = text.match(/([\d.]+)\s*([kmg])?/i);
+    if (!match) return Number.POSITIVE_INFINITY;
+    const multiplier = { k: 1e3, m: 1e6, g: 1e9 }[match[2]?.toLowerCase()] || 1;
+    return (Number(match[1]) || 0) * multiplier;
   }
 
   function visible(element) {
@@ -194,6 +211,44 @@
     }
   }
 
+  function readOffers(auctionWindow, itemName) {
+    const wanted = normalize(itemName);
+    const rows = Array.from(auctionWindow?.querySelectorAll(".auction-table tr") || []);
+    return rows.map((row) => {
+      const name = row.querySelector(".item-name-td")?.textContent?.trim() || "";
+      if (!name || normalize(name) !== wanted) return null;
+      const buyNow = row.querySelector(".item-buy-now-td .auction-cost-label")?.textContent?.trim() || "";
+      const bid = row.querySelector(".item-bid-td .auction-cost-label")?.textContent?.trim() || "";
+      const price = buyNow || bid;
+      if (!price) return null;
+      return {
+        name,
+        price,
+        priceValue: priceValue(price),
+        type: buyNow ? "Kup teraz" : "Licytacja",
+        time: row.querySelector(".item-time-td")?.textContent?.trim() || "—",
+        amount: Math.max(1, Number(row.querySelector(".item-slot-td .amount")?.textContent) || 1),
+      };
+    }).filter(Boolean).sort((left, right) => left.priceValue - right.priceValue).slice(0, 6);
+  }
+
+  function renderOffers(offers) {
+    lastOffers = offers;
+    if (!offersList || !panel) return;
+    panel.classList.add("kyaa-has-offers");
+    offersList.innerHTML = offers.length
+      ? offers.map((offer, index) => `
+          <div class="kyaa-offer">
+            <span class="kyaa-rank">${index + 1}.</span>
+            <span class="kyaa-offer-price">${escapeHtml(offer.price)}</span>
+            <span class="kyaa-offer-type">${escapeHtml(offer.type)}</span>
+            <span class="kyaa-offer-time">${escapeHtml(offer.time)}${offer.amount > 1 ? ` · ×${offer.amount}` : ""}</span>
+          </div>`).join("")
+      : '<div class="kyaa-empty">Brak aktualnych ofert dla tego przedmiotu.</div>';
+    offersList.parentElement.hidden = false;
+    positionPanel();
+  }
+
   async function showAuctions() {
     if (running) return;
     const selection = readSelection();
@@ -201,6 +256,8 @@
     if (!selection.name) return setStatus("Nie udało się odczytać nazwy przedmiotu. Wybierz go ponownie.", "#ff8b8b");
 
     running = true;
+    activeSelection = selection;
+    renderOffers([]);
     searchButton.classList.add("disabled");
     searchButton.setAttribute("aria-disabled", "true");
     setStatus("Otwieram aukcje i wyszukuję nazwę…", "#7fd7ff");
@@ -216,7 +273,12 @@
       setInput(nameInput, selection.name);
       const refreshButton = findButton(auctionWindow.querySelector(".refresh-button-wrapper"), "Odśwież");
       if (!nativeClick(refreshButton)) throw new Error("Nie znaleziono przycisku Odśwież.");
-      // Celowo nie wracamy do formularza. Gracz ogląda oferty i sam ustala cenę.
+      const offers = await waitFor(() => {
+        const current = readOffers(auctionWindow, selection.name);
+        return current.length ? current : null;
+      }, 5000);
+      renderOffers(offers || []);
+      setStatus(offers?.length ? `Znaleziono ${offers.length} najtańszych ofert.` : "Brak ofert dla tego przedmiotu.", offers?.length ? "#bfe38a" : "#d8cabb");
     } catch (error) {
       console.warn("[Asystent Aukcji]", error);
       setStatus(error?.message || "Nie udało się otworzyć ofert.", "#ff8b8b");
@@ -253,6 +315,17 @@
       #${PANEL_ID} .kyaa-search.button .label{width:100%;text-align:center;font-size:11px;font-weight:bold;color:#e6d6bf}
       #${PANEL_ID} .kyaa-search.button.disabled{filter:grayscale(1);opacity:.55;cursor:not-allowed}
       #${PANEL_ID} .kyaa-status{height:30px;margin-top:7px;padding:4px 6px 0;border-top:1px solid #665a4b;background:transparent;color:#d8cabb;text-align:center;font-size:10px;line-height:12px;overflow:hidden}
+      #${PANEL_ID}.kyaa-has-offers{height:340px!important}
+      #${PANEL_ID}.kyaa-has-offers>.content{padding-bottom:10px!important}
+      #${PANEL_ID} .kyaa-offers{margin-top:5px;border:1px solid #6d5133;background:linear-gradient(135deg,rgba(31,21,14,.98),rgba(14,11,9,.99));box-shadow:inset 0 0 0 1px #0b0806}
+      #${PANEL_ID} .kyaa-offers-title{height:24px;padding:4px 7px;border-bottom:1px solid #6d5133;color:#efd27f;font-size:10px;font-weight:bold;text-shadow:1px 1px #000}
+      #${PANEL_ID} .kyaa-offer{display:grid;grid-template-columns:18px 52px 67px 1fr;align-items:center;min-height:24px;padding:3px 6px;border-bottom:1px solid rgba(122,91,53,.32);font-size:9px;line-height:12px}
+      #${PANEL_ID} .kyaa-offer:last-child{border-bottom:0}
+      #${PANEL_ID} .kyaa-rank{color:#9c8c75}
+      #${PANEL_ID} .kyaa-offer-price{color:#ffd75c;font-weight:bold;text-align:right}
+      #${PANEL_ID} .kyaa-offer-type{padding-left:7px;color:#cdbb9d}
+      #${PANEL_ID} .kyaa-offer-time{color:#9fb9c4;text-align:right}
+      #${PANEL_ID} .kyaa-empty{padding:15px 8px;color:#aa9d88;text-align:center;font-size:10px}
       #${PANEL_ID} .c-window__bottom-bar{pointer-events:none}
     `;
     document.documentElement.appendChild(style);
@@ -275,19 +348,22 @@
         <div class="kyaa-item">Wybierz przedmiot</div>
         <div class="kyaa-search button small green"><div class="background"></div><div class="label">Pokaż aukcje przedmiotu</div></div>
         <div class="kyaa-status">Wyszuka nazwę i pozostawi otwartą listę ofert. Cenę wybierasz sam.</div>
+        <div class="kyaa-offers" hidden><div class="kyaa-offers-title">Najtańsze aktualne oferty</div><div class="kyaa-offers-list"></div></div>
       </div></div>
       <div class="c-window__bottom-bar"><div class="interface-element-bottom-bar-background-stretch"></div></div>`;
     document.documentElement.appendChild(panel);
     itemLabel = panel.querySelector(".kyaa-item");
     statusLabel = panel.querySelector(".kyaa-status");
     searchButton = panel.querySelector(".kyaa-search");
+    offersList = panel.querySelector(".kyaa-offers-list");
     searchButton.addEventListener("click", showAuctions);
+    if (lastOffers.length) renderOffers(lastOffers);
   }
 
   function positionPanel() {
-    const sellWindow = getSellWindow();
-    if (!panel || !sellWindow) return;
-    const rect = sellWindow.getBoundingClientRect();
+    const anchorWindow = getSellWindow() || getAuctionWindow();
+    if (!panel || !anchorWindow) return;
+    const rect = anchorWindow.getBoundingClientRect();
     const width = panel.offsetWidth || 286;
     const height = panel.offsetHeight || 190;
     let left = rect.right + 8;
@@ -297,14 +373,16 @@
   }
 
   function updatePanel() {
-    if (!getSellWindow()) {
+    const sellWindow = getSellWindow();
+    const auctionWindow = getAuctionWindow();
+    if (!sellWindow && !(auctionWindow && activeSelection) && !running) {
       panel?.remove();
-      panel = itemLabel = statusLabel = searchButton = null;
+      panel = itemLabel = statusLabel = searchButton = offersList = null;
       return;
     }
     if (!panel) createPanel();
     positionPanel();
-    const selection = readSelection();
+    const selection = readSelection() || activeSelection;
     itemLabel.textContent = selection?.name
       ? `${selection.name}${selection.amount > 1 ? ` ×${selection.amount}` : ""}`
       : selection ? `Przedmiot #${selection.templateId || selection.id || "?"}` : "Wybierz przedmiot";
