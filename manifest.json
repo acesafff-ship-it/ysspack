@@ -1,6 +1,6 @@
 {
   "name": "YssPack",
-  "version": "0.6.9",
+  "version": "0.7.0",
   "author": "Król Yss",
   "modules": [
     {
@@ -51,13 +51,6 @@
       "version": "1.0.0",
       "file": "modules/tytan-help.js",
       "description": "Pokazuje HP, odporności, umiejętność, naładowanie i cel ataku Kolosów oraz Tytanów."
-    },
-    {
-      "id": "lootlog",
-      "name": "LootLog",
-      "version": "0.3.3",
-      "file": "modules/lootlog.js",
-      "description": "Samodzielnie zapisuje looty ze wszystkich potworów na dolnej belce gry."
     }
   ]
 }
