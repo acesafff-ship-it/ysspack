@@ -53,7 +53,7 @@ async function loadAndRun() {
 export default {
   id: 'auction-assistant',
   name: 'Asystent Aukcji',
-  version: '1.2.6',
+  version: '1.3.0',
   description: 'Wyszukuje aukcje przedmiotu wybranego do sprzedaży.',
   icon: '⚖',
 
