@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Margonem — Asystent Aukcji
 // @namespace    krol-yss.margonem.auction-assistant
-// @version      1.4.0
+// @version      1.4.1
 // @description  Automatycznie pobiera ceny przedmiotu wybranego do sprzedaży bez otwierania listy aukcji.
 // @author       Król Yss
 // @match        https://*.margonem.pl/*
@@ -17,7 +17,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "1.4.0";
+  const VERSION = "1.4.1";
   const PANEL_ID = "kyaa-panel";
   const STYLE_ID = "kyaa-style";
   const itemNameCache = new Map();
@@ -208,7 +208,7 @@
   }
 
   function offersFromResponse(response) {
-    const rawOffers = response?.ah?.show?.offers;
+    const rawOffers = response?.auctions?.show?.offers ?? response?.ah?.show?.offers;
     const offers = Array.isArray(rawOffers)
       ? rawOffers
       : rawOffers && typeof rawOffers === "object" ? Object.values(rawOffers) : [];
@@ -235,7 +235,7 @@
     return new Promise((resolve, reject) => {
       if (typeof window._g !== "function") return reject(new Error("Silnik aukcji nie jest jeszcze gotowy."));
       const filter = `||||||0|4|0|1|${encodeURIComponent(itemName)}`;
-      const query = `ah&cat=0&filter=${filter}&sort=1|1`;
+      const query = `ah&cat=0&filter=${filter}&sort=3|0`;
       let settled = false;
       const timeout = setTimeout(() => {
         if (settled) return;
