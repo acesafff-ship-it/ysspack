@@ -4,7 +4,7 @@ if (!host || document.querySelector('#ysspack')) {
   throw new Error('[YssPack] Loader nie jest aktywny albo panel został już uruchomiony.');
 }
 
-const PACK_VERSION = '0.11.0';
+const PACK_VERSION = '0.12.0';
 const STORAGE_PREFIX = 'ysspack_';
 const today = new Date();
 const moduleCacheKey = [today.getFullYear(), String(today.getMonth() + 1).padStart(2, '0'), String(today.getDate()).padStart(2, '0')].join('');
@@ -48,7 +48,16 @@ const moduleKey = (id, suffix) => `module_${id}_${suffix}`;
 const isEnabled = id => Boolean(read(moduleKey(id, 'enabled'), false));
 const getSetting = (id, key, fallback) => read(moduleKey(id, `setting_${key}`), fallback);
 const setSetting = (id, key, value) => write(moduleKey(id, `setting_${key}`), value);
-const logoUrl = new URL('assets/logo-ysspack.png', import.meta.url).href;
+const logoUrl = new URL('assets/logo-ysspack-puzzle.png', import.meta.url).href;
+const moduleIconUrls = Object.fromEntries([
+  ['bestiary', 'assets/module-bestiary.png'],
+  ['item-time', 'assets/module-item-time.png'],
+  ['auction-assistant', 'assets/module-auction-assistant.png'],
+  ['character-storage', 'assets/module-character-storage.png'],
+  ['player-actions', 'assets/module-player-actions.png'],
+  ['ranking-ban-scanner', 'assets/module-ranking-ban-scanner.png'],
+  ['tytan-help', 'assets/module-tytan-help.png']
+].map(([id, file]) => [id, new URL(file, import.meta.url).href]));
 
 const launcher = document.createElement('button');
 launcher.id = 'mhp-launcher';
@@ -139,9 +148,12 @@ function renderModules() {
     return `
       <article class="mhp-card one-addon-on-list${enabled ? ' enabled' : ''}" data-module-id="${escapeHtml(module.id)}">
         <div class="mhp-icon-wrapper">
-          <div class="mhp-icon-frame widget-button no-hover ${enabled ? 'green' : 'red'}"><div class="mhp-icon icon">${escapeHtml(module.icon || '◆')}</div></div>
+          <img class="mhp-module-icon" src="${escapeHtml(moduleIconUrls[module.id] || logoUrl)}" alt="">
         </div>
-        <div class="mhp-card-copy"><div class="mhp-name">${escapeHtml(module.name)} <small>${escapeHtml(module.version || '')}</small></div></div>
+        <div class="mhp-card-copy">
+          <div class="mhp-name">${escapeHtml(module.name)} <small>${escapeHtml(module.version || '')}</small></div>
+          <div class="mhp-description">${escapeHtml(module.description || '')}</div>
+        </div>
         ${hasSettings ? '<button class="mhp-settings-button" type="button" title="Ustawienia">⚙</button>' : ''}
         <button class="mhp-toggle-button button small ${enabled ? 'green' : 'red'}" type="button" aria-pressed="${enabled}">
           <span class="background"></span><span class="label">${enabled ? 'Włączone' : 'Wyłączone'}</span>
@@ -161,8 +173,6 @@ function renderModules() {
       if (enabled) startModule(module);
       else stopModule(module.id);
       card.classList.toggle('enabled', enabled);
-      card.querySelector('.mhp-icon-frame').classList.toggle('green', enabled);
-      card.querySelector('.mhp-icon-frame').classList.toggle('red', !enabled);
       toggle.classList.toggle('green', enabled);
       toggle.classList.toggle('red', !enabled);
       toggle.setAttribute('aria-pressed', String(enabled));

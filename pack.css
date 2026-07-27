@@ -17,7 +17,7 @@
   max-width: calc(100vw - 24px);
   color: #fff;
   background-color: transparent !important;
-  background-image: linear-gradient(#1d1210, #1d1210) !important;
+  background-image: linear-gradient(#252525, #252525) !important;
   background-origin: border-box !important;
   background-position: center !important;
   background-repeat: no-repeat !important;
@@ -37,7 +37,7 @@
   padding: 25px 15px 13px !important;
   overflow: hidden !important;
   color: #fff !important;
-  background: transparent !important;
+  background: #252525 !important;
 }
 
 #ysspack > .content::before {
@@ -45,7 +45,7 @@
   inset: 0;
   content: "";
   pointer-events: none;
-  background: linear-gradient(90deg, rgba(255,255,255,.025), transparent 18%, transparent 82%, rgba(0,0,0,.18));
+  background: none;
 }
 
 #ysspack .inner-content {
@@ -138,11 +138,11 @@
   grid-template-columns: 47px minmax(0, 1fr) auto auto;
   align-items: center;
   width: 100% !important;
-  min-height: 50px;
+  min-height: 68px;
   margin: 0 !important;
   border: 0;
   border-bottom: 1px solid #444;
-  background: transparent;
+  background: #252525;
   box-shadow: none;
   cursor: pointer;
 }
@@ -154,45 +154,31 @@
 .mhp-icon-wrapper {
   display: flex;
   width: 47px;
-  min-height: 49px;
+  min-height: 67px;
   align-items: center;
   justify-content: center;
   padding: 5px 0 2px 5px;
 }
 
-.mhp-icon-frame.widget-button {
-  width: 38px;
-  height: 38px;
-  flex: 0 0 38px;
-}
-
-.mhp-icon-frame .mhp-icon {
-  position: absolute !important;
-  top: 50% !important;
-  left: 50% !important;
-  display: flex;
-  width: 30px !important;
-  height: 30px !important;
-  margin: -15px 0 0 -15px !important;
-  align-items: center;
-  justify-content: center;
-  background: #151515 !important;
-  color: #efd27f;
-  font-size: 17px;
-  line-height: 30px !important;
-  text-shadow: 1px 1px #000;
+.mhp-module-icon {
+  display: block;
+  width: 42px;
+  height: 42px;
+  object-fit: cover;
+  image-rendering: pixelated;
+  pointer-events: none;
 }
 
 .mhp-card-copy {
   min-width: 0;
-  padding: 0 8px;
-  text-align: center;
+  padding: 6px 8px;
+  text-align: left;
 }
 
 .mhp-name {
   overflow: hidden;
-  color: #aaa;
-  font-weight: normal;
+  color: #e0e0e0;
+  font-weight: bold;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -201,6 +187,17 @@
   color: #777;
   font-size: 9px;
   font-weight: normal;
+}
+
+.mhp-description {
+  display: -webkit-box;
+  overflow: hidden;
+  margin-top: 3px;
+  color: #aaa;
+  font-size: 10px;
+  line-height: 13px;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .mhp-settings-button {
