@@ -19,7 +19,7 @@ const rarityOf = value => {
 export default {
   id: 'lootlog',
   name: 'LootLog',
-  version: '0.3.2',
+  version: '0.3.3',
   description: 'Samodzielnie zapisuje looty ze wszystkich potworów na dolnej belce gry.',
   icon: '✦',
 
@@ -62,7 +62,7 @@ export default {
       #${ROOT_ID}{position:fixed;z-index:2147483500;left:50%;bottom:72px;transform:translateX(-50%);width:min(470px,calc(100vw - 28px));color:#eee2c5;font:11px/14px Verdana,Arial,sans-serif;filter:drop-shadow(0 2px 3px #000);user-select:none}
       #${ROOT_ID} .ll-bar{height:29px;display:grid;grid-template-columns:18px auto minmax(0,1fr) 16px;gap:6px;align-items:center;padding:0 9px;border:1px solid #1c1009;border-top-color:#b08a52;border-bottom-color:#120a05;background:repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0 1px,transparent 1px 4px),linear-gradient(#694625,#3b2414 47%,#21130b 52%,#482c18);box-shadow:inset 0 1px rgba(255,231,172,.18),inset 0 -1px #090604}
       #${ROOT_ID} .ll-mark{color:#f4cc55;font-size:15px;text-shadow:0 0 4px #f2b500}#${ROOT_ID} .ll-title{color:#f3d879;font-weight:bold;white-space:nowrap;text-shadow:1px 1px #170c05}.ll-latest{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#d8cdb7}.ll-latest b{color:#f7e9ae}.ll-latest span{padding:0 4px;color:#9d896d}.ll-latest em{font-style:normal}.rarity-legendary{color:#f1a63e}.rarity-heroic{color:#65c9ff}.rarity-unique{color:#f3e34e}.waiting{color:#b6a88f}.ll-expand{color:#dbb861;font-size:12px;text-align:right}
-      #${ROOT_ID} .ll-history{display:none;max-height:196px;overflow:auto;padding:8px 10px;border:1px solid #8f7043;border-top:0;background:linear-gradient(135deg,rgba(34,23,13,.98),rgba(13,11,9,.99));box-shadow:inset 0 0 0 1px #0a0806}#${ROOT_ID}.expanded .ll-history{display:block}#${ROOT_ID}.expanded .ll-expand{transform:rotate(180deg)}.ll-history-title{padding-bottom:5px;border-bottom:1px solid #6b502d;color:#f0d27c;font-weight:bold}.ll-history ol{padding:0;margin:4px 0;list-style:none}.ll-history li{display:grid;grid-template-columns:38px minmax(90px,1fr) minmax(100px,1.25fr);gap:6px;padding:4px 0;border-bottom:1px solid rgba(156,123,70,.28);color:#ded3be}.ll-history time{color:#aa9e88}.ll-history i{color:#f0cd71;font-style:normal}.ll-history .empty{display:block;color:#aaa08e}.ll-history small{display:block;padding-top:4px;color:#958b78;font-size:9px;line-height:12px}
+      #${ROOT_ID} .ll-history{display:none;max-height:196px;overflow:auto;padding:8px 10px;border:1px solid #8f7043;border-top:0;background:linear-gradient(135deg,rgba(34,23,13,.98),rgba(13,11,9,.99));box-shadow:inset 0 0 0 1px #0a0806}#${ROOT_ID}.expanded .ll-history{display:block}#${ROOT_ID}.expanded .ll-expand{transform:rotate(180deg)}.ll-history-title{display:flex;align-items:center;justify-content:space-between;padding-bottom:5px;border-bottom:1px solid #6b502d;color:#f0d27c;font-weight:bold}.ll-test{padding:2px 8px;border:1px solid #9b7742;border-radius:2px;background:linear-gradient(#70502c,#382414);color:#f3d879;font:10px Verdana,Arial,sans-serif;cursor:pointer}.ll-test:hover{filter:brightness(1.2)}.ll-history ol{padding:0;margin:4px 0;list-style:none}.ll-history li{display:grid;grid-template-columns:38px minmax(90px,1fr) minmax(100px,1.25fr);gap:6px;padding:4px 0;border-bottom:1px solid rgba(156,123,70,.28);color:#ded3be}.ll-history time{color:#aa9e88}.ll-history i{color:#f0cd71;font-style:normal}.ll-history .empty{display:block;color:#aaa08e}.ll-history small{display:block;padding-top:4px;color:#958b78;font-size:9px;line-height:12px}
       @media(max-width:700px){#${ROOT_ID}{bottom:46px;width:calc(100vw - 16px)}#${ROOT_ID} .ll-title{display:none}}
     `;
     document.head.append(style);
@@ -79,7 +79,7 @@ export default {
       const history = entries.length
         ? entries.map(entry => `<li><time>${new Date(entry.at).toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'})}</time><span>${escapeHtml(entry.elite)}</span><i>${escapeHtml(entry.item)}${entry.amount > 1 ? ' ×' + entry.amount : ''}</i></li>`).join('')
         : '<li class="empty">Historia jest jeszcze pusta.</li>';
-      root.innerHTML = `<div class="ll-bar"><span class="ll-mark">✦</span><span class="ll-title">LootLog</span><div class="ll-latest">${feed}</div><span class="ll-expand">▴</span></div><div class="ll-history"><div class="ll-history-title">Ostatnie looty</div><ol>${history}</ol><small>Wspólny log świata ${escapeHtml(world())} · wpisy są anonimowe.</small></div>`;
+      root.innerHTML = `<div class="ll-bar"><span class="ll-mark">✦</span><span class="ll-title">LootLog</span><div class="ll-latest">${feed}</div><span class="ll-expand">▴</span></div><div class="ll-history"><div class="ll-history-title"><span>Ostatnie looty</span><button type="button" class="ll-test">Test</button></div><ol>${history}</ol><small>Wspólny log świata ${escapeHtml(world())} · wpisy są anonimowe.</small></div>`;
     }
 
     async function loadGlobalEntries() {
@@ -200,7 +200,16 @@ export default {
       wasBattle = Boolean(opponent);
     }, 350);
 
-    root.addEventListener('click', () => root.classList.toggle('expanded'));
+    root.addEventListener('click', event => {
+      if (event.target.closest('.ll-test')) {
+        entries.unshift({ elite: 'Testowy potwór', item: 'Przykładowy łup', rarity: 'normal', amount: 1, at: Date.now() });
+        entries = entries.slice(0, 40);
+        render();
+        root.classList.add('expanded');
+        return;
+      }
+      root.classList.toggle('expanded');
+    });
     render();
     loadGlobalEntries();
     syncTimer = window.setInterval(loadGlobalEntries, 30000);
