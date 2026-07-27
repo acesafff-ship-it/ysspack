@@ -55,7 +55,7 @@ async function loadAndRun() {
 export default {
   id: 'auction-assistant',
   name: 'Asystent Aukcji',
-  version: '1.7.1',
+  version: '1.7.2',
   description: 'Automatycznie pobiera ceny przedmiotu bez otwierania listy aukcji.',
   icon: '⚖',
 
