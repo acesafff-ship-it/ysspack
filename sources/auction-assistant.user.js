@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Margonem — Asystent Aukcji
 // @namespace    krol-yss.margonem.auction-assistant
-// @version      1.5.0
+// @version      1.6.0
 // @description  Automatycznie pobiera ceny przedmiotu wybranego do sprzedaży bez otwierania listy aukcji.
 // @author       Król Yss
 // @match        https://*.margonem.pl/*
@@ -17,7 +17,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "1.5.0";
+  const VERSION = "1.6.0";
   const PANEL_ID = "kyaa-panel";
   const STYLE_ID = "kyaa-style";
   const itemNameCache = new Map();
@@ -209,10 +209,12 @@
 
   function offersFromResponse(response) {
     const rawOffers = response?.auctions?.show?.offers ?? response?.ah?.show?.offers;
+    const items = response?.item || {};
     const offers = Array.isArray(rawOffers)
       ? rawOffers
       : rawOffers && typeof rawOffers === "object" ? Object.values(rawOffers) : [];
     return offers.map((offer) => {
+      const item = items?.[offer?.item_id] || items?.[String(offer?.item_id)] || {};
       const buyGold = Number(offer?.bo_g) || 0;
       const buyPremium = Number(offer?.bo_c) || 0;
       const bidGold = Number(offer?.bid_g) || 0;
@@ -227,6 +229,7 @@
         type: isBuyNow ? "Kup teraz" : "Licytacja",
         time: formatTime(offer?.time),
         amount: 1,
+        icon: item?.icon ? `${location.origin}/obrazki/itemy/${String(item.icon).replace(/^\/+/, "")}` : "",
       };
     }).filter(Boolean).sort((left, right) => left.priceValue - right.priceValue).slice(0, 6);
   }
@@ -299,6 +302,7 @@
       ? offers.map((offer, index) => `
           <div class="kyaa-offer">
             <span class="kyaa-rank">${index + 1}.</span>
+            <span class="kyaa-offer-icon">${offer.icon ? `<img src="${escapeHtml(offer.icon)}" alt="">` : "?"}</span>
             <span class="kyaa-offer-price">${escapeHtml(offer.price)}</span>
             <span class="kyaa-offer-type">${escapeHtml(offer.type)}</span>
             <span class="kyaa-offer-time">${escapeHtml(offer.time)}${offer.amount > 1 ? ` · ×${offer.amount}` : ""}</span>
@@ -368,13 +372,15 @@
       #${PANEL_ID} .kyaa-search.button .label{width:100%;text-align:center;font-size:11px;font-weight:bold;color:#e6d6bf}
       #${PANEL_ID} .kyaa-search.button.disabled{filter:grayscale(1);opacity:.55;cursor:not-allowed}
       #${PANEL_ID} .kyaa-status{height:30px;margin-top:7px;padding:4px 6px 0;border-top:1px solid #665a4b;background:transparent;color:#d8cabb;text-align:center;font-size:10px;line-height:12px;overflow:hidden}
-      #${PANEL_ID}.kyaa-has-offers{height:372px!important}
+      #${PANEL_ID}.kyaa-has-offers{height:432px!important}
       #${PANEL_ID}.kyaa-has-offers>.content{padding-bottom:10px!important}
       #${PANEL_ID} .kyaa-offers{margin-top:5px;border:1px solid #6d5133;background:linear-gradient(135deg,rgba(31,21,14,.98),rgba(14,11,9,.99));box-shadow:inset 0 0 0 1px #0b0806}
       #${PANEL_ID} .kyaa-offers-title{height:24px;padding:4px 7px;border-bottom:1px solid #6d5133;color:#efd27f;font-size:10px;font-weight:bold;text-shadow:1px 1px #000}
-      #${PANEL_ID} .kyaa-offer{display:grid;grid-template-columns:18px 52px 67px 1fr;align-items:center;min-height:24px;padding:3px 6px;border-bottom:1px solid rgba(122,91,53,.32);font-size:9px;line-height:12px}
+      #${PANEL_ID} .kyaa-offer{display:grid;grid-template-columns:16px 32px 48px 63px 1fr;align-items:center;min-height:34px;padding:3px 5px;border-bottom:1px solid rgba(122,91,53,.32);font-size:9px;line-height:12px}
       #${PANEL_ID} .kyaa-offer:last-child{border-bottom:0}
       #${PANEL_ID} .kyaa-rank{color:#9c8c75}
+      #${PANEL_ID} .kyaa-offer-icon{display:flex;width:30px;height:30px;align-items:center;justify-content:center;border:1px solid #73552f;background:#100c09;color:#88765e;box-shadow:inset 0 0 0 1px #050403}
+      #${PANEL_ID} .kyaa-offer-icon img{display:block;max-width:28px;max-height:28px;image-rendering:auto}
       #${PANEL_ID} .kyaa-offer-price{color:#ffd75c;font-weight:bold;text-align:right}
       #${PANEL_ID} .kyaa-offer-type{padding-left:7px;color:#cdbb9d}
       #${PANEL_ID} .kyaa-offer-time{color:#9fb9c4;text-align:right}
