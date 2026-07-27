@@ -4,7 +4,7 @@ if (!host || document.querySelector('#ysspack')) {
   throw new Error('[YssPack] Loader nie jest aktywny albo panel został już uruchomiony.');
 }
 
-const PACK_VERSION = '0.10.3';
+const PACK_VERSION = '0.11.0';
 const STORAGE_PREFIX = 'ysspack_';
 const today = new Date();
 const moduleCacheKey = [today.getFullYear(), String(today.getMonth() + 1).padStart(2, '0'), String(today.getDate()).padStart(2, '0')].join('');
@@ -68,6 +68,7 @@ panel.innerHTML = `
   </div>
   <div class="content"><div class="inner-content">
     <span class="mhp-version">v${PACK_VERSION}</span>
+    <div class="mhp-list-heading">Lista dodatków</div>
     <div class="mhp-toolbar"><input class="mhp-search" type="search" placeholder="Szukaj dodatku..."></div>
     <div class="mhp-list"></div>
     <footer class="mhp-footer">
@@ -136,15 +137,15 @@ function renderModules() {
     const enabled = isEnabled(module.id);
     const hasSettings = Array.isArray(module.settings) && module.settings.length > 0;
     return `
-      <article class="mhp-card${enabled ? ' enabled' : ''}" data-module-id="${escapeHtml(module.id)}">
-        <div class="mhp-card-main">
-          <div class="mhp-icon">${escapeHtml(module.icon || '◆')}</div>
-          <div class="mhp-card-copy"><div class="mhp-name">${escapeHtml(module.name)} <small>${escapeHtml(module.version || '')}</small></div><div class="mhp-description">${escapeHtml(module.description || '')}</div></div>
-          ${hasSettings ? '<button class="mhp-settings-button" type="button" title="Ustawienia">⚙</button>' : ''}
-          <button class="mhp-toggle-button button small ${enabled ? 'green' : 'red'}" type="button" aria-pressed="${enabled}">
-            <span class="background"></span><span class="label">${enabled ? 'Włączone' : 'Wyłączone'}</span>
-          </button>
+      <article class="mhp-card one-addon-on-list${enabled ? ' enabled' : ''}" data-module-id="${escapeHtml(module.id)}">
+        <div class="mhp-icon-wrapper">
+          <div class="mhp-icon-frame widget-button no-hover ${enabled ? 'green' : 'red'}"><div class="mhp-icon icon">${escapeHtml(module.icon || '◆')}</div></div>
         </div>
+        <div class="mhp-card-copy"><div class="mhp-name">${escapeHtml(module.name)} <small>${escapeHtml(module.version || '')}</small></div></div>
+        ${hasSettings ? '<button class="mhp-settings-button" type="button" title="Ustawienia">⚙</button>' : ''}
+        <button class="mhp-toggle-button button small ${enabled ? 'green' : 'red'}" type="button" aria-pressed="${enabled}">
+          <span class="background"></span><span class="label">${enabled ? 'Włączone' : 'Wyłączone'}</span>
+        </button>
         ${hasSettings ? `<div class="mhp-settings" hidden>${renderSettings(module)}</div>` : ''}
       </article>`;
   }).join('');
@@ -160,6 +161,8 @@ function renderModules() {
       if (enabled) startModule(module);
       else stopModule(module.id);
       card.classList.toggle('enabled', enabled);
+      card.querySelector('.mhp-icon-frame').classList.toggle('green', enabled);
+      card.querySelector('.mhp-icon-frame').classList.toggle('red', !enabled);
       toggle.classList.toggle('green', enabled);
       toggle.classList.toggle('red', !enabled);
       toggle.setAttribute('aria-pressed', String(enabled));
