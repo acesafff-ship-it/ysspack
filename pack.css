@@ -101,20 +101,8 @@
   text-shadow: 1px 1px #000;
 }
 
-.mhp-close {
-  display: flex;
-  width: 27px;
-  height: 27px;
-  padding: 0;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid #0c0d0d;
-  border-radius: 6px;
-  background: linear-gradient(to top, #321411, #6a2d27);
-  box-shadow: inset 0 0 1px 1px #cecece, inset 0 0 0 3px #0c0d0d;
-  color: #f0d7cf;
-  font: bold 18px/1 Arial, sans-serif;
-  cursor: pointer;
+#ysspack > .close-button-corner-decor {
+  z-index: 6;
 }
 
 .mhp-toolbar {
@@ -220,49 +208,29 @@
   cursor: pointer;
 }
 
-.mhp-switch {
-  position: relative;
-  width: 46px;
-  height: 24px;
+.mhp-toggle-button.button {
+  display: flex !important;
+  width: 82px !important;
+  height: 26px !important;
+  align-items: center !important;
+  justify-content: center !important;
   cursor: pointer;
 }
 
-.mhp-switch input {
-  position: absolute;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.mhp-switch span {
-  position: absolute;
-  inset: 0;
-  border: 1px solid #6d5133;
-  border-radius: 12px;
-  background: #2b1714;
-  box-shadow: inset 0 0 5px #000;
-}
-
-.mhp-switch span::after {
-  position: absolute;
-  top: 3px;
-  left: 4px;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: #aa9d88;
-  box-shadow: 0 1px 3px #000;
-  content: "";
-  transition: left .12s ease, background .12s ease;
-}
-
-.mhp-switch input:checked + span {
-  border-color: #6a8e50;
-  background: #204619;
-}
-
-.mhp-switch input:checked + span::after {
-  left: 24px;
-  background: #8fda6d;
+.mhp-toggle-button.button .label {
+  position: relative !important;
+  inset: auto !important;
+  display: flex !important;
+  width: 100% !important;
+  height: 100% !important;
+  padding: 0 !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: #e6d6bf;
+  font-size: 9px;
+  font-weight: bold;
+  line-height: 1 !important;
+  text-align: center;
 }
 
 .mhp-settings {
@@ -306,12 +274,23 @@
 }
 
 .mhp-footer {
-  flex: 0 0 27px;
-  padding: 6px 8px 4px;
+  flex: 0 0 35px;
+  padding: 5px 8px 3px;
   border-top: 1px solid #665a4b;
   color: #918574;
   font-size: 8px;
+  line-height: 12px;
   text-align: center;
+}
+
+.mhp-footer a {
+  color: #d8ba70;
+  text-decoration: none;
+}
+
+.mhp-footer a:hover {
+  color: #ffe19a;
+  text-decoration: underline;
 }
 
 #ysspack .c-window__bottom-bar {
