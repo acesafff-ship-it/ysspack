@@ -4,13 +4,14 @@ if (!host || document.querySelector('#ysspack')) {
   throw new Error('[YssPack] Loader nie jest aktywny albo panel został już uruchomiony.');
 }
 
-const PACK_VERSION = '0.14.5';
+const PACK_VERSION = '0.14.6';
 const STORAGE_PREFIX = 'ysspack_';
 const today = new Date();
 const moduleCacheKey = [today.getFullYear(), String(today.getMonth() + 1).padStart(2, '0'), String(today.getDate()).padStart(2, '0')].join('');
 const moduleFiles = [
   'modules/bestiary.js',
   'modules/item-time.js',
+  'modules/chat-item-icons.js',
   'modules/auction-assistant.js',
   'modules/character-storage.js',
   'modules/player-actions.js',
@@ -52,6 +53,7 @@ const logoUrl = new URL('assets/logo-ysspack-puzzle.png', import.meta.url).href;
 const moduleIconUrls = Object.fromEntries([
   'bestiary',
   'item-time',
+  'chat-item-icons',
   'auction-assistant',
   'character-storage',
   'player-actions',
