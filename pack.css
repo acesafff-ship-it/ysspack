@@ -9,7 +9,7 @@
 
 #ysspack.c-window {
   position: fixed !important;
-  z-index: 2147483600 !important;
+  z-index: 100 !important;
   display: block !important;
   visibility: visible !important;
   width: 568px !important;
@@ -391,7 +391,7 @@
 
 #mhp-launcher {
   position: fixed;
-  z-index: 2147483599;
+  z-index: 99;
   box-sizing: border-box;
   width: 44px;
   height: 44px;

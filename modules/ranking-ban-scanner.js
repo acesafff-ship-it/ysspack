@@ -82,7 +82,7 @@ function createUi() {
   const style = document.createElement('style');
   style.id = STYLE_ID;
   style.textContent = `
-    #${ROOT_ID}{position:fixed;right:18px;top:118px;width:310px;z-index:2147483000;color:#eee0b6;
+    #${ROOT_ID}{position:fixed;right:18px;top:118px;width:310px;z-index:100;color:#eee0b6;
       border:1px solid #8b7021;border-radius:5px;background:#121311;box-shadow:0 3px 12px #000;font:12px Arial,sans-serif}
     #${ROOT_ID} *{box-sizing:border-box}
     #${ROOT_ID} header{display:flex;align-items:center;justify-content:space-between;padding:9px 10px;
@@ -113,7 +113,7 @@ function createUi() {
   const root = document.createElement('section');
   root.id = ROOT_ID;
   root.innerHTML = `
-    <header><span>Kontrola banów • v1.0.0</span><span class="yss-ban-page"></span></header>
+    <header><span>Kontrola banów • v1.0.1</span><span class="yss-ban-page"></span></header>
     <div class="yss-ban-body">
       <div class="yss-ban-summary">Wczytywanie graczy…</div>
       <div class="yss-ban-progress"><i></i></div>
@@ -239,7 +239,7 @@ function makeScanner() {
 export default {
   id: MODULE_ID,
   name: 'Kontrola banów rankingu',
-  version: '1.0.0',
+  version: '1.0.1',
   description: 'Sprawdza bany graczy nieaktywnych co najmniej 24 godziny na bieżącej stronie rankingu.',
   icon: '⛔',
   start() {

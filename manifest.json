@@ -1,12 +1,12 @@
 {
   "name": "YssPack",
-  "version": "0.14.3",
+  "version": "0.14.4",
   "author": "Król Yss",
   "modules": [
     {
       "id": "bestiary",
       "name": "Bestiariusz Podręczny",
-      "version": "2.2.38",
+      "version": "2.2.39",
       "file": "modules/bestiary.js",
       "description": "Elity, Elity II, Herosi, Kolosi i Tytani wraz z przedmiotami, trasami i kalkulatorem łupu."
     },
@@ -27,7 +27,7 @@
     {
       "id": "character-storage",
       "name": "Magazyn Postaci",
-      "version": "1.4.1",
+      "version": "1.4.2",
       "file": "modules/character-storage.js",
       "description": "Zapamiętuje i wyświetla zawartość toreb własnych postaci."
     },
@@ -41,14 +41,14 @@
     {
       "id": "ranking-ban-scanner",
       "name": "Kontrola banów rankingu",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "file": "modules/ranking-ban-scanner.js",
       "description": "Sprawdza bany graczy nieaktywnych co najmniej 24 godziny na bieżącej stronie rankingu."
     },
     {
       "id": "tytan-help",
       "name": "TytanHelp",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "file": "modules/tytan-help.js",
       "description": "Pokazuje HP, odporności, umiejętność, naładowanie i cel ataku Kolosów oraz Tytanów."
     }

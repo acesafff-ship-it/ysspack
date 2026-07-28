@@ -57,7 +57,7 @@ async function loadAndRun() {
 export default {
   id: 'character-storage',
   name: 'Magazyn Postaci',
-  version: '1.4.1',
+  version: '1.4.2',
   description: 'Zapamiętuje i wyświetla zawartość toreb własnych postaci.',
   icon: '🎒',
 

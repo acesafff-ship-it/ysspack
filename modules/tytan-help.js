@@ -4,7 +4,7 @@ const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, character =>
 export default {
   id: 'tytan-help',
   name: 'TytanHelp',
-  version: '1.0.0',
+  version: '1.0.1',
   description: 'Pokazuje HP, odporności, umiejętność, naładowanie i cel ataku Kolosów oraz Tytanów.',
   icon: '⚔',
 
@@ -95,7 +95,7 @@ export default {
         const style = document.createElement('style');
         style.id = styleId;
         style.textContent = `
-          #${rootId}{position:fixed;inset:0;z-index:2147483000;pointer-events:none;overflow:hidden}
+          #${rootId}{position:fixed;inset:0;z-index:100;pointer-events:none;overflow:hidden}
           #${rootId} .yth-tip{position:absolute;transform:translate(-50%,-100%);box-sizing:border-box;width:260px;padding:14px 15px 15px;border:0;border-radius:4px;outline:0;background:rgba(0,0,0,.7);box-shadow:#010101 0 0 0 1px,#ccc 0 0 0 2px,#0c0d0d 0 0 0 3px,rgba(12,13,13,.4) 2px 2px 3px 3px;color:#f2f2f2!important;font:700 12.8px/16.64px Arimo,Calibri,"Segoe UI",Arial,sans-serif;text-align:center;text-shadow:0 1px 1px #000;pointer-events:auto;cursor:grab}
           #${rootId} .yth-name{margin:0 0 5px;padding:0 0 3px;border-bottom:1px solid rgba(255,255,255,.2);color:#fff}.yth-row{min-height:16px;text-align:center;overflow-wrap:anywhere}.yth-res{display:flex;justify-content:center;gap:5px;margin:1px 0 3px}.yth-fire{color:#ff3b30}.yth-light{color:#ffe033}.yth-frost{color:#42a5ff}.yth-poison{color:#45e35a}.yth-power{color:#ffd15c}`;
         document.head.appendChild(style);
