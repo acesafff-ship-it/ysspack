@@ -9,7 +9,7 @@ const wait = milliseconds => new Promise(resolve => setTimeout(resolve, millisec
 export default {
   id: MODULE_ID,
   name: 'Ikony przedmiotów na czacie',
-  version: '1.1.1',
+  version: '1.1.2',
   description: 'Automatycznie zastępuje nazwy podlinkowanych przedmiotów na czacie ich natywnymi ikonami.',
   icon: '◆',
 
@@ -27,9 +27,9 @@ export default {
     style.textContent = `
       ${LINK_SELECTOR}.${READY_CLASS}{
         display:inline-flex!important;
-        width:34px!important;
-        height:34px!important;
-        margin:-9px 2px -10px!important;
+        width:22px!important;
+        height:22px!important;
+        margin:-3px 1px -4px!important;
         align-items:center!important;
         justify-content:center!important;
         vertical-align:middle!important;
@@ -40,10 +40,10 @@ export default {
         position:relative!important;
         inset:auto!important;
         display:block!important;
-        width:32px!important;
-        min-width:32px!important;
-        height:32px!important;
-        min-height:32px!important;
+        width:20px!important;
+        min-width:20px!important;
+        height:20px!important;
+        min-height:20px!important;
         margin:0!important;
         padding:0!important;
         transform:none!important;
@@ -52,15 +52,15 @@ export default {
       ${LINK_SELECTOR}.${READY_CLASS}>.yss-chat-native-item canvas{
         position:absolute!important;
         inset:0!important;
-        width:32px!important;
-        height:32px!important;
+        width:20px!important;
+        height:20px!important;
         pointer-events:none!important
       }
       ${LINK_SELECTOR}.${READY_CLASS}>.yss-chat-native-item .highlight{
         position:absolute!important;
         inset:0!important;
-        width:32px!important;
-        height:32px!important;
+        width:20px!important;
+        height:20px!important;
         pointer-events:none!important
       }`;
     document.head.appendChild(style);
