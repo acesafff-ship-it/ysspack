@@ -1,12 +1,12 @@
 {
   "name": "YssPack",
-  "version": "0.14.2",
+  "version": "0.14.3",
   "author": "Król Yss",
   "modules": [
     {
       "id": "bestiary",
       "name": "Bestiariusz Podręczny",
-      "version": "2.2.37",
+      "version": "2.2.38",
       "file": "modules/bestiary.js",
       "description": "Elity, Elity II, Herosi, Kolosi i Tytani wraz z przedmiotami, trasami i kalkulatorem łupu."
     },
