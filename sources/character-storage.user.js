@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name         Margonem — Magazyn Postaci
-// @namespace    codex.margonem.character-storage
-// @version      1.4.2
+// @namespace    krol-yss.margonem.character-storage
+// @version      1.4.3
 // @description  Zapamiętuje zawartość toreb własnych postaci i pozwala ją przeglądać oraz przeszukiwać.
-// @author       Codex
+// @author       Król Yss
 // @match        https://*.margonem.pl/*
 // @match        https://*.margonem.com/*
 // @exclude      https://www.margonem.pl/*
@@ -17,7 +17,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "1.4.2";
+  const VERSION = "1.4.3";
   const STORAGE_KEY = "codex-margonem-character-storage-v1";
   const UI_KEY = "codex-margonem-character-storage-ui-v1";
   const ROOT_ID = "codex-character-storage";
