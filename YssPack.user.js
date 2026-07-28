@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         YssPack
 // @namespace    acesaff-ysspack
-// @version      0.14.15
+// @version      0.14.16
 // @description  YssPack — panel dodatków działający bezpośrednio w Margonem.
 // @author       Król Yss
 // @homepageURL  https://www.margonem.pl/profile/view,10050726#char_5601,luvia
