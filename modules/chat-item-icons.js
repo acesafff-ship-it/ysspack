@@ -9,7 +9,7 @@ const wait = milliseconds => new Promise(resolve => setTimeout(resolve, millisec
 export default {
   id: MODULE_ID,
   name: 'Ikony przedmiotów na czacie',
-  version: '1.2.1',
+  version: '1.3.0',
   description: 'Automatycznie zastępuje nazwy podlinkowanych przedmiotów na czacie ich natywnymi ikonami.',
   icon: '◆',
 
@@ -21,6 +21,7 @@ export default {
     const pending = new Set();
     const queue = [];
     const rendered = new Map();
+    const formattedLootSections = new Set();
 
     const style = document.createElement('style');
     style.id = STYLE_ID;
@@ -62,6 +63,23 @@ export default {
         width:32px!important;
         height:32px!important;
         pointer-events:none!important
+      }
+      .yss-chat-loot-message{
+        display:flex!important;
+        flex-wrap:wrap!important;
+        align-items:center!important;
+        gap:4px 6px!important;
+        line-height:normal!important
+      }
+      .yss-chat-loot-entry{
+        display:inline-flex!important;
+        align-items:center!important;
+        gap:3px!important;
+        min-height:36px!important;
+        white-space:nowrap!important
+      }
+      .yss-chat-loot-entry ${LINK_SELECTOR}.${READY_CLASS}{
+        margin:1px 0!important
       }`;
     document.head.appendChild(style);
 
@@ -106,6 +124,44 @@ export default {
       }
     }
 
+    function formatLootDistribution(section) {
+      if (!section || formattedLootSections.has(section) || !/Podział łupów/i.test(section.textContent || '')) return;
+      const links = [...section.querySelectorAll(LINK_SELECTOR)];
+      if (!links.length || links.some(link => !link.classList.contains(READY_CLASS))) return;
+
+      const originalChildren = [...section.childNodes];
+      const segments = [];
+      let segmentStart = 0;
+      links.forEach(link => {
+        const linkIndex = originalChildren.indexOf(link);
+        if (linkIndex < segmentStart) return;
+        segments.push(originalChildren.slice(segmentStart, linkIndex + 1));
+        segmentStart = linkIndex + 1;
+      });
+      if (segmentStart < originalChildren.length && segments.length) {
+        segments[segments.length - 1].push(...originalChildren.slice(segmentStart));
+      }
+
+      segments.forEach(nodes => {
+        if (!nodes.length) return;
+        const group = document.createElement('span');
+        group.className = 'yss-chat-loot-entry';
+        section.insertBefore(group, nodes[0]);
+        nodes.forEach(node => group.appendChild(node));
+      });
+      section.classList.add('yss-chat-loot-message');
+      formattedLootSections.add(section);
+    }
+
+    function restoreLootDistribution(section) {
+      if (!section?.isConnected) return;
+      section.querySelectorAll(':scope > .yss-chat-loot-entry').forEach(group => {
+        while (group.firstChild) section.insertBefore(group.firstChild, group);
+        group.remove();
+      });
+      section.classList.remove('yss-chat-loot-message');
+    }
+
     async function decorate(element) {
       if (stopped || !element?.isConnected || element.classList.contains(READY_CLASS)) return;
       pending.add(element);
@@ -127,6 +183,7 @@ export default {
         element.classList.add(READY_CLASS);
         element.setAttribute('aria-label', originalText(element).replace(/^\[|\]$/g, ''));
         rendered.set(element, native);
+        formatLootDistribution(element.closest('.message-section'));
       }
       pending.delete(element);
     }
@@ -175,6 +232,8 @@ export default {
         }
       });
       rendered.clear();
+      formattedLootSections.forEach(restoreLootDistribution);
+      formattedLootSections.clear();
       style.remove();
     };
   }
