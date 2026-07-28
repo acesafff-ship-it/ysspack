@@ -9,7 +9,7 @@ const wait = milliseconds => new Promise(resolve => setTimeout(resolve, millisec
 export default {
   id: MODULE_ID,
   name: 'Ikony przedmiotów na czacie',
-  version: '1.1.0',
+  version: '1.1.1',
   description: 'Automatycznie zastępuje nazwy podlinkowanych przedmiotów na czacie ich natywnymi ikonami.',
   icon: '◆',
 
@@ -79,6 +79,7 @@ export default {
         if (!$element?.trigger) return false;
         $element.trigger('mouseenter');
         $element.trigger('mouseout');
+        $element.tipHide?.();
         return true;
       } catch (_) {
         return false;
@@ -119,6 +120,7 @@ export default {
         }
       }
 
+      try { window.jQuery?.(element)?.tipHide?.(); } catch (_) { /* tooltip nie blokuje ikony */ }
       const native = item ? createNativeView(item) : null;
       if (!stopped && element.isConnected && native?.view) {
         element.replaceChildren(native.view);
