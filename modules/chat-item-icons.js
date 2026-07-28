@@ -9,7 +9,7 @@ const wait = milliseconds => new Promise(resolve => setTimeout(resolve, millisec
 export default {
   id: MODULE_ID,
   name: 'Ikony przedmiotów na czacie',
-  version: '1.3.0',
+  version: '1.3.1',
   description: 'Automatycznie zastępuje nazwy podlinkowanych przedmiotów na czacie ich natywnymi ikonami.',
   icon: '◆',
 
@@ -63,6 +63,13 @@ export default {
         width:32px!important;
         height:32px!important;
         pointer-events:none!important
+      }
+      ${LINK_SELECTOR}.${READY_CLASS}>.yss-chat-native-item[data-item-type="t-norm"] .highlight{
+        background-image:url("/img/gui/item_frames/frames/item_frames.png")!important;
+        background-position:0 -96px!important
+      }
+      ${LINK_SELECTOR}.${READY_CLASS}>.yss-chat-native-item[data-item-type="t-norm"] .highlight::after{
+        display:none!important
       }
       .yss-chat-loot-message{
         display:flex!important;
