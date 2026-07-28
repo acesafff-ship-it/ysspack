@@ -9,7 +9,7 @@ const wait = milliseconds => new Promise(resolve => setTimeout(resolve, millisec
 export default {
   id: MODULE_ID,
   name: 'Ikony przedmiotów na czacie',
-  version: '1.0.0',
+  version: '1.0.1',
   description: 'Zastępuje nazwy podlinkowanych przedmiotów na czacie ich ikonami, zachowując tooltip i menu przedmiotu.',
   icon: '◆',
 
@@ -17,8 +17,7 @@ export default {
     if (location.hostname === 'www.margonem.pl') return () => {};
 
     let stopped = false;
-    const pending = new Set();
-    const queue = [];
+    const iconCache = new Map();
 
     const style = document.createElement('style');
     style.id = STYLE_ID;
@@ -51,84 +50,47 @@ export default {
       }`;
     document.head.appendChild(style);
 
-    function linkedItem(element) {
-      try { return window.jQuery?.(element)?.data?.('item') ?? null; } catch (_) { return null; }
+    function originalName(element) {
+      return element.dataset[ORIGINAL_TEXT_KEY] || element.textContent || '';
     }
 
-    function requestData(element) {
-      try {
-        const $element = window.jQuery?.(element);
-        if (!$element?.trigger) return;
-        $element.trigger('mouseenter');
-        $element.trigger('mouseout');
-      } catch (_) { /* kolejna próba nastąpi przy następnym skanowaniu */ }
+    function copyCanvas(source) {
+      if (!source?.width || !source?.height) return null;
+      const copy = document.createElement('canvas');
+      copy.width = source.width;
+      copy.height = source.height;
+      copy.getContext('2d')?.drawImage(source, 0, 0);
+      return copy;
     }
 
-    function iconDataUrl(item) {
-      const isItem = item?.isItem?.() === true;
-      const engine = window.Engine;
-      const viewData = engine?.itemsViewData;
-      const viewType = isItem ? viewData?.TIP_ITEM_VIEW : viewData?.TIP_TPL_ITEM_VIEW;
-      const manager = isItem ? engine?.items : engine?.tpls;
-      if (!manager?.createViewIcon || viewType === undefined) return '';
-
-      let view;
-      try {
-        view = isItem
-          ? manager.createViewIcon(item.id, viewType)
-          : manager.createViewIcon(item.id, viewType, item.loc);
-        const root = view?.[0] ?? view;
-        const canvas = root?.querySelector?.('canvas.icon, canvas.canvas-icon') ?? root?.querySelector?.('canvas');
-        return canvas?.toDataURL?.('image/png') ?? '';
-      } catch (_) {
-        return '';
-      } finally {
-        try {
-          if (isItem) manager?.deleteViewIconIfExist?.(item.id, viewType);
-          else manager?.deleteViewIconIfExist?.(item.id, viewType, item.loc);
-        } catch (_) { /* usunięcie widoku pomocniczego nie blokuje dodatku */ }
-      }
+    function applyIcon(element, sourceCanvas) {
+      if (stopped || !element.isConnected || !sourceCanvas) return;
+      const canvas = copyCanvas(sourceCanvas);
+      if (!canvas) return;
+      canvas.className = 'yss-chat-item-image';
+      canvas.setAttribute('role', 'img');
+      canvas.setAttribute('aria-label', originalName(element).replace(/^\[|\]$/g, ''));
+      element.replaceChildren(canvas);
+      element.classList.add(READY_CLASS);
     }
 
-    async function decorate(element) {
-      if (stopped || !element?.isConnected || element.classList.contains(READY_CLASS)) return;
-      pending.add(element);
-      if (!(ORIGINAL_TEXT_KEY in element.dataset)) {
-        element.dataset[ORIGINAL_TEXT_KEY] = element.textContent || '';
+    async function captureAfterRealHover(element) {
+      if (element.dataset.yssChatItemCapturing === '1') return;
+      element.dataset.yssChatItemCapturing = '1';
+      for (let attempt = 0; attempt < 40 && !stopped && element.isConnected; attempt += 1) {
+        await wait(50);
+        const wrapper = document.querySelector('.tip-layer .tip-wrapper[data-tip-type="t_item"], .tip-layer .tip-wrapper[data-item-type^="t-"]');
+        const canvas = wrapper?.querySelector('.item-head canvas.icon, .item-head canvas.canvas-icon, .item-head canvas');
+        if (!canvas?.width || !canvas?.height) continue;
+        const cachedCanvas = copyCanvas(canvas);
+        if (!cachedCanvas) break;
+        const name = originalName(element);
+        iconCache.set(name, cachedCanvas);
+        applyIcon(element, cachedCanvas);
+        delete element.dataset.yssChatItemCapturing;
+        return;
       }
-
-      let item = linkedItem(element);
-      if (!item) {
-        requestData(element);
-        for (let attempt = 0; attempt < 20 && !stopped && element.isConnected; attempt += 1) {
-          await wait(100);
-          item = linkedItem(element);
-          if (item) break;
-        }
-      }
-
-      const dataUrl = item ? iconDataUrl(item) : '';
-      if (!stopped && element.isConnected && dataUrl) {
-        const image = document.createElement('img');
-        image.className = 'yss-chat-item-image';
-        image.alt = element.dataset[ORIGINAL_TEXT_KEY].replace(/^\[|\]$/g, '');
-        image.src = dataUrl;
-        element.replaceChildren(image);
-        element.classList.add(READY_CLASS);
-      }
-      pending.delete(element);
-    }
-
-    async function processQueue() {
-      if (processQueue.running || stopped) return;
-      processQueue.running = true;
-      while (queue.length && !stopped) {
-        const element = queue.shift();
-        if (element?.isConnected && !element.classList.contains(READY_CLASS)) {
-          await decorate(element);
-        }
-      }
-      processQueue.running = false;
+      delete element.dataset.yssChatItemCapturing;
     }
 
     function enqueue(root = document) {
@@ -136,12 +98,19 @@ export default {
         ? [root]
         : [...root.querySelectorAll?.(LINK_SELECTOR) ?? []];
       elements.forEach(element => {
-        if (!pending.has(element) && !element.classList.contains(READY_CLASS) && !queue.includes(element)) {
-          queue.push(element);
-        }
+        if (!(ORIGINAL_TEXT_KEY in element.dataset)) element.dataset[ORIGINAL_TEXT_KEY] = element.textContent || '';
+        const cached = iconCache.get(originalName(element));
+        if (cached) applyIcon(element, cached);
       });
-      processQueue();
     }
+
+    const onRealHover = event => {
+      const element = event.target?.closest?.(LINK_SELECTOR);
+      if (!element || element.classList.contains(READY_CLASS)) return;
+      if (!(ORIGINAL_TEXT_KEY in element.dataset)) element.dataset[ORIGINAL_TEXT_KEY] = element.textContent || '';
+      captureAfterRealHover(element);
+    };
+    document.addEventListener('mouseover', onRealHover, true);
 
     const observer = new MutationObserver(records => {
       records.forEach(record => record.addedNodes.forEach(node => {
@@ -154,7 +123,8 @@ export default {
     return () => {
       stopped = true;
       observer.disconnect();
-      queue.length = 0;
+      document.removeEventListener('mouseover', onRealHover, true);
+      iconCache.clear();
       document.querySelectorAll(`${LINK_SELECTOR}[data-${ORIGINAL_TEXT_KEY.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`)}]`).forEach(element => {
         element.textContent = element.dataset[ORIGINAL_TEXT_KEY] || '';
         delete element.dataset[ORIGINAL_TEXT_KEY];
