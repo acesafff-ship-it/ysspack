@@ -1,6 +1,6 @@
 {
   "name": "YssPack",
-  "version": "0.14.4",
+  "version": "0.14.5",
   "author": "Król Yss",
   "modules": [
     {
@@ -16,6 +16,13 @@
       "version": "2.3.1",
       "file": "modules/item-time.js",
       "description": "Pokazuje dokładny czas błogosławieństwa na ikonie i w tooltipie."
+    },
+    {
+      "id": "chat-item-icons",
+      "name": "Ikony przedmiotów na czacie",
+      "version": "1.0.0",
+      "file": "modules/chat-item-icons.js",
+      "description": "Zastępuje nazwy podlinkowanych przedmiotów na czacie ich ikonami, zachowując tooltip i menu przedmiotu."
     },
     {
       "id": "auction-assistant",
