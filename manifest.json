@@ -1,6 +1,6 @@
 {
   "name": "YssPack",
-  "version": "0.14.7",
+  "version": "0.14.8",
   "author": "Król Yss",
   "modules": [
     {
@@ -20,9 +20,9 @@
     {
       "id": "chat-item-icons",
       "name": "Ikony przedmiotów na czacie",
-      "version": "1.0.1",
+      "version": "1.1.0",
       "file": "modules/chat-item-icons.js",
-      "description": "Zastępuje nazwy podlinkowanych przedmiotów na czacie ich ikonami, zachowując tooltip i menu przedmiotu."
+      "description": "Automatycznie zastępuje nazwy podlinkowanych przedmiotów na czacie ich natywnymi ikonami."
     },
     {
       "id": "auction-assistant",

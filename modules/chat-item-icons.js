@@ -9,88 +9,134 @@ const wait = milliseconds => new Promise(resolve => setTimeout(resolve, millisec
 export default {
   id: MODULE_ID,
   name: 'Ikony przedmiotów na czacie',
-  version: '1.0.1',
-  description: 'Zastępuje nazwy podlinkowanych przedmiotów na czacie ich ikonami, zachowując tooltip i menu przedmiotu.',
+  version: '1.1.0',
+  description: 'Automatycznie zastępuje nazwy podlinkowanych przedmiotów na czacie ich natywnymi ikonami.',
   icon: '◆',
 
   start() {
     if (location.hostname === 'www.margonem.pl') return () => {};
 
     let stopped = false;
-    const iconCache = new Map();
+    let processing = false;
+    const pending = new Set();
+    const queue = [];
+    const rendered = new Map();
 
     const style = document.createElement('style');
     style.id = STYLE_ID;
     style.textContent = `
       ${LINK_SELECTOR}.${READY_CLASS}{
         display:inline-flex!important;
-        width:28px!important;
-        height:28px!important;
-        margin:-7px 2px -8px!important;
+        width:34px!important;
+        height:34px!important;
+        margin:-9px 2px -10px!important;
         align-items:center!important;
         justify-content:center!important;
         vertical-align:middle!important;
-        border:1px solid #777!important;
-        border-radius:3px!important;
-        background:#111!important;
-        box-shadow:inset 0 0 0 1px #222!important;
-        overflow:hidden!important;
+        overflow:visible!important;
         cursor:help!important
       }
-      ${LINK_SELECTOR}.${READY_CLASS}[data-item-type*="leg"]{border-color:#f08a24!important}
-      ${LINK_SELECTOR}.${READY_CLASS}[data-item-type*="her"]{border-color:#3aa8e8!important}
-      ${LINK_SELECTOR}.${READY_CLASS}[data-item-type*="uni"]{border-color:#d8b635!important}
-      ${LINK_SELECTOR}.${READY_CLASS} .yss-chat-item-image{
+      ${LINK_SELECTOR}.${READY_CLASS}>.yss-chat-native-item{
+        position:relative!important;
+        inset:auto!important;
         display:block!important;
-        width:26px!important;
-        height:26px!important;
-        object-fit:contain!important;
-        image-rendering:auto!important;
+        width:32px!important;
+        min-width:32px!important;
+        height:32px!important;
+        min-height:32px!important;
+        margin:0!important;
+        padding:0!important;
+        transform:none!important;
+        pointer-events:none!important
+      }
+      ${LINK_SELECTOR}.${READY_CLASS}>.yss-chat-native-item canvas{
+        position:absolute!important;
+        inset:0!important;
+        width:32px!important;
+        height:32px!important;
+        pointer-events:none!important
+      }
+      ${LINK_SELECTOR}.${READY_CLASS}>.yss-chat-native-item .highlight{
+        position:absolute!important;
+        inset:0!important;
+        width:32px!important;
+        height:32px!important;
         pointer-events:none!important
       }`;
     document.head.appendChild(style);
 
-    function originalName(element) {
+    function originalText(element) {
       return element.dataset[ORIGINAL_TEXT_KEY] || element.textContent || '';
     }
 
-    function copyCanvas(source) {
-      if (!source?.width || !source?.height) return null;
-      const copy = document.createElement('canvas');
-      copy.width = source.width;
-      copy.height = source.height;
-      copy.getContext('2d')?.drawImage(source, 0, 0);
-      return copy;
+    function itemFor(element) {
+      try { return window.jQuery?.(element)?.data?.('item') ?? null; } catch (_) { return null; }
     }
 
-    function applyIcon(element, sourceCanvas) {
-      if (stopped || !element.isConnected || !sourceCanvas) return;
-      const canvas = copyCanvas(sourceCanvas);
-      if (!canvas) return;
-      canvas.className = 'yss-chat-item-image';
-      canvas.setAttribute('role', 'img');
-      canvas.setAttribute('aria-label', originalName(element).replace(/^\[|\]$/g, ''));
-      element.replaceChildren(canvas);
-      element.classList.add(READY_CLASS);
-    }
-
-    async function captureAfterRealHover(element) {
-      if (element.dataset.yssChatItemCapturing === '1') return;
-      element.dataset.yssChatItemCapturing = '1';
-      for (let attempt = 0; attempt < 40 && !stopped && element.isConnected; attempt += 1) {
-        await wait(50);
-        const wrapper = document.querySelector('.tip-layer .tip-wrapper[data-tip-type="t_item"], .tip-layer .tip-wrapper[data-item-type^="t-"]');
-        const canvas = wrapper?.querySelector('.item-head canvas.icon, .item-head canvas.canvas-icon, .item-head canvas');
-        if (!canvas?.width || !canvas?.height) continue;
-        const cachedCanvas = copyCanvas(canvas);
-        if (!cachedCanvas) break;
-        const name = originalName(element);
-        iconCache.set(name, cachedCanvas);
-        applyIcon(element, cachedCanvas);
-        delete element.dataset.yssChatItemCapturing;
-        return;
+    function requestItem(element) {
+      try {
+        const $element = window.jQuery?.(element);
+        if (!$element?.trigger) return false;
+        $element.trigger('mouseenter');
+        $element.trigger('mouseout');
+        return true;
+      } catch (_) {
+        return false;
       }
-      delete element.dataset.yssChatItemCapturing;
+    }
+
+    function createNativeView(item) {
+      const engine = window.Engine;
+      const viewType = engine?.itemsViewData?.CHAT_LINKED_VIEW;
+      const isItem = item?.isItem?.() === true;
+      const manager = isItem ? engine?.items : engine?.tpls;
+      if (!manager?.createViewIcon || viewType === undefined) return null;
+
+      try {
+        const result = isItem
+          ? manager.createViewIcon(item.id, viewType)
+          : manager.createViewIcon(item.id, viewType, item.loc);
+        const view = result?.[0]?.[0] ?? result?.[0] ?? null;
+        if (!(view instanceof Element)) return null;
+        view.classList.add('yss-chat-native-item');
+        return { view, manager, item, viewType };
+      } catch (_) {
+        return null;
+      }
+    }
+
+    async function decorate(element) {
+      if (stopped || !element?.isConnected || element.classList.contains(READY_CLASS)) return;
+      pending.add(element);
+      if (!(ORIGINAL_TEXT_KEY in element.dataset)) element.dataset[ORIGINAL_TEXT_KEY] = element.textContent || '';
+
+      let item = itemFor(element);
+      if (!item && requestItem(element)) {
+        for (let attempt = 0; attempt < 40 && !stopped && element.isConnected; attempt += 1) {
+          await wait(50);
+          item = itemFor(element);
+          if (item) break;
+        }
+      }
+
+      const native = item ? createNativeView(item) : null;
+      if (!stopped && element.isConnected && native?.view) {
+        element.replaceChildren(native.view);
+        element.classList.add(READY_CLASS);
+        element.setAttribute('aria-label', originalText(element).replace(/^\[|\]$/g, ''));
+        rendered.set(element, native);
+      }
+      pending.delete(element);
+    }
+
+    async function processQueue() {
+      if (processing || stopped) return;
+      processing = true;
+      while (queue.length && !stopped) {
+        const element = queue.shift();
+        if (element?.isConnected && !element.classList.contains(READY_CLASS)) await decorate(element);
+      }
+      processing = false;
     }
 
     function enqueue(root = document) {
@@ -98,19 +144,12 @@ export default {
         ? [root]
         : [...root.querySelectorAll?.(LINK_SELECTOR) ?? []];
       elements.forEach(element => {
-        if (!(ORIGINAL_TEXT_KEY in element.dataset)) element.dataset[ORIGINAL_TEXT_KEY] = element.textContent || '';
-        const cached = iconCache.get(originalName(element));
-        if (cached) applyIcon(element, cached);
+        if (!pending.has(element) && !queue.includes(element) && !element.classList.contains(READY_CLASS)) {
+          queue.push(element);
+        }
       });
+      processQueue();
     }
-
-    const onRealHover = event => {
-      const element = event.target?.closest?.(LINK_SELECTOR);
-      if (!element || element.classList.contains(READY_CLASS)) return;
-      if (!(ORIGINAL_TEXT_KEY in element.dataset)) element.dataset[ORIGINAL_TEXT_KEY] = element.textContent || '';
-      captureAfterRealHover(element);
-    };
-    document.addEventListener('mouseover', onRealHover, true);
 
     const observer = new MutationObserver(records => {
       records.forEach(record => record.addedNodes.forEach(node => {
@@ -123,13 +162,17 @@ export default {
     return () => {
       stopped = true;
       observer.disconnect();
-      document.removeEventListener('mouseover', onRealHover, true);
-      iconCache.clear();
-      document.querySelectorAll(`${LINK_SELECTOR}[data-${ORIGINAL_TEXT_KEY.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`)}]`).forEach(element => {
-        element.textContent = element.dataset[ORIGINAL_TEXT_KEY] || '';
-        delete element.dataset[ORIGINAL_TEXT_KEY];
-        element.classList.remove(READY_CLASS);
+      queue.length = 0;
+      rendered.forEach(({ manager, item, viewType }, element) => {
+        try { manager?.deleteViewIconIfExist?.(item.id, viewType); } catch (_) { /* bez wpływu na wyłączenie */ }
+        if (element.isConnected) {
+          element.textContent = originalText(element);
+          element.classList.remove(READY_CLASS);
+          element.removeAttribute('aria-label');
+          delete element.dataset[ORIGINAL_TEXT_KEY];
+        }
       });
+      rendered.clear();
       style.remove();
     };
   }
