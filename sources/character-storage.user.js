@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Margonem — Magazyn Postaci
 // @namespace    codex.margonem.character-storage
-// @version      1.4.1
+// @version      1.4.2
 // @description  Zapamiętuje zawartość toreb własnych postaci i pozwala ją przeglądać oraz przeszukiwać.
 // @author       Codex
 // @match        https://*.margonem.pl/*
@@ -17,7 +17,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "1.4.1";
+  const VERSION = "1.4.2";
   const STORAGE_KEY = "codex-margonem-character-storage-v1";
   const UI_KEY = "codex-margonem-character-storage-ui-v1";
   const ROOT_ID = "codex-character-storage";
@@ -452,7 +452,7 @@
     const style = document.createElement("style");
     style.id = `${ROOT_ID}-style`;
     style.textContent = `
-      #${ROOT_ID}{position:fixed;z-index:2147483000;left:20px;top:120px;width:326px;color:#e5e5df;font:12px/1.3 Arimo,Calibri,"Segoe UI",Arial,sans-serif}
+      #${ROOT_ID}{position:fixed;z-index:100;left:20px;top:120px;width:326px;color:#e5e5df;font:12px/1.3 Arimo,Calibri,"Segoe UI",Arial,sans-serif}
       #${ROOT_ID},#${ROOT_ID} *{box-sizing:border-box}
       #${ROOT_ID} .mcs-panel{position:relative;border-radius:4px;background:rgba(9,10,9,.93);box-shadow:0 0 0 1px #010101,0 0 0 2px #ccc,0 0 0 3px #0c0d0d,2px 2px 3px 3px rgba(12,13,13,.55);overflow:hidden}
       #${ROOT_ID} .mcs-header{height:28px;display:flex;align-items:center;gap:6px;padding:0 5px;background:linear-gradient(#383834 0,#20201e 48%,#111 52%,#252522 100%);border-bottom:1px solid #090909;color:#f5f5dc;cursor:move;user-select:none;box-shadow:inset 0 1px #64645d,inset 0 -1px #484843}
@@ -489,7 +489,7 @@
       #${ROOT_ID} .mcs-item.rarity-upg{border-color:#7a8a91}#${ROOT_ID} .mcs-item.rarity-uni{border-color:#f4db00}#${ROOT_ID} .mcs-item.rarity-her{border-color:#18c8ff;box-shadow:0 0 5px #14aee0,inset 0 0 5px #000}#${ROOT_ID} .mcs-item.rarity-leg{border-color:#ff9e00;box-shadow:0 0 5px #d88000,inset 0 0 5px #000}
       #${ROOT_ID} .mcs-amount{position:absolute;right:1px;bottom:0;color:#fff;font:bold 10px Arial;text-shadow:-1px -1px #000,1px 1px #000,1px -1px #000,-1px 1px #000}
       #${ROOT_ID} .mcs-no-icon{color:#777;font:bold 20px Arial}
-      #mcs-character-storage-tooltip{display:none;position:fixed;z-index:2147483647;min-width:175px;max-width:285px;padding:8px 10px;border:1px solid #777;background:rgba(12,12,12,.97);box-shadow:0 2px 8px #000;color:#ddd;font:12px Arial,sans-serif;pointer-events:none}
+      #mcs-character-storage-tooltip{display:none;position:fixed;z-index:110;min-width:175px;max-width:285px;padding:8px 10px;border:1px solid #777;background:rgba(12,12,12,.97);box-shadow:0 2px 8px #000;color:#ddd;font:12px Arial,sans-serif;pointer-events:none}
       #mcs-character-storage-tooltip strong{display:block;margin-bottom:5px;color:#eee;font-size:13px}
       #mcs-character-storage-tooltip .mcs-tip-rarity{font-weight:bold;text-transform:capitalize}
       #mcs-character-storage-tooltip .rarity-leg{color:#ff9e00}#mcs-character-storage-tooltip .rarity-her{color:#22cfff}#mcs-character-storage-tooltip .rarity-uni{color:#f2de25}#mcs-character-storage-tooltip .rarity-upg{color:#a8bac2}#mcs-character-storage-tooltip .rarity-norm{color:#bbb}
@@ -506,8 +506,6 @@
       #mcs-character-storage-tooltip .mcs-forced-tip-meta strong{display:block;margin:0 0 3px;font-size:13px}
       #mcs-character-storage-tooltip .mcs-forced-tip-meta strong.rarity-leg{color:#ff9e00}#mcs-character-storage-tooltip .mcs-forced-tip-meta strong.rarity-her{color:#22cfff}#mcs-character-storage-tooltip .mcs-forced-tip-meta strong.rarity-uni{color:#f2de25}#mcs-character-storage-tooltip .mcs-forced-tip-meta strong.rarity-upg{color:#e36bb1}#mcs-character-storage-tooltip .mcs-forced-tip-meta strong.rarity-norm{color:#eee}
       #mcs-character-storage-tooltip .mcs-forced-tip-meta span{display:block;color:#aaa;font-size:11px;white-space:pre-line}
-      .tip-layer{z-index:2147483646!important}
-      .tip-layer .tip-wrapper,.tip-layer .cmp-tip{z-index:2147483647!important}
       .tip-layer .mcs-saved-tip-item,#mcs-character-storage-tooltip .mcs-saved-tip-item{position:relative!important;display:flex!important;align-items:center!important;justify-content:center!important;float:none!important;width:42px!important;height:42px!important;min-width:42px!important;margin-right:8px!important;border:2px solid #777!important;background:#151515!important;box-sizing:border-box!important;overflow:hidden!important}
       .tip-layer .mcs-saved-tip-item img,#mcs-character-storage-tooltip .mcs-saved-tip-item img{display:block!important;max-width:36px!important;max-height:36px!important}
       .tip-layer .mcs-saved-tip-item.rarity-uni,#mcs-character-storage-tooltip .mcs-saved-tip-item.rarity-uni{border-color:#f4db00!important}.tip-layer .mcs-saved-tip-item.rarity-her,#mcs-character-storage-tooltip .mcs-saved-tip-item.rarity-her{border-color:#18c8ff!important;box-shadow:0 0 5px #14aee0!important}.tip-layer .mcs-saved-tip-item.rarity-leg,#mcs-character-storage-tooltip .mcs-saved-tip-item.rarity-leg{border-color:#ff9e00!important;box-shadow:0 0 5px #d88000!important}.tip-layer .mcs-saved-tip-item.rarity-upg,#mcs-character-storage-tooltip .mcs-saved-tip-item.rarity-upg{border-color:#9aabb2!important}
