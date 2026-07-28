@@ -9,7 +9,7 @@ const wait = milliseconds => new Promise(resolve => setTimeout(resolve, millisec
 export default {
   id: MODULE_ID,
   name: 'Ikony przedmiotów na czacie',
-  version: '1.2.0',
+  version: '1.2.1',
   description: 'Automatycznie zastępuje nazwy podlinkowanych przedmiotów na czacie ich natywnymi ikonami.',
   icon: '◆',
 
@@ -25,18 +25,6 @@ export default {
     const style = document.createElement('style');
     style.id = STYLE_ID;
     style.textContent = `
-      .game-window-positioner .left-column.main-column{
-        width:362px!important
-      }
-      .game-window-positioner .left-column.main-column>.inner-wrapper,
-      .game-window-positioner .left-column.main-column .new-chat-window{
-        width:360px!important
-      }
-      .game-window-positioner .left-column.main-column .chat-message-wrapper,
-      .game-window-positioner .left-column.main-column .chat-message-wrapper>.scroll-pane,
-      .game-window-positioner .left-column.main-column .one-message-wrapper{
-        width:100%!important
-      }
       ${LINK_SELECTOR}.${READY_CLASS}{
         display:inline-flex!important;
         width:34px!important;
