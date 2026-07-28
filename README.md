@@ -8,7 +8,7 @@ Wersja 0.6.0 dodaje Kontrolę banów rankingu. Moduł pomija graczy aktywnych w 
 
 ## Dostępne moduły
 
-- **Bestiariusz Podręczny 2.2.36** — Elity, Elity II, Herosi, Kolosi i Tytani, przedmioty, dojścia, kalkulator łupu i anonimowy licznik online.
+- **Bestiariusz Podręczny 2.2.43** — Elity, Elity II, Herosi, Kolosi, Tytani oraz Herosi i Kolosi Wakacyjni, przedmioty, dojścia, kalkulator łupu i anonimowy licznik online.
 - **Minuty i sekundy przedmiotu 2.3.1** — dokładny czas aktywnego błogosławieństwa; poprawiona pętla odświeżania interfejsu.
 - **Asystent Aukcji 1.2.6** — wyszukiwanie ofert wybranego przedmiotu.
 - **Magazyn Postaci 1.4.1** — lokalny podgląd przedmiotów i złota innych własnych postaci.
