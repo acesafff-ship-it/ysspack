@@ -4,7 +4,9 @@ if (!host || document.querySelector('#ysspack')) {
   throw new Error('[YssPack] Loader nie jest aktywny albo panel został już uruchomiony.');
 }
 
-const PACK_VERSION = '0.14.16';
+const PACK_VERSION = '0.14.17';
+const UPDATE_MANIFEST_URL = new URL('manifest.json', import.meta.url).href;
+const UPDATE_INSTALL_URL = new URL('YssPack.user.js', import.meta.url).href;
 const STORAGE_PREFIX = 'ysspack_';
 const today = new Date();
 const moduleCacheKey = [today.getFullYear(), String(today.getMonth() + 1).padStart(2, '0'), String(today.getDate()).padStart(2, '0')].join('');
@@ -109,6 +111,7 @@ const search = panel.querySelector('.mhp-search');
 const detailHeader = panel.querySelector('.mhp-detail-header');
 const detailBody = panel.querySelector('.mhp-detail-body');
 let selectedModuleId = read('selected_module', modules[0]?.id || '');
+let updateState = { status: 'checking', latestVersion: PACK_VERSION };
 const savedPanelPosition = read('panel_position', null);
 const savedLauncherPosition = read('launcher_position', null);
 
@@ -118,6 +121,7 @@ panel.hidden = !Boolean(read('panel_open', true));
 
 renderModules();
 modules.forEach(module => { if (isEnabled(module.id)) startModule(module); });
+checkPackVersion();
 
 search.addEventListener('input', renderModules);
 panel.addEventListener('wheel', event => {
@@ -200,9 +204,12 @@ function renderModuleDetails() {
     <div class="mhp-detail-icon-wrapper"><img class="mhp-detail-icon" src="${escapeHtml(moduleIconUrl(module.id, enabled))}" alt=""></div>
     <div class="mhp-detail-title">${escapeHtml(module.name)} <small>${escapeHtml(module.version || '')}</small></div>`;
   detailBody.innerHTML = `
-    <button class="mhp-detail-toggle button small ${enabled ? 'red' : 'green'}" type="button" aria-pressed="${enabled}">
-      <span class="background"></span><span class="label">${enabled ? 'Wyłącz' : 'Włącz'}</span>
-    </button>
+    <div class="mhp-toggle-row">
+      <button class="mhp-detail-toggle button small ${enabled ? 'red' : 'green'}" type="button" aria-pressed="${enabled}">
+        <span class="background"></span><span class="label">${enabled ? 'Wyłącz' : 'Włącz'}</span>
+      </button>
+      ${renderUpdateStatus()}
+    </div>
     <div class="mhp-description-label">Opis:</div>
     <div class="mhp-detail-description">${escapeHtml(module.description || '')}</div>
     ${hasSettings ? `<div class="mhp-settings">${renderSettings(module)}</div>` : ''}
@@ -221,6 +228,48 @@ function renderModuleDetails() {
     control.addEventListener('input', () => saveControl(module, control));
     control.addEventListener('change', () => saveControl(module, control));
   });
+}
+
+function renderUpdateStatus() {
+  if (updateState.status === 'outdated') {
+    return `<a class="mhp-update-status outdated" href="${escapeHtml(UPDATE_INSTALL_URL)}" target="_blank" rel="noopener noreferrer" title="Zainstaluj YssPack ${escapeHtml(updateState.latestVersion)}">Dostępna aktualizacja</a>`;
+  }
+  if (updateState.status === 'current') {
+    return '<span class="mhp-update-status current">Wersja aktualna</span>';
+  }
+  if (updateState.status === 'error') {
+    return '<span class="mhp-update-status error">Nie udało się sprawdzić</span>';
+  }
+  return '<span class="mhp-update-status checking">Sprawdzanie wersji…</span>';
+}
+
+async function checkPackVersion() {
+  try {
+    const response = await fetch(`${UPDATE_MANIFEST_URL}?t=${Date.now()}`, { cache: 'no-store' });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const manifest = await response.json();
+    const latestVersion = String(manifest?.version || PACK_VERSION);
+    const installedVersion = String(host.loaderVersion || '0.0.0');
+    updateState = {
+      status: compareVersions(installedVersion, latestVersion) < 0 ? 'outdated' : 'current',
+      latestVersion
+    };
+  } catch (error) {
+    updateState = { status: 'error', latestVersion: PACK_VERSION };
+    console.warn('[YssPack] Nie udało się sprawdzić aktualizacji:', error);
+  }
+  renderModuleDetails();
+}
+
+function compareVersions(left, right) {
+  const leftParts = String(left).split('.').map(part => Number.parseInt(part, 10) || 0);
+  const rightParts = String(right).split('.').map(part => Number.parseInt(part, 10) || 0);
+  const length = Math.max(leftParts.length, rightParts.length);
+  for (let index = 0; index < length; index += 1) {
+    const difference = (leftParts[index] || 0) - (rightParts[index] || 0);
+    if (difference) return difference;
+  }
+  return 0;
 }
 
 function renderSettings(module) {

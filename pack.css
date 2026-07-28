@@ -352,10 +352,46 @@
   width: auto !important;
   min-width: 62px;
   height: 28px !important;
-  margin: 0 0 12px;
+  margin: 0;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+}
+
+.mhp-toggle-row {
+  display: flex;
+  min-height: 28px;
+  margin: 0 0 12px;
+  align-items: center;
+  gap: 10px;
+}
+
+.mhp-update-status {
+  font-size: 11px;
+  font-weight: bold;
+  text-decoration: none;
+  text-shadow: 0 1px rgba(255,255,255,.35);
+}
+
+.mhp-update-status.current {
+  color: #26872d;
+}
+
+.mhp-update-status.outdated {
+  color: #a51e1e;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.mhp-update-status.outdated:hover {
+  color: #d22d2d;
+}
+
+.mhp-update-status.checking,
+.mhp-update-status.error {
+  color: #746b59;
+  font-size: 9px;
+  font-weight: normal;
 }
 
 .mhp-description-label {
