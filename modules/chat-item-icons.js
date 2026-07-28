@@ -9,7 +9,7 @@ const wait = milliseconds => new Promise(resolve => setTimeout(resolve, millisec
 export default {
   id: MODULE_ID,
   name: 'Ikony przedmiotów na czacie',
-  version: '1.1.2',
+  version: '1.2.0',
   description: 'Automatycznie zastępuje nazwy podlinkowanych przedmiotów na czacie ich natywnymi ikonami.',
   icon: '◆',
 
@@ -25,11 +25,23 @@ export default {
     const style = document.createElement('style');
     style.id = STYLE_ID;
     style.textContent = `
+      .game-window-positioner .left-column.main-column{
+        width:362px!important
+      }
+      .game-window-positioner .left-column.main-column>.inner-wrapper,
+      .game-window-positioner .left-column.main-column .new-chat-window{
+        width:360px!important
+      }
+      .game-window-positioner .left-column.main-column .chat-message-wrapper,
+      .game-window-positioner .left-column.main-column .chat-message-wrapper>.scroll-pane,
+      .game-window-positioner .left-column.main-column .one-message-wrapper{
+        width:100%!important
+      }
       ${LINK_SELECTOR}.${READY_CLASS}{
         display:inline-flex!important;
-        width:22px!important;
-        height:22px!important;
-        margin:-3px 1px -4px!important;
+        width:34px!important;
+        height:34px!important;
+        margin:1px 2px!important;
         align-items:center!important;
         justify-content:center!important;
         vertical-align:middle!important;
@@ -40,10 +52,10 @@ export default {
         position:relative!important;
         inset:auto!important;
         display:block!important;
-        width:20px!important;
-        min-width:20px!important;
-        height:20px!important;
-        min-height:20px!important;
+        width:32px!important;
+        min-width:32px!important;
+        height:32px!important;
+        min-height:32px!important;
         margin:0!important;
         padding:0!important;
         transform:none!important;
@@ -52,15 +64,15 @@ export default {
       ${LINK_SELECTOR}.${READY_CLASS}>.yss-chat-native-item canvas{
         position:absolute!important;
         inset:0!important;
-        width:20px!important;
-        height:20px!important;
+        width:32px!important;
+        height:32px!important;
         pointer-events:none!important
       }
       ${LINK_SELECTOR}.${READY_CLASS}>.yss-chat-native-item .highlight{
         position:absolute!important;
         inset:0!important;
-        width:20px!important;
-        height:20px!important;
+        width:32px!important;
+        height:32px!important;
         pointer-events:none!important
       }`;
     document.head.appendChild(style);
