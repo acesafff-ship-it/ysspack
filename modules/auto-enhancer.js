@@ -15,7 +15,7 @@ const DEFAULT_CONFIG = {
 export default {
   id: MODULE_ID,
   name: 'Automatyczne ulepszanie',
-  version: '0.2.0',
+  version: '0.2.1',
   description: 'Pozwala wybrać ulepszany przedmiot prosto z ekwipunku i przygotowuje automatyczne przepalanie wybranych rzadkości.',
   icon: '⚙',
 
@@ -28,7 +28,6 @@ export default {
     let minimized = false;
     let closed = false;
     let selectionMode = false;
-    let hiddenCraftWindow = null;
     let config = readConfig();
     let selectedItemId = String(config.targetItemId || '');
 
@@ -41,7 +40,6 @@ export default {
       stopped = true;
       clearInterval(interval);
       document.removeEventListener('click', selectInventoryItem, true);
-      restoreCraftWindow();
       document.getElementById(PANEL_ID)?.remove();
       document.getElementById(STYLE_ID)?.remove();
     };
@@ -107,7 +105,6 @@ export default {
       panel.querySelector('.yss-ae-close').addEventListener('click', () => {
         closed = true;
         selectionMode = false;
-        restoreCraftWindow();
         panel.hidden = true;
       });
       panel.querySelector('.yss-ae-minimize').addEventListener('click', toggleMinimized);
@@ -162,53 +159,7 @@ export default {
       panel.classList.remove('selecting-item');
       saveConfig();
       copyItemCanvas(itemElement.querySelector('.canvas-icon'));
-      activateEnhancementTarget(itemId);
       render();
-    }
-
-    function activateEnhancementTarget(itemId) {
-      const item = window.Engine?.items?.getItemById?.(itemId);
-      const crafting = window.Engine?.crafting;
-      if (!item || !crafting) return;
-
-      try {
-        if (crafting.itemCraft?.opened && crafting.enhancement) {
-          crafting.enhancement.close?.();
-          crafting.open('enhancement');
-          crafting.enhancement.onClickInventoryItem(item);
-        } else if (typeof window._g === 'function') {
-          crafting.tempEnhanceItemId = Number(itemId);
-          window._g(`enhancement&action=open&item=${itemId}`);
-        }
-        hideCraftWindowInBackground();
-      } catch (error) {
-        console.warn('[YssPack] Nie udało się przekazać przedmiotu do mechanizmu ulepszania:', error);
-      }
-    }
-
-    function hideCraftWindowInBackground(attempt = 0) {
-      window.setTimeout(() => {
-        if (stopped) return;
-        const craftContent = document.querySelector('.enhance__content');
-        const craftWindow = craftContent?.closest('.c-window') || craftContent?.parentElement;
-        if (!craftWindow && attempt < 30) {
-          hideCraftWindowInBackground(attempt + 1);
-          return;
-        }
-        if (!craftWindow) return;
-        hiddenCraftWindow = craftWindow;
-        craftWindow.dataset.yssAutoEnhancerHidden = 'true';
-        craftWindow.style.setProperty('visibility', 'hidden', 'important');
-        craftWindow.style.setProperty('pointer-events', 'none', 'important');
-      }, attempt ? 100 : 0);
-    }
-
-    function restoreCraftWindow() {
-      if (!hiddenCraftWindow?.isConnected) return;
-      hiddenCraftWindow.style.removeProperty('visibility');
-      hiddenCraftWindow.style.removeProperty('pointer-events');
-      delete hiddenCraftWindow.dataset.yssAutoEnhancerHidden;
-      hiddenCraftWindow = null;
     }
 
     function render() {
@@ -254,7 +205,7 @@ export default {
       if (selectionMode) status.textContent = 'Kliknij przedmiot w ekwipunku.';
       else if (!itemId) status.textContent = 'Kliknij pusty slot i wybierz przedmiot z ekwipunku.';
       else if (!config.active) status.textContent = 'Przedmiot zapamiętany. Automat jest wyłączony.';
-      else if (!craft) status.textContent = 'Przedmiot zapamiętany. Mechanizm ulepszania oczekuje na dostęp gry.';
+      else if (!craft) status.textContent = 'Przedmiot zapamiętany. Możesz normalnie kontynuować grę.';
       else status.textContent = `Automat aktywny dla przedmiotu ID ${selectedItemId}.`;
     }
 
