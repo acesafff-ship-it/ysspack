@@ -1,6 +1,6 @@
 {
   "name": "YssPack",
-  "version": "0.15.1",
+  "version": "0.15.2",
   "author": "Król Yss",
   "modules": [
     {
@@ -27,7 +27,7 @@
     {
       "id": "auto-enhancer",
       "name": "Automatyczne ulepszanie",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "file": "modules/auto-enhancer.js",
       "description": "Zapamiętuje ulepszany przedmiot i przygotowuje bezpieczne automatyczne przepalanie wybranych rzadkości."
     },
