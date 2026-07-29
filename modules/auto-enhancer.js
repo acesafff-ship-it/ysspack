@@ -15,7 +15,7 @@ const DEFAULT_CONFIG = {
 export default {
   id: MODULE_ID,
   name: 'Automatyczne ulepszanie',
-  version: '0.2.2',
+  version: '0.2.3',
   description: 'Pozwala wybrać ulepszany przedmiot prosto z ekwipunku i przygotowuje automatyczne przepalanie wybranych rzadkości.',
   icon: '⚙',
 
@@ -28,9 +28,6 @@ export default {
     let minimized = false;
     let closed = false;
     let selectionMode = false;
-    let directStatus = null;
-    let statusRequestPending = false;
-    let lastStatusRequestAt = 0;
     let config = readConfig();
     let selectedItemId = String(config.targetItemId || '');
 
@@ -68,7 +65,7 @@ export default {
         <div class="content">
           <div class="right-column-background interface-element-middle-1-background-stretch"></div>
           <div class="inner-content">
-          <span class="yss-ae-version">v0.1.3</span>
+          <span class="yss-ae-version">v0.2.3</span>
           <button class="yss-ae-gear" type="button" title="Ustawienia" aria-label="Ustawienia">⚙</button>
           <div class="yss-ae-main">
             <div class="yss-ae-item-frame">
@@ -158,12 +155,10 @@ export default {
       event.stopImmediatePropagation();
       selectedItemId = itemId;
       config.targetItemId = itemId;
-      directStatus = null;
       selectionMode = false;
       panel.classList.remove('selecting-item');
       saveConfig();
       copyItemCanvas(itemElement.querySelector('.canvas-icon'));
-      refreshDirectStatus(true);
       render();
     }
 
@@ -189,15 +184,11 @@ export default {
         saveConfig();
       }
       panel.hidden = closed;
-      if (!craft && itemId) refreshDirectStatus();
-      const directCurrent = Number(directStatus?.current || 0);
-      const directMax = Number(directStatus?.max || 0);
-      const directPercent = directMax > 0 ? `${Math.min(100, directCurrent / directMax * 100)}%` : '0%';
-      const displayedLevel = craft ? (level ?? storedLevel ?? '—') : (directStatus?.upgradeLevel ?? storedLevel ?? '—');
+      const displayedLevel = level ?? storedLevel ?? '—';
       panel.querySelector('.yss-ae-progress-text').textContent = craft
         ? progressText
-        : (directMax > 0 ? `${directCurrent} / ${directMax}` : '0 / 0');
-      panel.querySelector('.yss-ae-progress-fill').style.width = craft ? currentBar : directPercent;
+        : 'Postęp dostępny w Rzemiośle';
+      panel.querySelector('.yss-ae-progress-fill').style.width = craft ? currentBar : '0%';
       panel.querySelector('.yss-ae-progress-preview').style.width = craft ? previewBar : '0%';
       panel.querySelector('.yss-ae-level').textContent = `Poziom ulepszenia: ${displayedLevel} / 5`;
       panel.querySelector('.yss-ae-name').textContent = itemId ? (itemName || `Wybrany przedmiot #${itemTpl}`) : 'Włóż przedmiot do ulepszania';
@@ -235,35 +226,6 @@ export default {
         if (Number.isFinite(parsed)) return parsed;
       }
       return 0;
-    }
-
-    function refreshDirectStatus(force = false) {
-      if (!selectedItemId || statusRequestPending || typeof window._g !== 'function') return;
-      const now = Date.now();
-      if (!force && now - lastStatusRequestAt < 10000) return;
-      lastStatusRequestAt = now;
-      statusRequestPending = true;
-      window._g(`enhancement&action=status&item=${selectedItemId}`, response => {
-        statusRequestPending = false;
-        const enhancement = response?.enhancement;
-        const state = enhancement?.progressing || enhancement?.upgradable || enhancement?.completed;
-        if (state && typeof state === 'object') {
-          directStatus = {
-            current: Number(state.current || 0),
-            max: Number(state.max || 0),
-            upgradeLevel: Number.isFinite(Number(state.upgradeLevel)) ? Number(state.upgradeLevel) : null,
-            completed: Boolean(enhancement?.completed)
-          };
-        } else if (enhancement?.completed) {
-          directStatus = {
-            current: 1,
-            max: 1,
-            upgradeLevel: 5,
-            completed: true
-          };
-        }
-        render();
-      });
     }
 
     function clearItemCanvas() {
