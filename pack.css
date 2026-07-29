@@ -352,6 +352,8 @@
 
 .mhp-footer {
   flex: 0 0 38px;
+  margin-right: 11px !important;
+  margin-left: 11px !important;
   padding: 5px 8px 3px;
   border-top: 1px solid #b59a5c;
   background: rgba(241, 220, 167, .96);
