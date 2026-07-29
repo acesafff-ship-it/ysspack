@@ -59,12 +59,12 @@
 }
 
 #ysspack > .mhp-outer-side-rail-left {
-  left: 0 !important;
+  left: 20px !important;
   background-position: left top;
 }
 
 #ysspack > .mhp-outer-side-rail-right {
-  right: 0 !important;
+  right: 20px !important;
   background-position: right top;
 }
 
