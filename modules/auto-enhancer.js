@@ -9,14 +9,15 @@ const DEFAULT_CONFIG = {
   common: true,
   unique: false,
   heroic: false,
-  targetItemId: ''
+  targetItemId: '',
+  batchSize: 10
 };
 
 export default {
   id: MODULE_ID,
   name: 'Automatyczne ulepszanie',
-  version: '0.2.3',
-  description: 'Pozwala wybrać ulepszany przedmiot prosto z ekwipunku i przygotowuje automatyczne przepalanie wybranych rzadkości.',
+  version: '0.3.0',
+  description: 'Automatycznie przepala wybrane rzadkości, pokazuje poziom i postęp ulepszania oraz chroni przedmioty legendarne.',
   icon: '⚙',
 
   start() {
@@ -28,12 +29,17 @@ export default {
     let minimized = false;
     let closed = false;
     let selectionMode = false;
+    let automationBusy = false;
+    let nextAutomationAt = 0;
+    let automationMessage = '';
+    let lastBufferCount = 0;
+    let savedProgress = null;
     let config = readConfig();
     let selectedItemId = String(config.targetItemId || '');
 
     injectStyle();
     ensurePanel();
-    const interval = window.setInterval(render, 500);
+    const interval = window.setInterval(tick, 750);
     render();
 
     return () => {
@@ -65,7 +71,7 @@ export default {
         <div class="content">
           <div class="right-column-background interface-element-middle-1-background-stretch"></div>
           <div class="inner-content">
-          <span class="yss-ae-version">v0.2.3</span>
+          <span class="yss-ae-version">v0.3.0 TEST</span>
           <button class="yss-ae-gear" type="button" title="Ustawienia" aria-label="Ustawienia">⚙</button>
           <div class="yss-ae-main">
             <div class="yss-ae-item-frame">
@@ -80,6 +86,7 @@ export default {
               <div class="yss-ae-progress-preview"></div>
               <span class="yss-ae-progress-text">0 / 0</span>
             </div>
+            <div class="yss-ae-buffer">Bufor: 0 przedmiotów</div>
             <button class="yss-ae-toggle button small green" type="button">
               <span class="background"></span><span class="label">Włącz</span>
             </button>
@@ -123,6 +130,8 @@ export default {
       });
       panel.querySelector('.yss-ae-toggle').addEventListener('click', () => {
         config.active = !config.active;
+        nextAutomationAt = 0;
+        automationMessage = '';
         saveConfig();
         render();
       });
@@ -134,6 +143,13 @@ export default {
         });
       });
       bindDrag(panel, panel.querySelector('.yss-ae-drag'));
+    }
+
+    function tick() {
+      render();
+      if (!automationBusy && Date.now() >= nextAutomationAt) {
+        void runAutomation();
+      }
     }
 
     function toggleMinimized() {
@@ -155,6 +171,9 @@ export default {
       event.stopImmediatePropagation();
       selectedItemId = itemId;
       config.targetItemId = itemId;
+      savedProgress = null;
+      automationMessage = '';
+      nextAutomationAt = 0;
       selectionMode = false;
       panel.classList.remove('selecting-item');
       saveConfig();
@@ -184,11 +203,15 @@ export default {
         saveConfig();
       }
       panel.hidden = closed;
-      const displayedLevel = level ?? storedLevel ?? '—';
+      const displayedLevel = level ?? savedProgress?.upgradeLevel ?? storedLevel ?? '—';
       panel.querySelector('.yss-ae-progress-text').textContent = craft
         ? progressText
-        : 'Postęp dostępny w Rzemiośle';
-      panel.querySelector('.yss-ae-progress-fill').style.width = craft ? currentBar : '0%';
+        : savedProgress
+          ? `${savedProgress.current} / ${savedProgress.max}`
+          : '0 / 0';
+      panel.querySelector('.yss-ae-progress-fill').style.width = craft
+        ? currentBar
+        : progressPercent(savedProgress);
       panel.querySelector('.yss-ae-progress-preview').style.width = craft ? previewBar : '0%';
       panel.querySelector('.yss-ae-level').textContent = `Poziom ulepszenia: ${displayedLevel} / 5`;
       panel.querySelector('.yss-ae-name').textContent = itemId ? (itemName || `Wybrany przedmiot #${itemTpl}`) : 'Włóż przedmiot do ulepszania';
@@ -206,11 +229,200 @@ export default {
       toggle.querySelector('.label').textContent = config.active ? 'Wyłącz' : 'Włącz';
 
       const status = panel.querySelector('.yss-ae-status');
+      panel.querySelector('.yss-ae-buffer').textContent = `Bufor: ${lastBufferCount} przedmiotów`;
       if (selectionMode) status.textContent = 'Kliknij przedmiot w ekwipunku.';
       else if (!itemId) status.textContent = 'Kliknij pusty slot i wybierz przedmiot z ekwipunku.';
       else if (!config.active) status.textContent = 'Przedmiot zapamiętany. Automat jest wyłączony.';
-      else if (!craft) status.textContent = 'Przedmiot zapamiętany. Możesz normalnie kontynuować grę.';
+      else if (automationMessage) status.textContent = automationMessage;
+      else if (!craft) status.textContent = 'Automat czeka na pasujący przedmiot.';
       else status.textContent = `Automat aktywny dla przedmiotu ID ${selectedItemId}.`;
+    }
+
+    async function runAutomation() {
+      if (stopped || !config.active || !selectedItemId || selectionMode) return;
+      const engine = window.Engine;
+      const target = engine?.items?.getItemById?.(Number(selectedItemId));
+      if (!target || typeof window._g !== 'function') {
+        automationMessage = 'Oczekiwanie na dane przedmiotu.';
+        return;
+      }
+
+      automationBusy = true;
+      nextAutomationAt = Date.now() + 2500;
+      try {
+        const possibleItems = getRarityCandidates(engine);
+        lastBufferCount = possibleItems.length;
+        if (!possibleItems.length) {
+          automationMessage = 'Brak wybranych rzadkości w ekwipunku.';
+          nextAutomationAt = Date.now() + 5000;
+          return;
+        }
+
+        automationMessage = 'Sprawdzanie bezpiecznych składników...';
+        rememberProgress(await gameRequest(`enhancement&action=open&item=${selectedItemId}`));
+        const enhancement = await waitForEnhancement();
+        const candidates = getSafeReagents(engine, enhancement);
+        lastBufferCount = candidates.length;
+
+        if (!candidates.length) {
+          automationMessage = 'Brak pasujących przedmiotów w ekwipunku.';
+          nextAutomationAt = Date.now() + 5000;
+          return;
+        }
+
+        const ids = candidates
+          .slice(0, Math.max(1, Math.min(25, Number(config.batchSize) || 10)))
+          .map(item => Number(item.id));
+        const ingredients = ids.join(',');
+
+        automationMessage = `Sprawdzanie ${ids.length} przedmiotów...`;
+        rememberProgress(await gameRequest(
+          `enhancement&action=progress_preview&item=${selectedItemId}&ingredients=${ingredients}`
+        ));
+
+        automationMessage = `Ulepszanie (${ids.length} składników)...`;
+        const response = await gameRequest(
+          `enhancement&action=progress&item=${selectedItemId}&ingredients=${ingredients}`
+        );
+        rememberProgress(response);
+
+        const enhancementData = response?.enhancement;
+        if (enhancementData?.upgradable) {
+          const level = Number(enhancementData.upgradable.upgradeLevel ?? readUpgradeLevel(target));
+          if (level < 4) {
+            automationMessage = 'Podnoszenie poziomu ulepszenia...';
+            rememberProgress(await gameRequest(`enhancement&action=upgrade&item=${selectedItemId}`));
+          } else {
+            config.active = false;
+            saveConfig();
+            automationMessage = 'Wybierz premię 5. poziomu w Rzemiośle.';
+          }
+        } else {
+          automationMessage = `Zużyto ${ids.length} przedmiotów.`;
+        }
+      } catch (error) {
+        automationMessage = `Automat wstrzymany: ${friendlyError(error)}`;
+        nextAutomationAt = Date.now() + 6000;
+      } finally {
+        closeCraftingSafely();
+        automationBusy = false;
+        render();
+      }
+    }
+
+    function getSafeReagents(engine, enhancement) {
+      const possibleItems = getRarityCandidates(engine);
+      return possibleItems.filter(item => {
+        try {
+          return Number(enhancement.getReagentBonus(item)) > 0;
+        } catch (error) {
+          return false;
+        }
+      });
+    }
+
+    function getRarityCandidates(engine) {
+      const enabledIds = engine.disableItemsManager?.getEnabledItems?.() || [];
+      const allowed = new Set([
+        config.common && 'common',
+        config.unique && 'unique',
+        config.heroic && 'heroic'
+      ].filter(Boolean));
+
+      return enabledIds
+        .map(id => engine.items?.getItemById?.(id))
+        .filter(Boolean)
+        .filter(item => String(item.id) !== String(selectedItemId))
+        .filter(item => allowed.has(getRarity(item)))
+        .filter(item => getRarity(item) !== 'legendary');
+    }
+
+    function getRarity(item) {
+      const raw = String(
+        item?._cachedStats?.rarity ??
+        item?.getItemStat?.(window.Engine?.itemStatsData?.rarity) ??
+        ''
+      ).toLowerCase();
+      if (!raw || raw === 'normal' || raw === 'common' || raw === 'pospolity') return 'common';
+      if (raw.includes('unique') || raw.includes('unikat')) return 'unique';
+      if (raw.includes('heroic') || raw.includes('heroicz')) return 'heroic';
+      if (raw.includes('legend')) return 'legendary';
+      return raw;
+    }
+
+    function gameRequest(query) {
+      return new Promise((resolve, reject) => {
+        let settled = false;
+        const timer = window.setTimeout(() => {
+          if (!settled) {
+            settled = true;
+            reject(new Error('brak odpowiedzi gry'));
+          }
+        }, 8000);
+
+        try {
+          window._g(query, response => {
+            if (settled) return;
+            settled = true;
+            clearTimeout(timer);
+            if (response?.e === 'ok' || !response?.e) resolve(response || {});
+            else reject(new Error(String(response.e)));
+          });
+        } catch (error) {
+          clearTimeout(timer);
+          reject(error);
+        }
+      });
+    }
+
+    async function waitForEnhancement() {
+      const deadline = Date.now() + 3000;
+      while (Date.now() < deadline) {
+        const enhancement = window.Engine?.crafting?.enhancement;
+        if (enhancement && String(enhancement.selectedEnhanceItem) === String(selectedItemId)) {
+          return enhancement;
+        }
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
+      throw new Error('nie udało się otworzyć sesji ulepszania');
+    }
+
+    function closeCraftingSafely() {
+      try {
+        if (window.Engine?.crafting?.itemCraft?.opened) {
+          window.Engine.crafting.close();
+        }
+      } catch (error) {
+        // Zamknięcie okna nie może zatrzymać automatu.
+      }
+    }
+
+    function friendlyError(error) {
+      const message = String(error?.message || error || 'nieznany błąd');
+      return message.length > 70 ? `${message.slice(0, 67)}...` : message;
+    }
+
+    function rememberProgress(response) {
+      const data = response?.enhancement;
+      const progress = data?.progressing || data?.upgradable || data?.progress_preview;
+      if (!progress) return;
+      const current = Number(progress.current);
+      const max = Number(progress.max);
+      const upgradeLevel = Number(progress.upgradeLevel);
+      if (Number.isFinite(current) && Number.isFinite(max)) {
+        savedProgress = {
+          current,
+          max,
+          upgradeLevel: Number.isFinite(upgradeLevel) ? upgradeLevel : readUpgradeLevel(
+            window.Engine?.items?.getItemById?.(Number(selectedItemId))
+          )
+        };
+      }
+    }
+
+    function progressPercent(progress) {
+      if (!progress || !Number(progress.max)) return '0%';
+      return `${Math.max(0, Math.min(100, (100 * Number(progress.current)) / Number(progress.max)))}%`;
     }
 
     function readUpgradeLevel(item) {
@@ -337,6 +549,7 @@ function injectStyle() {
     .yss-ae-progress-fill { background:linear-gradient(#347eb4,#174d7b); }
     .yss-ae-progress-preview { background:rgba(89,167,213,.35); }
     .yss-ae-progress-text { position:absolute; inset:0; color:#fff; font-weight:bold; line-height:15px; text-align:center; text-shadow:1px 1px #000; }
+    .yss-ae-buffer { margin:-4px 0 7px; color:#c4b59e; font-size:9px; text-align:center; }
     #${PANEL_ID} .yss-ae-toggle { display:flex !important; width:100% !important; height:28px !important; align-items:center; justify-content:center; cursor:pointer; }
     #${PANEL_ID} .yss-ae-toggle .label { position:relative !important; inset:auto !important; display:flex !important; width:100%; height:100%; align-items:center; justify-content:center; }
     .yss-ae-status { margin:8px 0; color:#9ed86d; text-align:center; }
