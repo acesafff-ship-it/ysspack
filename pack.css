@@ -46,6 +46,17 @@
   background: none;
 }
 
+#ysspack > .mhp-frame-overlay {
+  position: absolute !important;
+  z-index: 4;
+  inset: -32px -20px !important;
+  box-sizing: border-box !important;
+  border: solid transparent !important;
+  border-width: 32px 20px !important;
+  border-image: url("assets/game-window-frame.png") 32 20 / 1 / 0 stretch !important;
+  pointer-events: none;
+}
+
 #ysspack .inner-content {
   position: relative !important;
   display: flex;
