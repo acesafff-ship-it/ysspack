@@ -59,6 +59,17 @@
   height: 100%;
 }
 
+.mhp-layout::before {
+  position: absolute;
+  z-index: 4;
+  inset: -2px -9px -5px -10px;
+  border-width: 0 11px;
+  border-style: solid;
+  border-image: url("assets/game-middle-graphics.png") 0 11 / 1 / 0 round;
+  content: "";
+  pointer-events: none;
+}
+
 .mhp-left-column,
 .mhp-right-column {
   position: absolute;
@@ -73,7 +84,10 @@
   display: flex;
   flex-direction: column;
   width: 255px;
-  background: transparent;
+  border-width: 0 11px;
+  border-style: solid;
+  border-image: url("assets/game-middle-graphics.png") 0 11 fill / 1 / 0 round;
+  background: #282929;
 }
 
 .mhp-right-column {
@@ -81,24 +95,11 @@
   display: flex;
   flex-direction: column;
   width: 292px;
-  background: transparent;
+  border-width: 0 11px;
+  border-style: solid;
+  border-image: url("assets/game-middle-graphics.png") 0 11 fill / 1 / 0 round;
+  background: #f1dca7;
   color: #444;
-}
-
-.mhp-column-background {
-  position: absolute !important;
-  z-index: 0 !important;
-  inset: 0 !important;
-  display: block !important;
-  width: 100% !important;
-  height: 100% !important;
-  pointer-events: none !important;
-}
-
-.mhp-left-column > :not(.mhp-column-background),
-.mhp-right-column > :not(.mhp-column-background) {
-  position: relative;
-  z-index: 1;
 }
 
 #ysspack .header-label-positioner {
