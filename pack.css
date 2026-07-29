@@ -94,6 +94,9 @@
   width: auto !important;
   height: auto !important;
   box-sizing: content-box !important;
+  border: solid transparent !important;
+  border-width: 0 11px !important;
+  border-image: url("assets/game-middle-graphics.png") 0 11 fill / 1 / 0 round !important;
   pointer-events: none;
 }
 
