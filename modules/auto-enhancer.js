@@ -8,14 +8,15 @@ const DEFAULT_CONFIG = {
   active: false,
   common: true,
   unique: false,
-  heroic: false
+  heroic: false,
+  targetItemId: ''
 };
 
 export default {
   id: MODULE_ID,
   name: 'Automatyczne ulepszanie',
-  version: '0.1.3',
-  description: 'Zapamiętuje ulepszany przedmiot i przygotowuje bezpieczne automatyczne przepalanie wybranych rzadkości.',
+  version: '0.2.0',
+  description: 'Pozwala wybrać ulepszany przedmiot prosto z ekwipunku i przygotowuje automatyczne przepalanie wybranych rzadkości.',
   icon: '⚙',
 
   start() {
@@ -24,8 +25,12 @@ export default {
     let stopped = false;
     let panel = null;
     let settingsOpen = false;
+    let minimized = false;
+    let closed = false;
+    let selectionMode = false;
+    let hiddenCraftWindow = null;
     let config = readConfig();
-    let selectedItemId = '';
+    let selectedItemId = String(config.targetItemId || '');
 
     injectStyle();
     ensurePanel();
@@ -35,6 +40,8 @@ export default {
     return () => {
       stopped = true;
       clearInterval(interval);
+      document.removeEventListener('click', selectInventoryItem, true);
+      restoreCraftWindow();
       document.getElementById(PANEL_ID)?.remove();
       document.getElementById(STYLE_ID)?.remove();
     };
@@ -53,6 +60,10 @@ export default {
             <div class="text">Auto Ulepszanie</div>
           </div>
         </div>
+        <button class="yss-ae-minimize" type="button" title="Minimalizuj" aria-label="Minimalizuj">−</button>
+        <div class="close-button-corner-decor">
+          <button class="close-button yss-ae-close" type="button" aria-label="Zamknij"></button>
+        </div>
         <div class="content">
           <div class="right-column-background interface-element-middle-1-background-stretch"></div>
           <div class="inner-content">
@@ -60,7 +71,7 @@ export default {
           <button class="yss-ae-gear" type="button" title="Ustawienia" aria-label="Ustawienia">⚙</button>
           <div class="yss-ae-main">
             <div class="yss-ae-item-frame">
-              <div class="yss-ae-item-slot interface-element-one-item-slot-decor"><canvas width="32" height="32"></canvas></div>
+              <button class="yss-ae-item-slot interface-element-one-item-slot-decor" type="button" title="Wybierz przedmiot z ekwipunku"><canvas width="32" height="32"></canvas></button>
               <div class="yss-ae-item-copy">
                 <strong class="yss-ae-name">Włóż przedmiot do ulepszania</strong>
                 <span class="yss-ae-level">Poziom ulepszenia: —</span>
@@ -93,6 +104,21 @@ export default {
         <div class="c-window__bottom-bar"><div class="interface-element-bottom-bar-background-stretch"></div></div>`;
       document.body.append(panel);
 
+      panel.querySelector('.yss-ae-close').addEventListener('click', () => {
+        closed = true;
+        selectionMode = false;
+        restoreCraftWindow();
+        panel.hidden = true;
+      });
+      panel.querySelector('.yss-ae-minimize').addEventListener('click', toggleMinimized);
+      panel.querySelector('.header-label .text').addEventListener('dblclick', toggleMinimized);
+      panel.querySelector('.yss-ae-item-slot').addEventListener('click', event => {
+        event.stopPropagation();
+        selectionMode = true;
+        panel.classList.add('selecting-item');
+        panel.querySelector('.yss-ae-status').textContent = 'Kliknij przedmiot w ekwipunku.';
+      });
+      document.addEventListener('click', selectInventoryItem, true);
       panel.querySelector('.yss-ae-gear').addEventListener('click', () => {
         settingsOpen = !settingsOpen;
         panel.querySelector('.yss-ae-settings').hidden = !settingsOpen;
@@ -113,6 +139,78 @@ export default {
       bindDrag(panel, panel.querySelector('.yss-ae-drag'));
     }
 
+    function toggleMinimized() {
+      minimized = !minimized;
+      panel.classList.toggle('minimized', minimized);
+      panel.querySelector('.yss-ae-minimize').textContent = minimized ? '+' : '−';
+      panel.querySelector('.yss-ae-minimize').title = minimized ? 'Rozwiń' : 'Minimalizuj';
+    }
+
+    function selectInventoryItem(event) {
+      if (!selectionMode || stopped) return;
+      const itemElement = event.target.closest?.('.item');
+      if (!itemElement || itemElement.closest(`#${PANEL_ID}`)) return;
+      const itemId = itemElement.className.match(/\bitem-id-(\d+)/)?.[1] || '';
+      if (!itemId) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+      selectedItemId = itemId;
+      config.targetItemId = itemId;
+      selectionMode = false;
+      panel.classList.remove('selecting-item');
+      saveConfig();
+      copyItemCanvas(itemElement.querySelector('.canvas-icon'));
+      activateEnhancementTarget(itemId);
+      render();
+    }
+
+    function activateEnhancementTarget(itemId) {
+      const item = window.Engine?.items?.getItemById?.(itemId);
+      const crafting = window.Engine?.crafting;
+      if (!item || !crafting) return;
+
+      try {
+        if (crafting.itemCraft?.opened && crafting.enhancement) {
+          crafting.enhancement.close?.();
+          crafting.open('enhancement');
+          crafting.enhancement.onClickInventoryItem(item);
+        } else if (typeof window._g === 'function') {
+          crafting.tempEnhanceItemId = Number(itemId);
+          window._g(`enhancement&action=open&item=${itemId}`);
+        }
+        hideCraftWindowInBackground();
+      } catch (error) {
+        console.warn('[YssPack] Nie udało się przekazać przedmiotu do mechanizmu ulepszania:', error);
+      }
+    }
+
+    function hideCraftWindowInBackground(attempt = 0) {
+      window.setTimeout(() => {
+        if (stopped) return;
+        const craftContent = document.querySelector('.enhance__content');
+        const craftWindow = craftContent?.closest('.c-window') || craftContent?.parentElement;
+        if (!craftWindow && attempt < 30) {
+          hideCraftWindowInBackground(attempt + 1);
+          return;
+        }
+        if (!craftWindow) return;
+        hiddenCraftWindow = craftWindow;
+        craftWindow.dataset.yssAutoEnhancerHidden = 'true';
+        craftWindow.style.setProperty('visibility', 'hidden', 'important');
+        craftWindow.style.setProperty('pointer-events', 'none', 'important');
+      }, attempt ? 100 : 0);
+    }
+
+    function restoreCraftWindow() {
+      if (!hiddenCraftWindow?.isConnected) return;
+      hiddenCraftWindow.style.removeProperty('visibility');
+      hiddenCraftWindow.style.removeProperty('pointer-events');
+      delete hiddenCraftWindow.dataset.yssAutoEnhancerHidden;
+      hiddenCraftWindow = null;
+    }
+
     function render() {
       if (stopped || !panel?.isConnected) return;
       const craft = document.querySelector('.enhance__content');
@@ -122,24 +220,28 @@ export default {
       const progressText = craft?.querySelector('.enhance__progress-text--current')?.textContent?.trim() || '0 / 0';
       const currentBar = craft?.querySelector('.enhance__progress--current')?.style.width || '0%';
       const previewBar = craft?.querySelector('.enhance__progress--preview')?.style.width || '0%';
-      const itemId = currentItem ? (currentItem.className.match(/\bitem-id-(\d+)/)?.[1] || '') : '';
+      const craftItemId = currentItem ? (currentItem.className.match(/\bitem-id-(\d+)/)?.[1] || '') : '';
+      const itemId = craftItemId || selectedItemId;
       const itemTpl = currentItem ? (currentItem.className.match(/\bitem-tpl-(\d+)/)?.[1] || '') : '';
       const gameItem = itemId ? window.Engine?.items?.getItemById?.(itemId) : null;
       const itemName = gameItem?.name || '';
 
-      if (itemId) selectedItemId = itemId;
-      panel.hidden = !craft;
-      panel.querySelector('.yss-ae-progress-text').textContent = progressText;
-      panel.querySelector('.yss-ae-progress-fill').style.width = currentBar;
-      panel.querySelector('.yss-ae-progress-preview').style.width = previewBar;
-      panel.querySelector('.yss-ae-level').textContent = `Poziom ulepszenia: ${level ?? '—'} / 5`;
+      if (craftItemId && craftItemId !== selectedItemId) {
+        selectedItemId = craftItemId;
+        config.targetItemId = craftItemId;
+        saveConfig();
+      }
+      panel.hidden = closed;
+      panel.querySelector('.yss-ae-progress-text').textContent = craft ? progressText : 'Przedmiot zapisany';
+      panel.querySelector('.yss-ae-progress-fill').style.width = craft ? currentBar : '0%';
+      panel.querySelector('.yss-ae-progress-preview').style.width = craft ? previewBar : '0%';
+      panel.querySelector('.yss-ae-level').textContent = `Poziom ulepszenia: ${craft ? (level ?? '—') : '—'} / 5`;
       panel.querySelector('.yss-ae-name').textContent = itemId ? (itemName || `Wybrany przedmiot #${itemTpl}`) : 'Włóż przedmiot do ulepszania';
 
-      const targetCanvas = panel.querySelector('.yss-ae-item-slot canvas');
-      const context = targetCanvas.getContext('2d');
-      context.clearRect(0, 0, 32, 32);
       if (sourceCanvas) {
-        try { context.drawImage(sourceCanvas, 0, 0, 32, 32); } catch (error) { /* ikona odświeży się w kolejnym cyklu */ }
+        copyItemCanvas(sourceCanvas);
+      } else if (!itemId) {
+        clearItemCanvas();
       }
 
       panel.querySelectorAll('[data-rarity]').forEach(input => { input.checked = Boolean(config[input.dataset.rarity]); });
@@ -149,9 +251,24 @@ export default {
       toggle.querySelector('.label').textContent = config.active ? 'Wyłącz' : 'Włącz';
 
       const status = panel.querySelector('.yss-ae-status');
-      if (!itemId) status.textContent = 'Oczekiwanie na przedmiot.';
+      if (selectionMode) status.textContent = 'Kliknij przedmiot w ekwipunku.';
+      else if (!itemId) status.textContent = 'Kliknij pusty slot i wybierz przedmiot z ekwipunku.';
       else if (!config.active) status.textContent = 'Przedmiot zapamiętany. Automat jest wyłączony.';
+      else if (!craft) status.textContent = 'Przedmiot zapamiętany. Mechanizm ulepszania oczekuje na dostęp gry.';
       else status.textContent = `Automat aktywny dla przedmiotu ID ${selectedItemId}.`;
+    }
+
+    function clearItemCanvas() {
+      const targetCanvas = panel.querySelector('.yss-ae-item-slot canvas');
+      targetCanvas.getContext('2d').clearRect(0, 0, 32, 32);
+    }
+
+    function copyItemCanvas(sourceCanvas) {
+      if (!sourceCanvas) return;
+      const targetCanvas = panel.querySelector('.yss-ae-item-slot canvas');
+      const context = targetCanvas.getContext('2d');
+      context.clearRect(0, 0, 32, 32);
+      try { context.drawImage(sourceCanvas, 0, 0, 32, 32); } catch (error) { /* ikona odświeży się później */ }
     }
 
     function readConfig() {
@@ -211,6 +328,13 @@ function injectStyle() {
       font: 11px/14px Arial, sans-serif;
     }
     #${PANEL_ID}.settings-open { height: 420px !important; }
+    #${PANEL_ID}.minimized {
+      width:190px !important; height:0 !important;
+      border-width:20px !important;
+    }
+    #${PANEL_ID}.minimized > .content,
+    #${PANEL_ID}.minimized > .c-window__bottom-bar,
+    #${PANEL_ID}.minimized > .close-button-corner-decor { display:none !important; }
     #${PANEL_ID} > .content { position:absolute !important; inset:0 !important; overflow:hidden !important; background:transparent !important; }
     #${PANEL_ID} > .content > .right-column-background {
       position:absolute !important; z-index:0 !important; inset:0 !important;
@@ -220,11 +344,21 @@ function injectStyle() {
     #${PANEL_ID} .inner-content { position:relative; z-index:1; height:100%; padding:18px 10px 4px; }
     #${PANEL_ID} .header-label-positioner { z-index:5; cursor:move; user-select:none; touch-action:none; }
     #${PANEL_ID} .header-label .text { color:#ead9c0 !important; text-shadow:1px 1px #000; }
+    #${PANEL_ID} > .close-button-corner-decor { z-index:7 !important; }
+    .yss-ae-minimize {
+      position:absolute; z-index:8; top:-18px; right:13px;
+      width:20px; height:18px; padding:0;
+      border:1px solid #111; border-radius:3px;
+      background:linear-gradient(#555,#242424); box-shadow:inset 0 0 0 1px #999;
+      color:#eee; font:bold 15px/15px Arial; text-align:center; text-shadow:1px 1px #000; cursor:pointer;
+    }
+    #${PANEL_ID}.minimized .yss-ae-minimize { top:-18px; right:-13px; }
     .yss-ae-version { position:absolute; top:2px; right:3px; color:#b8aa96; font-size:9px; }
     .yss-ae-gear { position:absolute; z-index:2; top:14px; right:7px; width:29px; height:29px; padding:0; border:1px solid #101010; border-radius:5px; background:linear-gradient(#466f35,#183511); box-shadow:inset 0 0 0 2px #929292,inset 0 0 0 3px #111; color:#ddd; font-size:16px; line-height:27px; text-align:center; text-shadow:1px 1px #000; cursor:pointer; }
     .yss-ae-item-frame { display:flex; min-height:64px; padding:8px; align-items:center; gap:10px; border:1px solid #67492d; background:rgba(0,0,0,.25); }
-    .yss-ae-item-slot { position:relative; flex:0 0 42px; width:42px; height:42px; padding:5px; }
+    .yss-ae-item-slot { position:relative; flex:0 0 42px; width:42px; height:42px; padding:5px; border:0; background-color:transparent; cursor:pointer; }
     .yss-ae-item-slot canvas { display:block; width:32px; height:32px; image-rendering:pixelated; }
+    #${PANEL_ID}.selecting-item .yss-ae-item-slot { filter:drop-shadow(0 0 4px #ffe56a); }
     .yss-ae-item-copy { display:flex; min-width:0; flex-direction:column; gap:4px; padding-right:25px; }
     .yss-ae-name { overflow:hidden; color:#f3d669; text-overflow:ellipsis; white-space:nowrap; }
     .yss-ae-level { color:#c4b59e; }
