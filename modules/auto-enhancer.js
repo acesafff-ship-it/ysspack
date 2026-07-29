@@ -14,7 +14,7 @@ const DEFAULT_CONFIG = {
 export default {
   id: MODULE_ID,
   name: 'Automatyczne ulepszanie',
-  version: '0.1.0',
+  version: '0.1.1',
   description: 'Zapamiętuje ulepszany przedmiot i przygotowuje bezpieczne automatyczne przepalanie wybranych rzadkości.',
   icon: '⚙',
 
@@ -22,7 +22,6 @@ export default {
     if (location.hostname === 'www.margonem.pl') return () => {};
 
     let stopped = false;
-    let observer = null;
     let panel = null;
     let settingsOpen = false;
     let config = readConfig();
@@ -30,23 +29,15 @@ export default {
 
     injectStyle();
     ensurePanel();
-    observer = new MutationObserver(queueRender);
-    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'class', 'data-lvl'] });
     const interval = window.setInterval(render, 500);
     render();
 
     return () => {
       stopped = true;
-      observer?.disconnect();
       clearInterval(interval);
       document.getElementById(PANEL_ID)?.remove();
       document.getElementById(STYLE_ID)?.remove();
     };
-
-    function queueRender() {
-      if (stopped) return;
-      requestAnimationFrame(render);
-    }
 
     function ensurePanel() {
       panel = document.getElementById(PANEL_ID);
@@ -65,7 +56,7 @@ export default {
         <div class="content">
           <div class="right-column-background interface-element-middle-1-background-stretch"></div>
           <div class="inner-content">
-          <span class="yss-ae-version">v0.1.0</span>
+          <span class="yss-ae-version">v0.1.1</span>
           <button class="yss-ae-gear" type="button" title="Ustawienia" aria-label="Ustawienia">⚙</button>
           <div class="yss-ae-main">
             <div class="yss-ae-item-frame">
