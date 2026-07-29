@@ -73,10 +73,7 @@
   display: flex;
   flex-direction: column;
   width: 255px;
-  border-width: 0 11px;
-  border-style: solid;
-  border-image: url("/img/gui/middle_graphics.png?v=1785244275300") 0 11 fill / 1 / 0 round;
-  background: #282929;
+  background: transparent;
 }
 
 .mhp-right-column {
@@ -84,11 +81,24 @@
   display: flex;
   flex-direction: column;
   width: 292px;
-  border-width: 0 11px;
-  border-style: solid;
-  border-image: url("/img/gui/middle_graphics.png?v=1785244275300") 0 11 fill / 1 / 0 round;
-  background: #f1dca7;
+  background: transparent;
   color: #444;
+}
+
+.mhp-column-background {
+  position: absolute !important;
+  z-index: 0 !important;
+  inset: 0 !important;
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  pointer-events: none !important;
+}
+
+.mhp-left-column > :not(.mhp-column-background),
+.mhp-right-column > :not(.mhp-column-background) {
+  position: relative;
+  z-index: 1;
 }
 
 #ysspack .header-label-positioner {
