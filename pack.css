@@ -46,6 +46,28 @@
   background: none;
 }
 
+#ysspack > .mhp-outer-side-rail {
+  position: absolute !important;
+  z-index: 3;
+  top: 0 !important;
+  bottom: 0 !important;
+  width: 11px !important;
+  pointer-events: none;
+  background-image: url("assets/game-middle-graphics.png");
+  background-repeat: repeat-y;
+  background-size: 22px auto;
+}
+
+#ysspack > .mhp-outer-side-rail-left {
+  left: -20px !important;
+  background-position: left top;
+}
+
+#ysspack > .mhp-outer-side-rail-right {
+  right: -20px !important;
+  background-position: right top;
+}
+
 #ysspack .inner-content {
   position: relative !important;
   display: flex;

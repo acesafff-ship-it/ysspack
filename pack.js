@@ -4,7 +4,7 @@ if (!host || document.querySelector('#ysspack')) {
   throw new Error('[YssPack] Loader nie jest aktywny albo panel został już uruchomiony.');
 }
 
-const PACK_VERSION = '0.15.11';
+const PACK_VERSION = '0.15.12';
 const UPDATE_MANIFEST_URL = new URL('manifest.json', import.meta.url).href;
 const UPDATE_INSTALL_URL = new URL('YssPack.user.js', import.meta.url).href;
 const STORAGE_PREFIX = 'ysspack_';
@@ -105,6 +105,8 @@ panel.innerHTML = `
       </section>
     </div>
   </div></div>
+  <div class="mhp-outer-side-rail mhp-outer-side-rail-left" aria-hidden="true"></div>
+  <div class="mhp-outer-side-rail mhp-outer-side-rail-right" aria-hidden="true"></div>
   <div class="c-window__bottom-bar"><div class="interface-element-bottom-bar-background-stretch"></div></div>
   <div class="close-button-corner-decor"><button class="close-button mhp-close" type="button" aria-label="Zamknij"></button></div>`;
 
