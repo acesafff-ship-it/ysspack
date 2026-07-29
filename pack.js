@@ -4,7 +4,7 @@ if (!host || document.querySelector('#ysspack')) {
   throw new Error('[YssPack] Loader nie jest aktywny albo panel został już uruchomiony.');
 }
 
-const PACK_VERSION = '0.14.19';
+const PACK_VERSION = '0.15.0';
 const UPDATE_MANIFEST_URL = new URL('manifest.json', import.meta.url).href;
 const UPDATE_INSTALL_URL = new URL('YssPack.user.js', import.meta.url).href;
 const STORAGE_PREFIX = 'ysspack_';
@@ -14,6 +14,7 @@ const moduleFiles = [
   'modules/bestiary.js',
   'modules/item-time.js',
   'modules/chat-item-icons.js',
+  'modules/auto-enhancer.js',
   'modules/auction-assistant.js',
   'modules/character-storage.js',
   'modules/player-actions.js',
@@ -56,14 +57,15 @@ const moduleIconUrls = Object.fromEntries([
   'bestiary',
   'item-time',
   'chat-item-icons',
+  'auto-enhancer',
   'auction-assistant',
   'character-storage',
   'player-actions',
   'ranking-ban-scanner',
   'tytan-help'
 ].map(id => [id, {
-  enabled: new URL(`assets/module-${id}-enabled.png`, import.meta.url).href,
-  disabled: new URL(`assets/module-${id}-disabled.png`, import.meta.url).href
+  enabled: id === 'auto-enhancer' ? new URL('assets/module-auction-assistant-enabled.png', import.meta.url).href : new URL(`assets/module-${id}-enabled.png`, import.meta.url).href,
+  disabled: id === 'auto-enhancer' ? new URL('assets/module-auction-assistant-disabled.png', import.meta.url).href : new URL(`assets/module-${id}-disabled.png`, import.meta.url).href
 }]));
 const moduleIconUrl = (id, enabled = isEnabled(id)) => moduleIconUrls[id]?.[enabled ? 'enabled' : 'disabled'] || logoUrl;
 
