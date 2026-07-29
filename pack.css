@@ -12,11 +12,13 @@
   z-index: 100 !important;
   display: block !important;
   visibility: visible !important;
-  width: 568px !important;
-  height: min(650px, calc(100vh - 24px)) !important;
-  max-width: calc(100vw - 24px);
+  width: 528px !important;
+  height: min(586px, calc(100vh - 88px)) !important;
+  max-width: calc(100vw - 64px);
+  box-sizing: content-box !important;
   color: #fff;
-  border: 20px solid transparent !important;
+  border: solid transparent !important;
+  border-width: 32px 20px !important;
   border-image: url("assets/game-window-frame.png") 32 20 fill / 1 / 0 stretch !important;
   background: transparent !important;
   border-radius: 12px !important;
