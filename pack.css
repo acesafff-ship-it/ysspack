@@ -18,7 +18,7 @@
   box-sizing: content-box !important;
   color: #fff;
   border: solid transparent !important;
-  border-width: 32px 0 0 !important;
+  border-width: 32px 20px !important;
   border-image: url("assets/game-window-frame.png") 32 20 fill / 1 / 0 stretch !important;
   background: transparent !important;
   border-radius: 12px !important;
@@ -44,39 +44,6 @@
   content: "";
   pointer-events: none;
   background: none;
-}
-
-#ysspack > .mhp-side-beam {
-  position: absolute !important;
-  z-index: 4;
-  top: 0 !important;
-  bottom: 0 !important;
-  width: 0 !important;
-  box-sizing: content-box !important;
-  border: solid transparent !important;
-  border-width: 0 11px !important;
-  border-image: url("assets/game-middle-graphics.png") 0 11 fill / 1 / 0 round !important;
-  pointer-events: none;
-}
-
-#ysspack > .mhp-side-beam-left {
-  left: -20px !important;
-}
-
-#ysspack > .mhp-side-beam-right {
-  right: -20px !important;
-}
-
-#ysspack > .mhp-bottom-frame {
-  position: absolute !important;
-  z-index: 4;
-  inset: -32px -20px 0 !important;
-  box-sizing: border-box !important;
-  border: solid transparent !important;
-  border-width: 32px 20px !important;
-  border-image: url("assets/game-window-frame.png") 32 20 / 1 / 0 stretch !important;
-  clip-path: inset(calc(100% - 32px) 0 0);
-  pointer-events: none;
 }
 
 #ysspack .inner-content {
