@@ -59,17 +59,6 @@
   height: 100%;
 }
 
-.mhp-layout::before {
-  position: absolute;
-  z-index: 4;
-  inset: -2px -9px -5px -10px;
-  border-width: 0 11px;
-  border-style: solid;
-  border-image: url("assets/game-middle-graphics.png") 0 11 / 1 / 0 round;
-  content: "";
-  pointer-events: none;
-}
-
 .mhp-left-column,
 .mhp-right-column {
   position: absolute;
@@ -84,10 +73,7 @@
   display: flex;
   flex-direction: column;
   width: 255px;
-  border-width: 0 11px;
-  border-style: solid;
-  border-image: url("assets/game-middle-graphics.png") 0 11 fill / 1 / 0 round;
-  background: #282929;
+  background: transparent;
 }
 
 .mhp-right-column {
@@ -95,11 +81,48 @@
   display: flex;
   flex-direction: column;
   width: 292px;
-  border-width: 0 11px;
-  border-style: solid;
-  border-image: url("assets/game-middle-graphics.png") 0 11 fill / 1 / 0 round;
-  background: #f1dca7;
+  background: transparent;
   color: #444;
+}
+
+.mhp-column-background {
+  position: absolute !important;
+  z-index: 0;
+  inset: 0 !important;
+  width: auto !important;
+  height: auto !important;
+  box-sizing: content-box !important;
+  pointer-events: none;
+}
+
+.mhp-left-column > .mhp-column-background {
+  background-color: #282929;
+}
+
+.mhp-right-column > .mhp-column-background {
+  background-color: #f1dca7;
+}
+
+.mhp-left-column > :not(.mhp-column-background),
+.mhp-right-column > :not(.mhp-column-background) {
+  position: relative;
+  z-index: 1;
+}
+
+.mhp-left-column > .mhp-list-heading,
+.mhp-left-column > .mhp-toolbar,
+.mhp-left-column > .mhp-list {
+  width: auto;
+  margin-right: 10px;
+  margin-left: 9px;
+}
+
+.mhp-right-column > .mhp-detail-header,
+.mhp-right-column > .mhp-detail-body,
+.mhp-right-column > .mhp-footer {
+  width: auto;
+  margin-right: 4px;
+  margin-left: 4px;
 }
 
 #ysspack .header-label-positioner {
