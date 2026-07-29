@@ -15,7 +15,7 @@ const DEFAULT_CONFIG = {
 export default {
   id: MODULE_ID,
   name: 'Automatyczne ulepszanie',
-  version: '0.2.1',
+  version: '0.2.2',
   description: 'Pozwala wybrać ulepszany przedmiot prosto z ekwipunku i przygotowuje automatyczne przepalanie wybranych rzadkości.',
   icon: '⚙',
 
@@ -28,6 +28,9 @@ export default {
     let minimized = false;
     let closed = false;
     let selectionMode = false;
+    let directStatus = null;
+    let statusRequestPending = false;
+    let lastStatusRequestAt = 0;
     let config = readConfig();
     let selectedItemId = String(config.targetItemId || '');
 
@@ -155,10 +158,12 @@ export default {
       event.stopImmediatePropagation();
       selectedItemId = itemId;
       config.targetItemId = itemId;
+      directStatus = null;
       selectionMode = false;
       panel.classList.remove('selecting-item');
       saveConfig();
       copyItemCanvas(itemElement.querySelector('.canvas-icon'));
+      refreshDirectStatus(true);
       render();
     }
 
@@ -176,6 +181,7 @@ export default {
       const itemTpl = currentItem ? (currentItem.className.match(/\bitem-tpl-(\d+)/)?.[1] || '') : '';
       const gameItem = itemId ? window.Engine?.items?.getItemById?.(itemId) : null;
       const itemName = gameItem?.name || '';
+      const storedLevel = readUpgradeLevel(gameItem);
 
       if (craftItemId && craftItemId !== selectedItemId) {
         selectedItemId = craftItemId;
@@ -183,10 +189,17 @@ export default {
         saveConfig();
       }
       panel.hidden = closed;
-      panel.querySelector('.yss-ae-progress-text').textContent = craft ? progressText : 'Przedmiot zapisany';
-      panel.querySelector('.yss-ae-progress-fill').style.width = craft ? currentBar : '0%';
+      if (!craft && itemId) refreshDirectStatus();
+      const directCurrent = Number(directStatus?.current || 0);
+      const directMax = Number(directStatus?.max || 0);
+      const directPercent = directMax > 0 ? `${Math.min(100, directCurrent / directMax * 100)}%` : '0%';
+      const displayedLevel = craft ? (level ?? storedLevel ?? '—') : (directStatus?.upgradeLevel ?? storedLevel ?? '—');
+      panel.querySelector('.yss-ae-progress-text').textContent = craft
+        ? progressText
+        : (directMax > 0 ? `${directCurrent} / ${directMax}` : '0 / 0');
+      panel.querySelector('.yss-ae-progress-fill').style.width = craft ? currentBar : directPercent;
       panel.querySelector('.yss-ae-progress-preview').style.width = craft ? previewBar : '0%';
-      panel.querySelector('.yss-ae-level').textContent = `Poziom ulepszenia: ${craft ? (level ?? '—') : '—'} / 5`;
+      panel.querySelector('.yss-ae-level').textContent = `Poziom ulepszenia: ${displayedLevel} / 5`;
       panel.querySelector('.yss-ae-name').textContent = itemId ? (itemName || `Wybrany przedmiot #${itemTpl}`) : 'Włóż przedmiot do ulepszania';
 
       if (sourceCanvas) {
@@ -207,6 +220,50 @@ export default {
       else if (!config.active) status.textContent = 'Przedmiot zapamiętany. Automat jest wyłączony.';
       else if (!craft) status.textContent = 'Przedmiot zapamiętany. Możesz normalnie kontynuować grę.';
       else status.textContent = `Automat aktywny dla przedmiotu ID ${selectedItemId}.`;
+    }
+
+    function readUpgradeLevel(item) {
+      if (!item) return null;
+      const statName = window.Engine?.itemStatsData?.enhancement_upgrade_lvl;
+      const values = [
+        item.getEnhancementUpgradeLvl?.(),
+        statName ? item.getItemStat?.(statName) : null,
+        item._cachedStats?.enhancement_upgrade_lvl
+      ];
+      for (const value of values) {
+        const parsed = Number.parseInt(value, 10);
+        if (Number.isFinite(parsed)) return parsed;
+      }
+      return 0;
+    }
+
+    function refreshDirectStatus(force = false) {
+      if (!selectedItemId || statusRequestPending || typeof window._g !== 'function') return;
+      const now = Date.now();
+      if (!force && now - lastStatusRequestAt < 10000) return;
+      lastStatusRequestAt = now;
+      statusRequestPending = true;
+      window._g(`enhancement&action=status&item=${selectedItemId}`, response => {
+        statusRequestPending = false;
+        const enhancement = response?.enhancement;
+        const state = enhancement?.progressing || enhancement?.upgradable || enhancement?.completed;
+        if (state && typeof state === 'object') {
+          directStatus = {
+            current: Number(state.current || 0),
+            max: Number(state.max || 0),
+            upgradeLevel: Number.isFinite(Number(state.upgradeLevel)) ? Number(state.upgradeLevel) : null,
+            completed: Boolean(enhancement?.completed)
+          };
+        } else if (enhancement?.completed) {
+          directStatus = {
+            current: 1,
+            max: 1,
+            upgradeLevel: 5,
+            completed: true
+          };
+        }
+        render();
+      });
     }
 
     function clearItemCanvas() {
