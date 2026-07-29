@@ -75,7 +75,7 @@
   width: 255px;
   border-width: 0 11px;
   border-style: solid;
-  border-image: url("assets/game-middle-graphics.png") 0 11 fill / 1 / 0 round;
+  border-image: url("/img/gui/middle_graphics.png?v=1785244275300") 0 11 fill / 1 / 0 round;
   background: #282929;
 }
 
@@ -86,7 +86,7 @@
   width: 292px;
   border-width: 0 11px;
   border-style: solid;
-  border-image: url("assets/game-middle-graphics.png") 0 11 fill / 1 / 0 round;
+  border-image: url("/img/gui/middle_graphics.png?v=1785244275300") 0 11 fill / 1 / 0 round;
   background: #f1dca7;
   color: #444;
 }

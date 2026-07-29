@@ -14,7 +14,7 @@ const DEFAULT_CONFIG = {
 export default {
   id: MODULE_ID,
   name: 'Automatyczne ulepszanie',
-  version: '0.1.1',
+  version: '0.1.2',
   description: 'Zapamiętuje ulepszany przedmiot i przygotowuje bezpieczne automatyczne przepalanie wybranych rzadkości.',
   icon: '⚙',
 
@@ -56,7 +56,7 @@ export default {
         <div class="content">
           <div class="right-column-background interface-element-middle-1-background-stretch"></div>
           <div class="inner-content">
-          <span class="yss-ae-version">v0.1.1</span>
+          <span class="yss-ae-version">v0.1.2</span>
           <button class="yss-ae-gear" type="button" title="Ustawienia" aria-label="Ustawienia">⚙</button>
           <div class="yss-ae-main">
             <div class="yss-ae-item-frame">
@@ -211,7 +211,12 @@ function injectStyle() {
       font: 11px/14px Arial, sans-serif;
     }
     #${PANEL_ID}.settings-open { height: 420px !important; }
-    #${PANEL_ID} > .content { position:absolute !important; inset:0 !important; overflow:hidden !important; background:transparent !important; }
+    #${PANEL_ID} > .content {
+      position:absolute !important; inset:0 !important; overflow:hidden !important;
+      border-width:0 11px !important; border-style:solid !important;
+      border-image:url("/img/gui/middle_graphics.png?v=1785244275300") 0 11 fill / 1 / 0 round !important;
+      background:transparent !important;
+    }
     #${PANEL_ID} > .content > .right-column-background {
       position:absolute !important; z-index:0 !important; inset:-10px !important;
       display:block !important; width:auto !important; height:auto !important;
