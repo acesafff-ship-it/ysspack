@@ -9,7 +9,7 @@ const wait = milliseconds => new Promise(resolve => setTimeout(resolve, millisec
 export default {
   id: MODULE_ID,
   name: 'Ikony przedmiotów na czacie',
-  version: '1.4.0',
+  version: '1.3.2',
   description: 'Automatycznie zastępuje nazwy podlinkowanych przedmiotów na czacie ich natywnymi ikonami.',
   icon: '◆',
 
@@ -17,15 +17,11 @@ export default {
     if (location.hostname === 'www.margonem.pl') return () => {};
 
     let stopped = false;
-    let activeWorkers = 0;
-    const maxWorkers = 8;
+    let processing = false;
     const pending = new Set();
     const queue = [];
     const rendered = new Map();
     const formattedLootSections = new Set();
-    const initialBatch = new Set([...document.querySelectorAll(LINK_SELECTOR)]);
-    const initialResults = [];
-    let initialRemaining = initialBatch.size;
 
     const style = document.createElement('style');
     style.id = STYLE_ID;
@@ -173,28 +169,6 @@ export default {
       section.classList.remove('yss-chat-loot-message');
     }
 
-    function commitDecoration(element, native) {
-      if (stopped || !element.isConnected || !native?.view) return;
-      element.replaceChildren(native.view);
-      element.classList.add(READY_CLASS);
-      element.setAttribute('aria-label', originalText(element).replace(/^\[|\]$/g, ''));
-      rendered.set(element, native);
-      formatLootDistribution(element.closest('.message-section'));
-    }
-
-    function finishInitialElement(element, native) {
-      if (!initialBatch.has(element)) {
-        commitDecoration(element, native);
-        return;
-      }
-      if (native?.view) initialResults.push({ element, native });
-      initialRemaining -= 1;
-      if (initialRemaining > 0) return;
-      initialResults.forEach(result => commitDecoration(result.element, result.native));
-      initialResults.length = 0;
-      initialBatch.clear();
-    }
-
     async function decorate(element) {
       if (stopped || !element?.isConnected || element.classList.contains(READY_CLASS)) return;
       pending.add(element);
@@ -211,21 +185,24 @@ export default {
 
       try { window.jQuery?.(element)?.tipHide?.(); } catch (_) { /* tooltip nie blokuje ikony */ }
       const native = item ? createNativeView(item) : null;
-      finishInitialElement(element, native);
+      if (!stopped && element.isConnected && native?.view) {
+        element.replaceChildren(native.view);
+        element.classList.add(READY_CLASS);
+        element.setAttribute('aria-label', originalText(element).replace(/^\[|\]$/g, ''));
+        rendered.set(element, native);
+        formatLootDistribution(element.closest('.message-section'));
+      }
       pending.delete(element);
     }
 
-    function processQueue() {
-      if (stopped) return;
-      while (queue.length && activeWorkers < maxWorkers) {
+    async function processQueue() {
+      if (processing || stopped) return;
+      processing = true;
+      while (queue.length && !stopped) {
         const element = queue.shift();
-        if (!element?.isConnected || element.classList.contains(READY_CLASS)) continue;
-        activeWorkers += 1;
-        decorate(element).finally(() => {
-          activeWorkers -= 1;
-          processQueue();
-        });
+        if (element?.isConnected && !element.classList.contains(READY_CLASS)) await decorate(element);
       }
+      processing = false;
     }
 
     function enqueue(root = document) {
