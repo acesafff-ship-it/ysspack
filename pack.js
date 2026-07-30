@@ -4,7 +4,7 @@ if (!host || document.querySelector('#ysspack')) {
   throw new Error('[YssPack] Loader nie jest aktywny albo panel został już uruchomiony.');
 }
 
-const PACK_VERSION = '0.15.26';
+const PACK_VERSION = '0.15.27';
 const UPDATE_MANIFEST_URL = new URL('manifest.json', import.meta.url).href;
 const UPDATE_INSTALL_URL = new URL('YssPack.user.js', import.meta.url).href;
 const STORAGE_PREFIX = 'ysspack_';
@@ -229,8 +229,8 @@ function renderModuleDetails() {
   });
 
   detailBody.querySelectorAll('[data-setting]').forEach(control => {
-    control.addEventListener('input', () => saveControl(module, control));
-    control.addEventListener('change', () => saveControl(module, control));
+    const eventName = control.type === 'checkbox' ? 'change' : 'input';
+    control.addEventListener(eventName, () => saveControl(module, control));
   });
 }
 
@@ -279,6 +279,9 @@ function compareVersions(left, right) {
 function renderSettings(module) {
   return module.settings.map(setting => {
     const value = getSetting(module.id, setting.key, setting.defaultValue);
+    if (setting.type === 'checkbox') {
+      return `<label class="mhp-checkbox-setting"><span>${escapeHtml(setting.label)}</span><input type="checkbox" data-setting="${escapeHtml(setting.key)}"${value ? ' checked' : ''}></label>`;
+    }
     if (setting.type === 'color') {
       return `<label><span>${escapeHtml(setting.label)}</span><input type="color" data-setting="${escapeHtml(setting.key)}" value="${escapeHtml(value)}"></label>`;
     }
@@ -290,7 +293,11 @@ function renderSettings(module) {
 }
 
 function saveControl(module, control) {
-  const value = control.type === 'range' ? Number(control.value) : control.value;
+  const value = control.type === 'checkbox'
+    ? control.checked
+    : control.type === 'range'
+      ? Number(control.value)
+      : control.value;
   setSetting(module.id, control.dataset.setting, value);
   const valueLabel = control.closest('label')?.querySelector(`[data-value-for="${control.dataset.setting}"]`);
   if (valueLabel) valueLabel.textContent = `${value}${control.dataset.suffix || ''}`;

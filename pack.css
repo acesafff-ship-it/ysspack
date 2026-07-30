@@ -344,6 +344,13 @@
   background: #f1dca7;
 }
 
+.mhp-settings input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  accent-color: #4c942f;
+}
+
 .mhp-empty {
   padding: 20px;
   color: #aa9d88;
