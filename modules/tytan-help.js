@@ -4,7 +4,7 @@ const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, character =>
 export default {
   id: 'tytan-help',
   name: 'TytanHelp',
-  version: '1.0.2',
+  version: '1.0.3',
   description: 'Pokazuje HP, odporności, umiejętność, naładowanie i cel ataku Kolosów oraz Tytanów.',
   icon: '⚔',
 
@@ -100,10 +100,13 @@ export default {
           #${rootId} .yth-name{margin:0 0 5px;padding:0 0 3px;border-bottom:1px solid rgba(255,255,255,.2);color:#fff}.yth-row{min-height:16px;text-align:center;overflow-wrap:anywhere}.yth-res{display:flex;justify-content:center;gap:5px;margin:1px 0 3px}.yth-fire{color:#ff3b30}.yth-light{color:#ffe033}.yth-frost{color:#42a5ff}.yth-poison{color:#45e35a}.yth-power{color:#ffd15c}`;
         document.head.appendChild(style);
       }
-      if (!document.getElementById(rootId)) {
-        const root = document.createElement('div');
+      let root = document.getElementById(rootId);
+      if (!root) {
+        root = document.createElement('div');
         root.id = rootId;
-        document.documentElement.appendChild(root);
+      }
+      if (document.body && root.parentElement !== document.body) {
+        document.body.appendChild(root);
       }
     }
 
