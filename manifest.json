@@ -1,6 +1,6 @@
 {
   "name": "YssPack",
-  "version": "0.15.28",
+  "version": "0.15.29",
   "author": "Król Yss",
   "modules": [
     {
@@ -41,7 +41,7 @@
     {
       "id": "player-actions",
       "name": "Kolorowe akcje gracza",
-      "version": "1.3.0",
+      "version": "1.3.1",
       "file": "modules/player-actions.js",
       "description": "Pozwala wybrać widoczne akcje gracza i niezależnie ustawić kolor każdej pozycji menu."
     },

@@ -4,7 +4,7 @@ if (!host || document.querySelector('#ysspack')) {
   throw new Error('[YssPack] Loader nie jest aktywny albo panel został już uruchomiony.');
 }
 
-const PACK_VERSION = '0.15.28';
+const PACK_VERSION = '0.15.29';
 const UPDATE_MANIFEST_URL = new URL('manifest.json', import.meta.url).href;
 const UPDATE_INSTALL_URL = new URL('YssPack.user.js', import.meta.url).href;
 const STORAGE_PREFIX = 'ysspack_';
@@ -279,6 +279,10 @@ function compareVersions(left, right) {
 function renderSettings(module) {
   return module.settings.map(setting => {
     const value = getSetting(module.id, setting.key, setting.defaultValue);
+    if (setting.type === 'action') {
+      const color = getSetting(module.id, setting.colorKey, setting.defaultColor);
+      return `<label class="mhp-action-setting"><span>${escapeHtml(setting.label)}</span><span class="mhp-action-controls"><input type="checkbox" data-setting="${escapeHtml(setting.key)}"${value ? ' checked' : ''} title="Pokaż lub ukryj"><input type="color" data-setting="${escapeHtml(setting.colorKey)}" value="${escapeHtml(color)}" title="Ustaw kolor"></span></label>`;
+    }
     if (setting.type === 'checkbox') {
       return `<label class="mhp-checkbox-setting"><span>${escapeHtml(setting.label)}</span><input type="checkbox" data-setting="${escapeHtml(setting.key)}"${value ? ' checked' : ''}></label>`;
     }
