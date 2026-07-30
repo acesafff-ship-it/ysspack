@@ -9,7 +9,7 @@ const wait = milliseconds => new Promise(resolve => setTimeout(resolve, millisec
 export default {
   id: MODULE_ID,
   name: 'Ikony przedmiotów na czacie',
-  version: '1.3.3',
+  version: '1.3.4',
   description: 'Automatycznie zastępuje nazwy podlinkowanych przedmiotów na czacie ich natywnymi ikonami.',
   icon: '◆',
 
@@ -22,6 +22,9 @@ export default {
     const queue = [];
     const rendered = new Map();
     const formattedLootSections = new Set();
+
+    const interfaceLayer = document.querySelector('.interface-layer');
+    if (interfaceLayer?.scrollTop) interfaceLayer.scrollTop = 0;
 
     const style = document.createElement('style');
     style.id = STYLE_ID;
@@ -132,15 +135,11 @@ export default {
     }
 
     function chatScrollAtBottom(element) {
-      let current = element?.parentElement;
-      while (current && current !== document.body) {
-        if (current.scrollHeight > current.clientHeight + 2) {
-          const remaining = current.scrollHeight - current.clientHeight - current.scrollTop;
-          if (remaining <= 24) return current;
-        }
-        current = current.parentElement;
-      }
-      return null;
+      const current = element?.closest('.chat-message-wrapper')?.querySelector(':scope > .scroll-pane')
+        ?? element?.closest('.scroll-pane');
+      if (!current || !current.closest('.chat-message-wrapper')) return null;
+      const remaining = current.scrollHeight - current.clientHeight - current.scrollTop;
+      return remaining <= 24 ? current : null;
     }
 
     function keepChatAtBottom(scroller) {
