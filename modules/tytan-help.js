@@ -4,7 +4,7 @@ const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, character =>
 export default {
   id: 'tytan-help',
   name: 'TytanHelp',
-  version: '1.0.3',
+  version: '1.0.4',
   description: 'Pokazuje HP, odporności, umiejętność, naładowanie i cel ataku Kolosów oraz Tytanów.',
   icon: '⚔',
 
@@ -96,7 +96,7 @@ export default {
         style.id = styleId;
         style.textContent = `
           #${rootId}{position:fixed;inset:0;z-index:20;pointer-events:none;overflow:hidden}
-          #${rootId} .yth-tip{position:absolute;transform:translate(-50%,-100%);box-sizing:border-box;width:260px;padding:14px 15px 15px;border:0;border-radius:4px;outline:0;background:rgba(0,0,0,.7);box-shadow:#010101 0 0 0 1px,#ccc 0 0 0 2px,#0c0d0d 0 0 0 3px,rgba(12,13,13,.4) 2px 2px 3px 3px;color:#f2f2f2!important;font:700 12.8px/16.64px Arimo,Calibri,"Segoe UI",Arial,sans-serif;text-align:center;text-shadow:0 1px 1px #000;pointer-events:auto;cursor:grab}
+          #${rootId} .yth-tip{position:absolute;transform:translate(-50%,-100%);box-sizing:border-box;width:260px;padding:14px 15px 15px;border:0;border-radius:4px;outline:0;background:rgba(0,0,0,.7);box-shadow:#010101 0 0 0 1px,#ccc 0 0 0 2px,#0c0d0d 0 0 0 3px,rgba(12,13,13,.4) 2px 2px 3px 3px;color:#f2f2f2!important;font:700 12.8px/16.64px Arimo,Calibri,"Segoe UI",Arial,sans-serif;text-align:center;text-shadow:0 1px 1px #000;pointer-events:auto;cursor:grab;contain:layout paint;will-change:transform}
           #${rootId} .yth-name{margin:0 0 5px;padding:0 0 3px;border-bottom:1px solid rgba(255,255,255,.2);color:#fff}.yth-row{min-height:16px;text-align:center;overflow-wrap:anywhere}.yth-res{display:flex;justify-content:center;gap:5px;margin:1px 0 3px}.yth-fire{color:#ff3b30}.yth-light{color:#ffe033}.yth-frost{color:#42a5ff}.yth-poison{color:#45e35a}.yth-power{color:#ffd15c}`;
         document.head.appendChild(style);
       }
@@ -125,6 +125,7 @@ export default {
         if (!dragging || dragging.id !== event.pointerId) return;
         offset.x = Math.max(-500, Math.min(500, dragging.ox + event.clientX - dragging.x));
         offset.y = Math.max(-500, Math.min(500, dragging.oy + event.clientY - dragging.y));
+        applyOffset();
       });
       const finishDrag = event => {
         if (!dragging || dragging.id !== event.pointerId) return;
@@ -135,7 +136,17 @@ export default {
       label.addEventListener('pointercancel', finishDrag);
       document.getElementById(rootId).appendChild(label);
       labels.set(id, label);
+      applyOffset(label);
       return label;
+    }
+
+    function applyOffset(singleLabel = null) {
+      const transform = `translate(calc(-50% + ${Math.round(offset.x)}px), calc(-100% + ${Math.round(offset.y)}px))`;
+      if (singleLabel) {
+        singleLabel.style.transform = transform;
+        return;
+      }
+      labels.forEach(label => { label.style.transform = transform; });
     }
 
     function render(label, warrior, type, position) {
@@ -146,22 +157,26 @@ export default {
       const usedSkill = skill(warrior);
       const loaded = charge(warrior);
       const focused = target(warrior);
-      label.innerHTML = `<div class="yth-name">${escapeHtml(warrior.name || type)} (${escapeHtml(`${number(warrior.lvl) || '?'}${warrior.prof || ''}`)})</div>
+      const html = `<div class="yth-name">${escapeHtml(warrior.name || type)} (${escapeHtml(`${number(warrior.lvl) || '?'}${warrior.prof || ''}`)})</div>
         <div class="yth-row">Życie: ${fmt.format(hp)} / ${fmt.format(max)} (${percent.format(healthPercent)}%)</div>
         <div class="yth-row">Pancerz: ${fmt.format(statValue(warrior.ac))}</div><div class="yth-row">Odporności:</div>
         <div class="yth-res"><span class="yth-fire">${statValue(warrior.resfire)}%</span><span class="yth-light">${statValue(warrior.reslight)}%</span><span class="yth-frost">${statValue(warrior.resfrost)}%</span><span class="yth-poison">${statValue(warrior.act)}%</span></div>
         ${usedSkill ? `<div class="yth-row yth-power">Umiejętność: ${escapeHtml(usedSkill)}</div>` : ''}
         ${loaded == null ? '' : `<div class="yth-row yth-power">Naładowano: ${Math.round(loaded)}%</div>`}
         ${focused ? `<div class="yth-row">Cel ataku: ${escapeHtml(focused)}</div>` : ''}`;
-      label.style.left = `${Math.round(position.x + offset.x)}px`;
-      label.style.top = `${Math.round(position.y + offset.y)}px`;
+      if (label.dataset.ythHtml !== html) {
+        label.innerHTML = html;
+        label.dataset.ythHtml = html;
+      }
+      label.style.left = `${Math.round(position.x)}px`;
+      label.style.top = `${Math.round(position.y)}px`;
       label.hidden = false;
     }
 
     function frame(now) {
       if (stopped) return;
       requestAnimationFrame(frame);
-      if (document.hidden || now - lastUpdate < 100) return;
+      if (document.hidden || dragging || now - lastUpdate < 200) return;
       lastUpdate = now;
       ensureUi();
       const active = new Set();
