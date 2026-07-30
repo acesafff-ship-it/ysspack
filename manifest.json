@@ -1,6 +1,6 @@
 {
   "name": "YssPack",
-  "version": "0.15.23",
+  "version": "0.15.24",
   "author": "Król Yss",
   "modules": [
     {
@@ -23,13 +23,6 @@
       "version": "1.3.1",
       "file": "modules/chat-item-icons.js",
       "description": "Automatycznie zastępuje nazwy podlinkowanych przedmiotów na czacie ich natywnymi ikonami."
-    },
-    {
-      "id": "auto-enhancer",
-      "name": "Automatyczne ulepszanie",
-      "version": "0.3.1",
-      "file": "modules/auto-enhancer.js",
-      "description": "Automatycznie przepala wybrane rzadkości, pokazuje poziom i postęp ulepszania oraz chroni przedmioty legendarne."
     },
     {
       "id": "auction-assistant",
