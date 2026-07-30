@@ -9,7 +9,7 @@ const wait = milliseconds => new Promise(resolve => setTimeout(resolve, millisec
 export default {
   id: MODULE_ID,
   name: 'Ikony przedmiotów na czacie',
-  version: '1.3.2',
+  version: '1.3.3',
   description: 'Automatycznie zastępuje nazwy podlinkowanych przedmiotów na czacie ich natywnymi ikonami.',
   icon: '◆',
 
@@ -131,6 +131,25 @@ export default {
       }
     }
 
+    function chatScrollAtBottom(element) {
+      let current = element?.parentElement;
+      while (current && current !== document.body) {
+        if (current.scrollHeight > current.clientHeight + 2) {
+          const remaining = current.scrollHeight - current.clientHeight - current.scrollTop;
+          if (remaining <= 24) return current;
+        }
+        current = current.parentElement;
+      }
+      return null;
+    }
+
+    function keepChatAtBottom(scroller) {
+      if (!scroller?.isConnected) return;
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        if (scroller.isConnected) scroller.scrollTop = scroller.scrollHeight;
+      }));
+    }
+
     function formatLootDistribution(section) {
       if (!section || formattedLootSections.has(section) || !/Podział łupów/i.test(section.textContent || '')) return;
       const links = [...section.querySelectorAll(LINK_SELECTOR)];
@@ -186,11 +205,13 @@ export default {
       try { window.jQuery?.(element)?.tipHide?.(); } catch (_) { /* tooltip nie blokuje ikony */ }
       const native = item ? createNativeView(item) : null;
       if (!stopped && element.isConnected && native?.view) {
+        const chatScroller = chatScrollAtBottom(element);
         element.replaceChildren(native.view);
         element.classList.add(READY_CLASS);
         element.setAttribute('aria-label', originalText(element).replace(/^\[|\]$/g, ''));
         rendered.set(element, native);
         formatLootDistribution(element.closest('.message-section'));
+        keepChatAtBottom(chatScroller);
       }
       pending.delete(element);
     }
