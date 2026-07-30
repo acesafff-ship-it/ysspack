@@ -1,6 +1,6 @@
 {
   "name": "YssPack",
-  "version": "0.15.30",
+  "version": "0.15.31",
   "author": "Król Yss",
   "modules": [
     {
@@ -20,7 +20,7 @@
     {
       "id": "chat-item-icons",
       "name": "Ikony przedmiotów na czacie",
-      "version": "1.3.1",
+      "version": "1.4.0",
       "file": "modules/chat-item-icons.js",
       "description": "Automatycznie zastępuje nazwy podlinkowanych przedmiotów na czacie ich natywnymi ikonami."
     },
@@ -48,14 +48,14 @@
     {
       "id": "ranking-ban-scanner",
       "name": "Kontrola banów rankingu",
-      "version": "1.0.4",
+      "version": "1.0.1",
       "file": "modules/ranking-ban-scanner.js",
       "description": "Sprawdza bany graczy nieaktywnych co najmniej 24 godziny na bieżącej stronie rankingu."
     },
     {
       "id": "tytan-help",
       "name": "TytanHelp",
-      "version": "1.0.1",
+      "version": "1.0.4",
       "file": "modules/tytan-help.js",
       "description": "Pokazuje HP, odporności, umiejętność, naładowanie i cel ataku Kolosów oraz Tytanów."
     }
