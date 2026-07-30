@@ -23,8 +23,8 @@ const normalize = value => String(value || '').replace(/\s+/g, ' ').trim().toLow
 export default {
   id: 'player-actions',
   name: 'Kolorowe akcje gracza',
-  version: '1.2.0',
-  description: 'Koloruje akcje gracza i pozwala wybrać, które pozycje mają być widoczne w menu.',
+  version: '1.3.0',
+  description: 'Pozwala wybrać widoczne akcje gracza i niezależnie ustawić kolor każdej pozycji menu.',
   icon: '🎨',
   settings: [
     { key: 'showNavigate', type: 'checkbox', label: 'Pokaż: Nawiguj', defaultValue: false },
@@ -38,7 +38,19 @@ export default {
     { key: 'showMessage', type: 'checkbox', label: 'Pokaż: Wiadomość', defaultValue: true },
     { key: 'showEquipment', type: 'checkbox', label: 'Pokaż: Ekwipunek', defaultValue: true },
     { key: 'showReport', type: 'checkbox', label: 'Pokaż: Zgłoś', defaultValue: true },
-    { key: 'showOutfit', type: 'checkbox', label: 'Pokaż: Zmień strój', defaultValue: true }
+    { key: 'showOutfit', type: 'checkbox', label: 'Pokaż: Zmień strój', defaultValue: true },
+    { key: 'colorNavigate', type: 'color', label: 'Kolor: Nawiguj', defaultValue: '#39444d' },
+    { key: 'colorGroup', type: 'color', label: 'Kolor: Zaproś do grupy', defaultValue: '#29485d' },
+    { key: 'colorFriend', type: 'color', label: 'Kolor: Przyjaciele', defaultValue: '#315337' },
+    { key: 'colorEnemy', type: 'color', label: 'Kolor: Wrogowie', defaultValue: '#6a3030' },
+    { key: 'colorTrade', type: 'color', label: 'Kolor: Handluj', defaultValue: '#685727' },
+    { key: 'colorProfile', type: 'color', label: 'Kolor: Profil', defaultValue: '#4f3b5d' },
+    { key: 'colorAttack', type: 'color', label: 'Kolor: Atakuj', defaultValue: '#653330' },
+    { key: 'colorKiss', type: 'color', label: 'Kolor: Pocałuj', defaultValue: '#704256' },
+    { key: 'colorMessage', type: 'color', label: 'Kolor: Wiadomość', defaultValue: '#315653' },
+    { key: 'colorEquipment', type: 'color', label: 'Kolor: Ekwipunek', defaultValue: '#46525b' },
+    { key: 'colorReport', type: 'color', label: 'Kolor: Zgłoś', defaultValue: '#72502d' },
+    { key: 'colorOutfit', type: 'color', label: 'Kolor: Zmień strój', defaultValue: '#584735' }
   ],
 
   start(context = {}) {
@@ -62,22 +74,33 @@ export default {
       .filter(([, isVisible]) => !isVisible)
       .map(([action]) => `[data-yss-player-action="${action}"]{display:none!important}`)
       .join('\n');
+    const settingColor = (key, fallback) => {
+      const value = String(context.getSetting?.(key, fallback) || fallback);
+      return /^#[0-9a-f]{6}$/i.test(value) ? value : fallback;
+    };
+    const colors = {
+      navigate: settingColor('colorNavigate', '#39444d'),
+      group: settingColor('colorGroup', '#29485d'),
+      friend: settingColor('colorFriend', '#315337'),
+      enemy: settingColor('colorEnemy', '#6a3030'),
+      trade: settingColor('colorTrade', '#685727'),
+      profile: settingColor('colorProfile', '#4f3b5d'),
+      attack: settingColor('colorAttack', '#653330'),
+      kiss: settingColor('colorKiss', '#704256'),
+      message: settingColor('colorMessage', '#315653'),
+      equipment: settingColor('colorEquipment', '#46525b'),
+      report: settingColor('colorReport', '#72502d'),
+      outfit: settingColor('colorOutfit', '#584735')
+    };
     const style = document.createElement('style');
     style.dataset.ysspackModule = 'player-actions';
     style.textContent = `
       [data-yss-player-action]{color:#fff!important;text-shadow:1px 1px #000!important}
       ${hiddenRules}
-      [data-yss-player-action="group"],[data-yss-player-action="group"]>.background{background-color:#29485d!important;background-image:none!important}
-      [data-yss-player-action="friend"],[data-yss-player-action="friend"]>.background{background-color:#315337!important;background-image:none!important}
-      [data-yss-player-action="enemy"],[data-yss-player-action="enemy"]>.background{background-color:#6a3030!important;background-image:none!important}
-      [data-yss-player-action="trade"],[data-yss-player-action="trade"]>.background{background-color:#685727!important;background-image:none!important;color:#eee1a6!important}
-      [data-yss-player-action="profile"],[data-yss-player-action="profile"]>.background{background-color:#4f3b5d!important;background-image:none!important}
-      [data-yss-player-action="attack"],[data-yss-player-action="attack"]>.background{background-color:#653330!important;background-image:none!important}
-      [data-yss-player-action="kiss"],[data-yss-player-action="kiss"]>.background{background-color:#704256!important;background-image:none!important}
-      [data-yss-player-action="message"],[data-yss-player-action="message"]>.background{background-color:#315653!important;background-image:none!important}
-      [data-yss-player-action="equipment"],[data-yss-player-action="equipment"]>.background{background-color:#46525b!important;background-image:none!important}
-      [data-yss-player-action="report"],[data-yss-player-action="report"]>.background{background-color:#72502d!important;background-image:none!important}
-      [data-yss-player-action="outfit"],[data-yss-player-action="outfit"]>.background{background-color:#584735!important;background-image:none!important}`;
+      ${Object.entries(colors).map(([action, color]) =>
+        `[data-yss-player-action="${action}"],[data-yss-player-action="${action}"]>.background{background-color:${color}!important;background-image:none!important}`
+      ).join('\n')}
+      [data-yss-player-action="trade"],[data-yss-player-action="trade"]>.background{color:#eee1a6!important}`;
     document.documentElement.appendChild(style);
 
     const mark = element => {
