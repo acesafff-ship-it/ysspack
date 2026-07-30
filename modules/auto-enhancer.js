@@ -10,13 +10,15 @@ const DEFAULT_CONFIG = {
   unique: false,
   heroic: false,
   targetItemId: '',
+  targetTpl: '',
+  targetName: '',
   batchSize: 10
 };
 
 export default {
   id: MODULE_ID,
   name: 'Automatyczne ulepszanie',
-  version: '0.3.0',
+  version: '0.3.1',
   description: 'Automatycznie przepala wybrane rzadkości, pokazuje poziom i postęp ulepszania oraz chroni przedmioty legendarne.',
   icon: '⚙',
 
@@ -71,7 +73,7 @@ export default {
         <div class="content">
           <div class="right-column-background interface-element-middle-1-background-stretch"></div>
           <div class="inner-content">
-          <span class="yss-ae-version">v0.3.0 TEST</span>
+          <span class="yss-ae-version">v0.3.1</span>
           <button class="yss-ae-gear" type="button" title="Ustawienia" aria-label="Ustawienia">⚙</button>
           <div class="yss-ae-main">
             <div class="yss-ae-item-frame">
@@ -171,6 +173,9 @@ export default {
       event.stopImmediatePropagation();
       selectedItemId = itemId;
       config.targetItemId = itemId;
+      const selectedGameItem = window.Engine?.items?.getItemById?.(Number(itemId));
+      config.targetTpl = String(selectedGameItem?.tpl || '');
+      config.targetName = String(selectedGameItem?.name || '');
       savedProgress = null;
       automationMessage = '';
       nextAutomationAt = 0;
@@ -183,6 +188,7 @@ export default {
 
     function render() {
       if (stopped || !panel?.isConnected) return;
+      recoverTargetItem();
       const craft = document.querySelector('.enhance__content');
       const currentItem = craft?.querySelector('.enhance__item--current .item');
       const sourceCanvas = currentItem?.querySelector('.canvas-icon');
@@ -200,6 +206,9 @@ export default {
       if (craftItemId && craftItemId !== selectedItemId) {
         selectedItemId = craftItemId;
         config.targetItemId = craftItemId;
+        const craftGameItem = window.Engine?.items?.getItemById?.(Number(craftItemId));
+        config.targetTpl = String(craftGameItem?.tpl || '');
+        config.targetName = String(craftGameItem?.name || '');
         saveConfig();
       }
       panel.hidden = closed;
@@ -218,6 +227,8 @@ export default {
 
       if (sourceCanvas) {
         copyItemCanvas(sourceCanvas);
+      } else if (itemId) {
+        copyItemCanvas(document.querySelector(`.item-id-${CSS.escape(String(itemId))} .canvas-icon`));
       } else if (!itemId) {
         clearItemCanvas();
       }
@@ -259,6 +270,7 @@ export default {
         }
 
         automationMessage = 'Sprawdzanie bezpiecznych składników...';
+        engine.crafting.tempEnhanceItemId = Number(selectedItemId);
         rememberProgress(await gameRequest(`enhancement&action=open&item=${selectedItemId}`));
         const enhancement = await waitForEnhancement();
         const candidates = getSafeReagents(engine, enhancement);
@@ -307,6 +319,38 @@ export default {
         closeCraftingSafely();
         automationBusy = false;
         render();
+      }
+    }
+
+    function recoverTargetItem() {
+      const engine = window.Engine;
+      if (!engine?.items) return;
+      if (selectedItemId && engine.items.getItemById?.(Number(selectedItemId))) return;
+
+      const tpl = Number(config.targetTpl);
+      const name = String(config.targetName || '');
+      if (tpl || name) {
+        const enabledIds = engine.disableItemsManager?.getEnabledItems?.() || [];
+        const replacement = enabledIds
+          .map(id => engine.items.getItemById?.(id))
+          .find(item => item && (!tpl || Number(item.tpl) === tpl) && (!name || item.name === name));
+        if (replacement) {
+          selectedItemId = String(replacement.id);
+          config.targetItemId = selectedItemId;
+          config.targetTpl = String(replacement.tpl || '');
+          config.targetName = String(replacement.name || '');
+          automationMessage = 'Przywrócono przedmiot po ponownym logowaniu.';
+          saveConfig();
+          return;
+        }
+      }
+
+      if (selectedItemId) {
+        selectedItemId = '';
+        config.targetItemId = '';
+        automationMessage = 'Wybierz ponownie przedmiot do ulepszania.';
+        saveConfig();
+        clearItemCanvas();
       }
     }
 
@@ -390,7 +434,7 @@ export default {
     function closeCraftingSafely() {
       try {
         if (window.Engine?.crafting?.itemCraft?.opened) {
-          window.Engine.crafting.close();
+          window.Engine.crafting.itemCraft.close();
         }
       } catch (error) {
         // Zamknięcie okna nie może zatrzymać automatu.
