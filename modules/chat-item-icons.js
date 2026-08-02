@@ -9,7 +9,7 @@ const wait = milliseconds => new Promise(resolve => setTimeout(resolve, millisec
 export default {
   id: MODULE_ID,
   name: 'Ikony przedmiotów na czacie',
-  version: '1.3.4',
+  version: '1.3.5',
   description: 'Automatycznie zastępuje nazwy podlinkowanych przedmiotów na czacie ich natywnymi ikonami.',
   icon: '◆',
 
@@ -18,6 +18,9 @@ export default {
 
     let stopped = false;
     let processing = false;
+    let fetchPausedUntil = 0;
+    let observedHeroId = null;
+    let heroStableSince = 0;
     const pending = new Set();
     const queue = [];
     const rendered = new Map();
@@ -142,6 +145,44 @@ export default {
       return remaining <= 24 ? current : null;
     }
 
+    function currentHeroId() {
+      return window.Engine?.hero?.d?.id ?? window.hero?.id ?? null;
+    }
+
+    function updateSessionState() {
+      const heroId = currentHeroId();
+      if (heroId == null || heroId !== observedHeroId) {
+        observedHeroId = heroId;
+        heroStableSince = heroId == null ? 0 : Date.now();
+      }
+      return heroId != null && Date.now() - heroStableSince >= 1200 && Date.now() >= fetchPausedUntil;
+    }
+
+    function pauseFetching(milliseconds = 15000) {
+      fetchPausedUntil = Math.max(fetchPausedUntil, Date.now() + milliseconds);
+      heroStableSince = 0;
+    }
+
+    function isSessionAction(target) {
+      const action = target?.closest?.('button, a, [role="button"], .menu-item, .option, .button');
+      if (!action) return false;
+      const descriptor = [action.textContent, action.title, action.getAttribute('aria-label'), action.dataset?.tip]
+        .filter(Boolean).join(' ').toLocaleLowerCase('pl');
+      return /wylog|przelog|zmie[nń]\s*posta[cć]|wybierz\s*posta[cć]|logout|relog|change\s*character/.test(descriptor);
+    }
+
+    function onPossibleSessionAction(event) {
+      if (isSessionAction(event.target)) pauseFetching();
+    }
+
+    async function waitForStableSession(element) {
+      while (!stopped && element?.isConnected) {
+        if (updateSessionState()) return true;
+        await wait(100);
+      }
+      return false;
+    }
+
     function keepChatAtBottom(scroller) {
       if (!scroller?.isConnected) return;
       requestAnimationFrame(() => requestAnimationFrame(() => {
@@ -193,9 +234,10 @@ export default {
       if (!(ORIGINAL_TEXT_KEY in element.dataset)) element.dataset[ORIGINAL_TEXT_KEY] = element.textContent || '';
 
       let item = itemFor(element);
-      if (!item && requestItem(element)) {
+      if (!item && await waitForStableSession(element) && requestItem(element)) {
         for (let attempt = 0; attempt < 40 && !stopped && element.isConnected; attempt += 1) {
           await wait(50);
+          if (!updateSessionState()) break;
           item = itemFor(element);
           if (item) break;
         }
@@ -243,11 +285,17 @@ export default {
       }));
     });
     observer.observe(document.body, { childList: true, subtree: true });
+    document.addEventListener('pointerdown', onPossibleSessionAction, true);
+    window.addEventListener('pagehide', pauseFetching, true);
+    window.addEventListener('beforeunload', pauseFetching, true);
     enqueue();
 
     return () => {
       stopped = true;
       observer.disconnect();
+      document.removeEventListener('pointerdown', onPossibleSessionAction, true);
+      window.removeEventListener('pagehide', pauseFetching, true);
+      window.removeEventListener('beforeunload', pauseFetching, true);
       queue.length = 0;
       rendered.forEach(({ manager, item, viewType }, element) => {
         try { manager?.deleteViewIconIfExist?.(item.id, viewType); } catch (_) { /* bez wpływu na wyłączenie */ }
