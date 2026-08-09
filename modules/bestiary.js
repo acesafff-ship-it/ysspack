@@ -1,5 +1,5 @@
 const MODULE_ID = 'bestiary';
-const SOURCE_URL = 'https://raw.githubusercontent.com/acesafff-ship-it/margohelp-bestiariusz/91491ab3737550b64826bf4cc8895752a7c34838/MargoHelp-Bestiariusz.user.js';
+const SOURCE_URL = 'https://raw.githubusercontent.com/acesafff-ship-it/margohelp-bestiariusz/2ca5cedd9d86ac6cdbe14a991d2bf2421f4e4ecb/MargoHelp-Bestiariusz.user.js';
 const GLOBAL_FLAG = '__KROL_YSS_FORUM_ELITE_ITEMS__';
 const PRESENCE_FLAG = '__KROL_YSS_BESTIARY_PRESENCE__';
 const UI_SELECTORS = [
@@ -56,20 +56,22 @@ function executeBestiary(source, context) {
     'GM_getValue',
     'GM_setValue',
     'GM_deleteValue',
+    'unsafeWindow',
     `${source}\n//# sourceURL=YssPack-Bestiariusz.user.js`
   );
   run(
     context.GM_xmlhttpRequest,
     context.GM_getValue,
     context.GM_setValue,
-    context.GM_deleteValue
+    context.GM_deleteValue,
+    typeof unsafeWindow !== 'undefined' ? unsafeWindow : window
   );
 }
 
 export default {
   id: MODULE_ID,
   name: 'Bestiariusz Podręczny',
-  version: '2.2.48',
+  version: '2.2.49',
   description: 'Elity, Elity II, Herosi, Kolosi, Tytani oraz Herosi i Kolosi Wakacyjni wraz z przedmiotami, trasami i kalkulatorem łupu.',
   icon: 'B',
 

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         YssPack
 // @namespace    acesaff-ysspack
-// @version      0.15.38
+// @version      0.15.39
 // @description  YssPack — panel dodatków działający bezpośrednio w Margonem.
 // @author       Król Yss
 // @homepageURL  https://www.margonem.pl/profile/view,10050726#char_5601,luvia
@@ -19,6 +19,7 @@
 // @grant        GM_setValue
 // @grant        GM_deleteValue
 // @grant        GM_xmlhttpRequest
+// @grant        unsafeWindow
 // @connect      acesafff-ship-it.github.io
 // @connect      raw.githubusercontent.com
 // @connect      forum.margonem.pl
@@ -30,7 +31,7 @@
   if (document.yssPack?.loaderVersion) return;
 
   const BASE_URL = 'https://acesafff-ship-it.github.io/ysspack/';
-  const LOADER_VERSION = '0.15.38';
+  const LOADER_VERSION = '0.15.39';
   const onMainSite = location.hostname === 'www.margonem.pl';
   if (onMainSite && !/^\/ladder\/[^/]+\/players\/?$/i.test(location.pathname)) return;
   const now = new Date();
