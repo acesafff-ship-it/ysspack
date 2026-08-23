@@ -4,10 +4,11 @@ if (!host || document.querySelector('#ysspack')) {
   throw new Error('[YssPack] Loader nie jest aktywny albo panel został już uruchomiony.');
 }
 
-const PACK_VERSION = '0.15.39';
+const PACK_VERSION = '0.15.40';
 const UPDATE_MANIFEST_URL = new URL('manifest.json', import.meta.url).href;
 const UPDATE_INSTALL_URL = new URL('YssPack.user.js', import.meta.url).href;
 const STORAGE_PREFIX = 'ysspack_';
+const WIDGET_KEY = 'addon_ysspack';
 const today = new Date();
 const moduleCacheKey = [today.getFullYear(), String(today.getMonth() + 1).padStart(2, '0'), String(today.getDate()).padStart(2, '0')].join('');
 const moduleFiles = [
@@ -67,12 +68,6 @@ const moduleIconUrls = Object.fromEntries([
 }]));
 const moduleIconUrl = (id, enabled = isEnabled(id)) => moduleIconUrls[id]?.[enabled ? 'enabled' : 'disabled'] || logoUrl;
 
-const launcher = document.createElement('button');
-launcher.id = 'mhp-launcher';
-launcher.type = 'button';
-launcher.title = 'YssPack';
-launcher.innerHTML = `<img src="${logoUrl}" alt="">`;
-
 const panel = document.createElement('section');
 panel.id = 'ysspack';
 panel.className = 'c-window border-window';
@@ -108,7 +103,7 @@ panel.innerHTML = `
   <div class="c-window__bottom-bar"><div class="interface-element-bottom-bar-background-stretch"></div></div>
   <div class="close-button-corner-decor"><button class="close-button mhp-close" type="button" aria-label="Zamknij"></button></div>`;
 
-document.body.append(launcher, panel);
+document.body.append(panel);
 
 const list = panel.querySelector('.mhp-list');
 const search = panel.querySelector('.mhp-search');
@@ -117,10 +112,8 @@ const detailBody = panel.querySelector('.mhp-detail-body');
 let selectedModuleId = read('selected_module', modules[0]?.id || '');
 let updateState = { status: 'checking', latestVersion: PACK_VERSION };
 const savedPanelPosition = read('panel_position', null);
-const savedLauncherPosition = read('launcher_position', null);
 
 applyPosition(panel, savedPanelPosition, { right: 70, top: 90 });
-applyPosition(launcher, savedLauncherPosition, { right: 14, top: 92 });
 panel.hidden = !Boolean(read('panel_open', true));
 
 renderModules();
@@ -149,7 +142,7 @@ closeCorner.addEventListener('pointerdown', event => {
 closeCorner.addEventListener('pointerup', closePanel, true);
 panel.querySelector('.mhp-close').addEventListener('click', closePanel, true);
 bindDrag(panel, panel.querySelector('.mhp-drag-handle'), 'panel_position');
-bindLauncher();
+registerLauncher();
 
 document.yssPack.api = {
   version: PACK_VERSION,
@@ -347,37 +340,47 @@ function setPanelOpen(open) {
   write('panel_open', open);
 }
 
-function bindLauncher() {
-  let moved = false;
-  let startX = 0;
-  let startY = 0;
-  let startLeft = 0;
-  let startTop = 0;
+function registerLauncher() {
+  let attempts = 0;
+  const tryRegister = () => {
+    const engine = window.Engine;
+    const manager = engine?.widgetManager;
+    const storage = engine?.serverStorage;
+    const widgetsData = engine?.widgetsData;
+    if (!manager?.addKeyToDefaultWidgetSet || !manager?.addWidgetButtons || !storage?.get || !storage?.sendData || !widgetsData?.type) {
+      if (attempts++ < 120) setTimeout(tryRegister, 250);
+      return;
+    }
 
-  launcher.addEventListener('pointerdown', event => {
-    if (event.button !== 0) return;
-    moved = false;
-    startX = event.clientX;
-    startY = event.clientY;
-    const rect = launcher.getBoundingClientRect();
-    startLeft = rect.left;
-    startTop = rect.top;
-    launcher.setPointerCapture(event.pointerId);
-  });
+    const togglePanel = () => setPanelOpen(panel.hidden);
+    const storagePath = manager.getPathToHotWidgetVersion();
+    const storedSlot = storage.get(storagePath, WIDGET_KEY);
+    const fallbackSlot = manager.getFirstEmptyWidgetSlot?.() || { slot: 0, container: widgetsData.pos.TOP_LEFT };
+    const slot = Array.isArray(storedSlot)
+      ? { slot: Number(storedSlot[0]), container: storedSlot[1] }
+      : fallbackSlot;
 
-  launcher.addEventListener('pointermove', event => {
-    if (!launcher.hasPointerCapture(event.pointerId)) return;
-    const dx = event.clientX - startX;
-    const dy = event.clientY - startY;
-    if (Math.abs(dx) + Math.abs(dy) > 4) moved = true;
-    moveElement(launcher, startLeft + dx, startTop + dy);
-  });
+    if (!manager.getDefaultWidgetSet?.()?.[WIDGET_KEY]) {
+      manager.addKeyToDefaultWidgetSet(
+        WIDGET_KEY,
+        slot.slot,
+        slot.container,
+        'YssPack',
+        widgetsData.type.GREEN,
+        togglePanel
+      );
+    }
 
-  launcher.addEventListener('pointerup', event => {
-    if (launcher.hasPointerCapture(event.pointerId)) launcher.releasePointerCapture(event.pointerId);
-    if (moved) write('launcher_position', positionOf(launcher));
-    else setPanelOpen(panel.hidden);
-  });
+    if (Array.isArray(storedSlot)) {
+      manager.addWidgetButtons();
+      return;
+    }
+    storage.sendData(
+      { [storagePath]: { [WIDGET_KEY]: [slot.slot, slot.container] } },
+      () => manager.addWidgetButtons()
+    );
+  };
+  tryRegister();
 }
 
 function bindDrag(element, handle, storageKey) {

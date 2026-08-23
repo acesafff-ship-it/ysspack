@@ -539,3 +539,15 @@
 #mhp-launcher:hover {
   filter: brightness(1.16);
 }
+
+.widget-addon_ysspack .icon.addon_ysspack {
+  position: absolute !important;
+  inset: 2px !important;
+  width: calc(100% - 4px) !important;
+  height: calc(100% - 4px) !important;
+  margin: 0 !important;
+  background-image: url('https://acesafff-ship-it.github.io/ysspack/assets/logo-ysspack-puzzle.png') !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-size: contain !important;
+}
