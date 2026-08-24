@@ -9,7 +9,7 @@ const wait = milliseconds => new Promise(resolve => setTimeout(resolve, millisec
 export default {
   id: MODULE_ID,
   name: 'Ikony przedmiotów na czacie',
-  version: '1.3.5',
+  version: '1.3.6',
   description: 'Automatycznie zastępuje nazwy podlinkowanych przedmiotów na czacie ich natywnymi ikonami.',
   icon: '◆',
 
@@ -17,12 +17,12 @@ export default {
     if (location.hostname === 'www.margonem.pl') return () => {};
 
     let stopped = false;
-    let processing = false;
     let fetchPausedUntil = 0;
-    let observedHeroId = null;
-    let heroStableSince = 0;
+    let observedHeroId = currentHeroId();
+    let heroStableSince = observedHeroId == null ? 0 : Date.now() - 1200;
     const pending = new Set();
-    const queue = [];
+    const queued = new Set();
+    let batchScheduled = false;
     const rendered = new Map();
     const formattedLootSections = new Set();
 
@@ -228,43 +228,55 @@ export default {
       section.classList.remove('yss-chat-loot-message');
     }
 
-    async function decorate(element) {
-      if (stopped || !element?.isConnected || element.classList.contains(READY_CLASS)) return;
-      pending.add(element);
-      if (!(ORIGINAL_TEXT_KEY in element.dataset)) element.dataset[ORIGINAL_TEXT_KEY] = element.textContent || '';
+    async function processBatch(elements) {
+      const batch = elements.filter(element =>
+        !stopped && element?.isConnected && !element.classList.contains(READY_CLASS)
+      );
+      if (!batch.length) return;
 
-      let item = itemFor(element);
-      if (!item && await waitForStableSession(element) && requestItem(element)) {
-        for (let attempt = 0; attempt < 40 && !stopped && element.isConnected; attempt += 1) {
+      batch.forEach(element => {
+        pending.add(element);
+        if (!(ORIGINAL_TEXT_KEY in element.dataset)) element.dataset[ORIGINAL_TEXT_KEY] = element.textContent || '';
+      });
+
+      if (await waitForStableSession(batch[0])) {
+        batch.forEach(element => {
+          if (!itemFor(element)) requestItem(element);
+        });
+
+        for (let attempt = 0; attempt < 40 && !stopped; attempt += 1) {
+          if (batch.every(element => !element.isConnected || itemFor(element))) break;
           await wait(50);
           if (!updateSessionState()) break;
-          item = itemFor(element);
-          if (item) break;
         }
       }
 
-      try { window.jQuery?.(element)?.tipHide?.(); } catch (_) { /* tooltip nie blokuje ikony */ }
-      const native = item ? createNativeView(item) : null;
-      if (!stopped && element.isConnected && native?.view) {
-        const chatScroller = chatScrollAtBottom(element);
-        element.replaceChildren(native.view);
-        element.classList.add(READY_CLASS);
-        element.setAttribute('aria-label', originalText(element).replace(/^\[|\]$/g, ''));
-        rendered.set(element, native);
-        formatLootDistribution(element.closest('.message-section'));
-        keepChatAtBottom(chatScroller);
-      }
-      pending.delete(element);
+      const prepared = batch.map(element => {
+        try { window.jQuery?.(element)?.tipHide?.(); } catch (_) { /* tooltip nie blokuje ikony */ }
+        const item = itemFor(element);
+        const native = item ? createNativeView(item) : null;
+        return { element, native, chatScroller: native ? chatScrollAtBottom(element) : null };
+      });
+
+      await new Promise(resolve => requestAnimationFrame(resolve));
+      prepared.forEach(({ element, native, chatScroller }) => {
+        if (!stopped && element.isConnected && native?.view) {
+          element.replaceChildren(native.view);
+          element.classList.add(READY_CLASS);
+          element.setAttribute('aria-label', originalText(element).replace(/^\[|\]$/g, ''));
+          rendered.set(element, native);
+          formatLootDistribution(element.closest('.message-section'));
+          keepChatAtBottom(chatScroller);
+        }
+        pending.delete(element);
+      });
     }
 
-    async function processQueue() {
-      if (processing || stopped) return;
-      processing = true;
-      while (queue.length && !stopped) {
-        const element = queue.shift();
-        if (element?.isConnected && !element.classList.contains(READY_CLASS)) await decorate(element);
-      }
-      processing = false;
+    function flushQueue() {
+      batchScheduled = false;
+      const batch = [...queued];
+      queued.clear();
+      processBatch(batch);
     }
 
     function enqueue(root = document) {
@@ -272,11 +284,14 @@ export default {
         ? [root]
         : [...root.querySelectorAll?.(LINK_SELECTOR) ?? []];
       elements.forEach(element => {
-        if (!pending.has(element) && !queue.includes(element) && !element.classList.contains(READY_CLASS)) {
-          queue.push(element);
+        if (!pending.has(element) && !queued.has(element) && !element.classList.contains(READY_CLASS)) {
+          queued.add(element);
         }
       });
-      processQueue();
+      if (queued.size && !batchScheduled) {
+        batchScheduled = true;
+        queueMicrotask(flushQueue);
+      }
     }
 
     const observer = new MutationObserver(records => {
@@ -296,7 +311,7 @@ export default {
       document.removeEventListener('pointerdown', onPossibleSessionAction, true);
       window.removeEventListener('pagehide', pauseFetching, true);
       window.removeEventListener('beforeunload', pauseFetching, true);
-      queue.length = 0;
+      queued.clear();
       rendered.forEach(({ manager, item, viewType }, element) => {
         try { manager?.deleteViewIconIfExist?.(item.id, viewType); } catch (_) { /* bez wpływu na wyłączenie */ }
         if (element.isConnected) {
