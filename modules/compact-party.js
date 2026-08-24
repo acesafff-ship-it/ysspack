@@ -9,11 +9,12 @@ const PROFESSION_NAMES = {
   h: 'Łowca',
   b: 'Tancerz ostrzy'
 };
+const PROFESSION_SHORT_NAMES = { m: 'Mag', w: 'Woj', p: 'Pal', t: 'Trop', h: 'Łow', b: 'TO' };
 
 export default {
   id: MODULE_ID,
   name: 'Kompaktowy podgląd drużyny',
-  version: '1.0.3',
+  version: '1.0.4',
   description: 'Dodaje avatary, poprawne poziomy, profesje i czytelne statusy do natywnego panelu drużyny.',
   icon: '👥',
 
@@ -43,6 +44,9 @@ export default {
       .party-window.${ROOT_CLASS} .party-member .ycp-status.ycp-away{color:#aaa}
       .party-window.${ROOT_CLASS} .party-member .ycp-status.ycp-stasis{color:#d79cff}
       .party-window.${ROOT_CLASS} .party-member .hp-label{font-weight:800!important}
+      .party-window.${ROOT_CLASS} .ycp-prof-summary{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:3px;margin:2px 3px 4px;padding:3px;border:1px solid #555;background:rgba(0,0,0,.35);min-height:16px;box-sizing:border-box}
+      .party-window.${ROOT_CLASS} .ycp-prof-count{display:inline-flex;align-items:center;gap:2px;padding:1px 4px;border:1px solid #6c6c6c;border-radius:2px;background:#292929;color:#ddd;font:700 9px/12px Arial,sans-serif;text-shadow:0 1px #000;white-space:nowrap}
+      .party-window.${ROOT_CLASS} .ycp-prof-count strong{color:#ffdc65;font-size:10px}
     `;
     document.head.appendChild(style);
 
@@ -87,6 +91,48 @@ export default {
       return { label: 'Poza mapą', className: 'ycp-away' };
     }
 
+    function professionCode(member, live) {
+      const direct = String(live?.prof ?? member?.profession ?? '').toLowerCase();
+      if (PROFESSION_NAMES[direct]) return direct;
+      const icon = String(member?.icon ?? live?.icon ?? '').toLowerCase();
+      if (/\/(mage|mag)\//.test(icon)) return 'm';
+      if (/\/(woj|war)\//.test(icon)) return 'w';
+      if (/\/pal\//.test(icon)) return 'p';
+      if (/\/(trop|tracker)\//.test(icon)) return 't';
+      if (/\/(hun|lowca|hunter)\//.test(icon)) return 'h';
+      if (/\/(bd|blade)\//.test(icon)) return 'b';
+      return '';
+    }
+
+    function syncProfessionSummary(windowElement, members) {
+      const counts = new Map();
+      for (const [rawId, member] of members) {
+        const id = Number(rawId);
+        const code = professionCode(member, liveCharacter(id, member)) || '?';
+        counts.set(code, (counts.get(code) ?? 0) + 1);
+      }
+      const order = ['m', 'w', 'p', 't', 'h', 'b', '?'];
+      const signature = order.map(code => `${code}:${counts.get(code) ?? 0}`).join('|');
+      const list = windowElement.querySelector('.players-content .party__list');
+      if (!list) return;
+      let summary = windowElement.querySelector('.players-content .ycp-prof-summary');
+      if (!summary) {
+        summary = document.createElement('div');
+        summary.className = 'ycp-prof-summary';
+        list.before(summary);
+      }
+      if (summary.dataset.signature === signature) return;
+      summary.dataset.signature = signature;
+      summary.replaceChildren(...order.filter(code => counts.get(code)).map(code => {
+        const cell = document.createElement('span');
+        cell.className = 'ycp-prof-count';
+        const fullName = code === '?' ? 'Nierozpoznana profesja' : PROFESSION_NAMES[code];
+        cell.title = fullName;
+        cell.innerHTML = `${PROFESSION_SHORT_NAMES[code] ?? '?'} <strong>${counts.get(code)}</strong>`;
+        return cell;
+      }));
+    }
+
     function syncRow(row, members) {
       const id = memberId(row);
       if (id == null) return;
@@ -94,7 +140,7 @@ export default {
       if (!member) return;
       const live = liveCharacter(id, member);
       const level = Number(live?.lvl);
-      const profession = PROFESSION_NAMES[live?.prof] ?? '';
+      const profession = PROFESSION_NAMES[professionCode(member, live)] ?? '';
       const status = statusFor(row, member, live);
       const metaParts = [Number.isFinite(level) && level > 0 && level < 1000 ? `${level} lvl` : '', profession].filter(Boolean);
       const signature = JSON.stringify([member.icon, ...metaParts, status.className]);
@@ -136,6 +182,7 @@ export default {
       windowElement.classList.add(ROOT_CLASS);
       const members = partyMembers();
       windowElement.querySelectorAll('.party-member').forEach(row => syncRow(row, members));
+      syncProfessionSummary(windowElement, members);
     }
 
     function scheduleSync() {
@@ -155,7 +202,7 @@ export default {
       clearInterval(timer);
       document.querySelectorAll(`.party-window.${ROOT_CLASS}`).forEach(windowElement => {
         windowElement.classList.remove(ROOT_CLASS);
-        windowElement.querySelectorAll('.ycp-avatar,.ycp-meta,.ycp-status').forEach(element => element.remove());
+        windowElement.querySelectorAll('.ycp-avatar,.ycp-meta,.ycp-status,.ycp-prof-summary').forEach(element => element.remove());
         windowElement.querySelectorAll('.party-member[data-ycp-signature]').forEach(row => delete row.dataset.ycpSignature);
       });
       style.remove();
