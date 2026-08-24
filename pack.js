@@ -4,7 +4,7 @@ if (!host || document.querySelector('#ysspack')) {
   throw new Error('[YssPack] Loader nie jest aktywny albo panel został już uruchomiony.');
 }
 
-const PACK_VERSION = '0.15.48';
+const PACK_VERSION = '0.15.49';
 const UPDATE_MANIFEST_URL = new URL('manifest.json', import.meta.url).href;
 const UPDATE_INSTALL_URL = new URL('YssPack.user.js', import.meta.url).href;
 const STORAGE_PREFIX = 'ysspack_';
@@ -19,6 +19,7 @@ const moduleFiles = [
   'modules/character-storage.js',
   'modules/player-actions.js',
   'modules/ranking-ban-scanner.js',
+  'modules/battle-log-reader.js',
   'modules/tytan-help.js'
 ];
 const modules = [];
@@ -61,6 +62,7 @@ const moduleIconUrls = Object.fromEntries([
   'character-storage',
   'player-actions',
   'ranking-ban-scanner',
+  'battle-log-reader',
   'tytan-help'
 ].map(id => [id, {
   enabled: new URL(`assets/module-${id}-enabled.png`, import.meta.url).href,

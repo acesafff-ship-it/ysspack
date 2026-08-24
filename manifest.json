@@ -1,6 +1,6 @@
 {
   "name": "YssPack",
-  "version": "0.15.48",
+  "version": "0.15.49",
   "author": "Król Yss",
   "modules": [
     {
@@ -58,6 +58,13 @@
       "version": "1.0.7",
       "file": "modules/tytan-help.js",
       "description": "Pokazuje HP, odporności, umiejętność, naładowanie i cel ataku Kolosów oraz Tytanów."
+    },
+    {
+      "id": "battle-log-reader",
+      "name": "Czytelny log walki",
+      "version": "1.0.0",
+      "file": "modules/battle-log-reader.js",
+      "description": "Zwiększa czytelność komunikatów walki, rozdziela kolejne akcje i poprawia kontrast obrażeń."
     }
   ]
 }
