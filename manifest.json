@@ -1,6 +1,6 @@
 {
   "name": "YssPack",
-  "version": "0.15.58",
+  "version": "0.15.59",
   "author": "Król Yss",
   "modules": [
     {
@@ -48,7 +48,7 @@
     {
       "id": "ranking-ban-scanner",
       "name": "Kontrola banów rankingu",
-      "version": "1.0.3",
+      "version": "1.0.2",
       "file": "modules/ranking-ban-scanner.js",
       "description": "Sprawdza bany graczy nieaktywnych co najmniej 24 godziny na bieżącej stronie rankingu."
     },
@@ -69,7 +69,7 @@
     {
       "id": "compact-party",
       "name": "Kompaktowy podgląd drużyny",
-      "version": "1.0.2",
+      "version": "1.0.3",
       "file": "modules/compact-party.js",
       "description": "Dodaje avatary, poprawne poziomy, profesje i czytelne statusy do natywnego panelu drużyny."
     }
