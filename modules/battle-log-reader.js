@@ -4,7 +4,7 @@ const STYLE_ID = 'yss-readable-battle-log-style';
 export default {
   id: 'battle-log-reader',
   name: 'Czytelny log walki',
-  version: '1.0.0',
+  version: '1.0.1',
   description: 'Zwiększa czytelność komunikatów walki, rozdziela kolejne akcje i poprawia kontrast obrażeń.',
   icon: '⚔',
 
@@ -39,6 +39,11 @@ export default {
       .${ROOT_CLASS} .battle-controller .battle-msg b[class*=" dmg"]{
         font-size:12.5px!important;
         font-weight:800!important;
+        text-shadow:1px 1px #000,-1px -1px #000!important;
+      }
+      .${ROOT_CLASS} .battle-controller .battle-msg font{
+        font-weight:800!important;
+        letter-spacing:.15px!important;
         text-shadow:1px 1px #000,-1px -1px #000!important;
       }
       .${ROOT_CLASS} .battle-controller .scroll-wrapper,

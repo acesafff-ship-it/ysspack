@@ -1,6 +1,6 @@
 {
   "name": "YssPack",
-  "version": "0.15.49",
+  "version": "0.15.50",
   "author": "Król Yss",
   "modules": [
     {
@@ -62,7 +62,7 @@
     {
       "id": "battle-log-reader",
       "name": "Czytelny log walki",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "file": "modules/battle-log-reader.js",
       "description": "Zwiększa czytelność komunikatów walki, rozdziela kolejne akcje i poprawia kontrast obrażeń."
     }
