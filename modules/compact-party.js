@@ -13,7 +13,7 @@ const PROFESSION_NAMES = {
 export default {
   id: MODULE_ID,
   name: 'Kompaktowy podgląd drużyny',
-  version: '1.0.0',
+  version: '1.0.2',
   description: 'Dodaje avatary, poprawne poziomy, profesje i czytelne statusy do natywnego panelu drużyny.',
   icon: '👥',
 
@@ -29,7 +29,7 @@ export default {
       .party-window.${ROOT_CLASS} .party-member{height:38px!important;min-height:38px!important}
       .party-window.${ROOT_CLASS} .party-member>.border-blink{height:36px!important;bottom:2px!important}
       .party-window.${ROOT_CLASS} .party-member>.table-wrapper{position:relative!important;display:block!important;width:226px!important;height:38px!important}
-      .party-window.${ROOT_CLASS} .party-member .ycp-avatar{position:absolute;left:2px;top:4px;width:32px;height:28px;background-position:center bottom;background-repeat:no-repeat;pointer-events:none}
+      .party-window.${ROOT_CLASS} .party-member .ycp-avatar{position:absolute;left:2px;top:4px;width:32px;height:28px;background-position:0 0;background-repeat:no-repeat;pointer-events:none}
       .party-window.${ROOT_CLASS} .party-member .nickname{position:absolute!important;left:38px!important;top:2px!important;width:105px!important;height:16px!important;line-height:16px!important;overflow:hidden!important;white-space:nowrap!important}
       .party-window.${ROOT_CLASS} .party-member .nickname-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
       .party-window.${ROOT_CLASS} .party-member .party-options{position:absolute!important;right:1px!important;top:1px!important;z-index:2}
@@ -37,10 +37,11 @@ export default {
       .party-window.${ROOT_CLASS} .party-member .stasis-icon,
       .party-window.${ROOT_CLASS} .party-member .stasis-incoming-icon{position:absolute!important;right:33px!important;top:1px!important;z-index:2}
       .party-window.${ROOT_CLASS} .party-member .hp{position:absolute!important;right:2px!important;bottom:3px!important;width:78px!important;height:12px!important}
-      .party-window.${ROOT_CLASS} .party-member .ycp-meta{position:absolute;left:38px;bottom:3px;width:105px;height:13px;overflow:hidden;color:#d1d1d1;font:700 10px/13px Arial,sans-serif;text-shadow:0 1px #000;white-space:nowrap;text-overflow:ellipsis;pointer-events:none}
-      .party-window.${ROOT_CLASS} .party-member .ycp-meta.ycp-on-map{color:#77d86a}
-      .party-window.${ROOT_CLASS} .party-member .ycp-meta.ycp-away{color:#aaa}
-      .party-window.${ROOT_CLASS} .party-member .ycp-meta.ycp-stasis{color:#d79cff}
+      .party-window.${ROOT_CLASS} .party-member .ycp-meta{position:absolute;left:38px;bottom:3px;width:105px;height:13px;overflow:hidden;color:#ddd;font:700 10px/13px Arial,sans-serif;text-shadow:0 1px #000;white-space:nowrap;text-overflow:ellipsis;pointer-events:none}
+      .party-window.${ROOT_CLASS} .party-member .ycp-status{position:absolute;left:31px;top:7px;width:7px;height:7px;border:1px solid #111;border-radius:50%;box-sizing:border-box;background:#77d86a;box-shadow:0 0 2px #000;z-index:3}
+      .party-window.${ROOT_CLASS} .party-member .ycp-status.ycp-fighting{background:#f2a52b}
+      .party-window.${ROOT_CLASS} .party-member .ycp-status.ycp-away{background:#888}
+      .party-window.${ROOT_CLASS} .party-member .ycp-status.ycp-stasis{background:#c37bff}
       .party-window.${ROOT_CLASS} .party-member .hp-label{font-weight:800!important}
     `;
     document.head.appendChild(style);
@@ -57,7 +58,13 @@ export default {
     function liveCharacter(id, member) {
       if (member?.isHero || Number(window.Engine?.hero?.d?.id) === id) return window.Engine?.hero?.d ?? null;
       const others = window.Engine?.others;
-      try { return others?.get?.(id)?.d ?? others?.get?.(String(id))?.d ?? null; } catch (_) { return null; }
+      try {
+        const found = others?.getById?.(id)
+          ?? others?.getById?.(String(id))
+          ?? others?.get?.(id)
+          ?? others?.get?.(String(id));
+        return found?.d ?? found ?? null;
+      } catch (_) { return null; }
     }
 
     function memberId(row) {
@@ -72,10 +79,11 @@ export default {
       return `https://micc.garmory-cdn.cloud/obrazki/postacie/${path}`;
     }
 
-    function statusFor(row, member) {
+    function statusFor(row, member, live) {
       if (member?.stasis) return { label: 'Staza', className: 'ycp-stasis' };
       if (member?.stasisIncoming) return { label: 'Nadchodzi staza', className: 'ycp-stasis' };
-      if (member?.isHero || row.classList.contains('enabled')) return { label: 'Na mapie', className: 'ycp-on-map' };
+      if (live && !member?.isHero && !row.classList.contains('enabled')) return { label: 'W walce', className: 'ycp-fighting' };
+      if (live || member?.isHero || row.classList.contains('enabled')) return { label: 'Na mapie', className: 'ycp-on-map' };
       return { label: 'Poza mapą', className: 'ycp-away' };
     }
 
@@ -87,8 +95,8 @@ export default {
       const live = liveCharacter(id, member);
       const level = Number(live?.lvl);
       const profession = PROFESSION_NAMES[live?.prof] ?? '';
-      const status = statusFor(row, member);
-      const metaParts = [Number.isFinite(level) && level > 0 && level < 1000 ? `${level} lvl` : '', profession, status.label].filter(Boolean);
+      const status = statusFor(row, member, live);
+      const metaParts = [Number.isFinite(level) && level > 0 && level < 1000 ? `${level} lvl` : '', profession].filter(Boolean);
       const signature = JSON.stringify([member.icon, ...metaParts, status.className]);
       if (row.dataset.ycpSignature === signature) return;
       row.dataset.ycpSignature = signature;
@@ -108,6 +116,15 @@ export default {
       }
       meta.className = `ycp-meta ${status.className}`;
       meta.textContent = metaParts.join(' • ');
+
+      let statusDot = row.querySelector('.ycp-status');
+      if (!statusDot) {
+        statusDot = document.createElement('span');
+        row.appendChild(statusDot);
+      }
+      statusDot.className = `ycp-status ${status.className}`;
+      statusDot.title = status.label;
+      statusDot.setAttribute('aria-label', status.label);
     }
 
     function sync() {
@@ -137,7 +154,7 @@ export default {
       clearInterval(timer);
       document.querySelectorAll(`.party-window.${ROOT_CLASS}`).forEach(windowElement => {
         windowElement.classList.remove(ROOT_CLASS);
-        windowElement.querySelectorAll('.ycp-avatar,.ycp-meta').forEach(element => element.remove());
+        windowElement.querySelectorAll('.ycp-avatar,.ycp-meta,.ycp-status').forEach(element => element.remove());
         windowElement.querySelectorAll('.party-member[data-ycp-signature]').forEach(row => delete row.dataset.ycpSignature);
       });
       style.remove();
