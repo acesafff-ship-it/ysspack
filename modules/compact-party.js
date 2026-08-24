@@ -13,7 +13,7 @@ const PROFESSION_NAMES = {
 export default {
   id: MODULE_ID,
   name: 'Kompaktowy podgląd drużyny',
-  version: '1.0.2',
+  version: '1.0.3',
   description: 'Dodaje avatary, poprawne poziomy, profesje i czytelne statusy do natywnego panelu drużyny.',
   icon: '👥',
 
@@ -38,10 +38,10 @@ export default {
       .party-window.${ROOT_CLASS} .party-member .stasis-incoming-icon{position:absolute!important;right:33px!important;top:1px!important;z-index:2}
       .party-window.${ROOT_CLASS} .party-member .hp{position:absolute!important;right:2px!important;bottom:3px!important;width:78px!important;height:12px!important}
       .party-window.${ROOT_CLASS} .party-member .ycp-meta{position:absolute;left:38px;bottom:3px;width:105px;height:13px;overflow:hidden;color:#ddd;font:700 10px/13px Arial,sans-serif;text-shadow:0 1px #000;white-space:nowrap;text-overflow:ellipsis;pointer-events:none}
-      .party-window.${ROOT_CLASS} .party-member .ycp-status{position:absolute;left:31px;top:7px;width:7px;height:7px;border:1px solid #111;border-radius:50%;box-sizing:border-box;background:#77d86a;box-shadow:0 0 2px #000;z-index:3}
-      .party-window.${ROOT_CLASS} .party-member .ycp-status.ycp-fighting{background:#f2a52b}
-      .party-window.${ROOT_CLASS} .party-member .ycp-status.ycp-away{background:#888}
-      .party-window.${ROOT_CLASS} .party-member .ycp-status.ycp-stasis{background:#c37bff}
+      .party-window.${ROOT_CLASS} .party-member .ycp-status{position:absolute;right:34px;top:4px;max-width:58px;height:12px;overflow:hidden;color:#77d86a;font:700 9px/12px Arial,sans-serif;text-shadow:0 1px #000;white-space:nowrap;text-overflow:ellipsis;z-index:3;pointer-events:none}
+      .party-window.${ROOT_CLASS} .party-member .ycp-status.ycp-fighting{color:#f2a52b}
+      .party-window.${ROOT_CLASS} .party-member .ycp-status.ycp-away{color:#aaa}
+      .party-window.${ROOT_CLASS} .party-member .ycp-status.ycp-stasis{color:#d79cff}
       .party-window.${ROOT_CLASS} .party-member .hp-label{font-weight:800!important}
     `;
     document.head.appendChild(style);
@@ -123,6 +123,7 @@ export default {
         row.appendChild(statusDot);
       }
       statusDot.className = `ycp-status ${status.className}`;
+      statusDot.textContent = status.label;
       statusDot.title = status.label;
       statusDot.setAttribute('aria-label', status.label);
     }
