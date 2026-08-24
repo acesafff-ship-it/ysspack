@@ -9,7 +9,7 @@ const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 const normalize = value => String(value || '').replace(/\s+/g, ' ').trim();
 const isLadderPage = () =>
   location.hostname === 'www.margonem.pl' &&
-  /^\/ladder\/[^/]+\/players\/?$/i.test(location.pathname);
+  /^\/ladder(?:\/[^/]+)?(?:\/players)?\/?$/i.test(location.pathname);
 
 function readCache() {
   try {
@@ -113,7 +113,7 @@ function createUi() {
   const root = document.createElement('section');
   root.id = ROOT_ID;
   root.innerHTML = `
-    <header><span>Kontrola banów • v1.0.1</span><span class="yss-ban-page"></span></header>
+    <header><span>Kontrola banów • v1.0.2</span><span class="yss-ban-page"></span></header>
     <div class="yss-ban-body">
       <div class="yss-ban-summary">Wczytywanie graczy…</div>
       <div class="yss-ban-progress"><i></i></div>
@@ -239,7 +239,7 @@ function makeScanner() {
 export default {
   id: MODULE_ID,
   name: 'Kontrola banów rankingu',
-  version: '1.0.1',
+  version: '1.0.2',
   description: 'Sprawdza bany graczy nieaktywnych co najmniej 24 godziny na bieżącej stronie rankingu.',
   icon: '⛔',
   start() {
