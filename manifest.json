@@ -1,6 +1,6 @@
 {
   "name": "YssPack",
-  "version": "0.15.54",
+  "version": "0.15.55",
   "author": "Król Yss",
   "modules": [
     {
@@ -65,6 +65,13 @@
       "version": "1.0.3",
       "file": "modules/battle-log-reader.js",
       "description": "Pogrubia wyróżnione akcje i efekty w oryginalnym logu walki."
+    },
+    {
+      "id": "compact-party",
+      "name": "Kompaktowy podgląd drużyny",
+      "version": "1.0.0",
+      "file": "modules/compact-party.js",
+      "description": "Dodaje avatary, poprawne poziomy, profesje i czytelne statusy do natywnego panelu drużyny."
     }
   ]
 }
