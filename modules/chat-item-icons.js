@@ -9,7 +9,7 @@ const wait = milliseconds => new Promise(resolve => setTimeout(resolve, millisec
 export default {
   id: MODULE_ID,
   name: 'Ikony przedmiotów na czacie',
-  version: '1.3.6',
+  version: '1.3.7',
   description: 'Automatycznie zastępuje nazwy podlinkowanych przedmiotów na czacie ich natywnymi ikonami.',
   icon: '◆',
 
@@ -23,6 +23,7 @@ export default {
     const pending = new Set();
     const queued = new Set();
     let batchScheduled = false;
+    const retryCounts = new WeakMap();
     const rendered = new Map();
     const formattedLootSections = new Set();
 
@@ -155,7 +156,14 @@ export default {
         observedHeroId = heroId;
         heroStableSince = heroId == null ? 0 : Date.now();
       }
-      return heroId != null && Date.now() - heroStableSince >= 1200 && Date.now() >= fetchPausedUntil;
+      const engine = window.Engine;
+      const iconSystemReady = engine?.itemsViewData?.CHAT_LINKED_VIEW !== undefined
+        && typeof engine?.items?.createViewIcon === 'function'
+        && typeof engine?.tpls?.createViewIcon === 'function';
+      return heroId != null
+        && iconSystemReady
+        && Date.now() - heroStableSince >= 1200
+        && Date.now() >= fetchPausedUntil;
     }
 
     function pauseFetching(milliseconds = 15000) {
@@ -240,14 +248,13 @@ export default {
       });
 
       if (await waitForStableSession(batch[0])) {
-        batch.forEach(element => {
-          if (!itemFor(element)) requestItem(element);
-        });
-
-        for (let attempt = 0; attempt < 40 && !stopped; attempt += 1) {
-          if (batch.every(element => !element.isConnected || itemFor(element))) break;
-          await wait(50);
-          if (!updateSessionState()) break;
+        for (const element of batch) {
+          if (!element.isConnected || itemFor(element)) continue;
+          if (!requestItem(element)) continue;
+          for (let attempt = 0; attempt < 20 && !stopped && element.isConnected; attempt += 1) {
+            await wait(50);
+            if (!updateSessionState() || itemFor(element)) break;
+          }
         }
       }
 
@@ -267,6 +274,13 @@ export default {
           rendered.set(element, native);
           formatLootDistribution(element.closest('.message-section'));
           keepChatAtBottom(chatScroller);
+          retryCounts.delete(element);
+        } else if (!stopped && element.isConnected) {
+          const retryCount = retryCounts.get(element) ?? 0;
+          if (retryCount < 5) {
+            retryCounts.set(element, retryCount + 1);
+            setTimeout(() => enqueue(element), 500 + retryCount * 500);
+          }
         }
         pending.delete(element);
       });
