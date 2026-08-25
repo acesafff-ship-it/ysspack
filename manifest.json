@@ -1,6 +1,6 @@
 {
   "name": "YssPack",
-  "version": "0.15.60",
+  "version": "0.15.61",
   "author": "Król Yss",
   "modules": [
     {
@@ -69,7 +69,7 @@
     {
       "id": "compact-party",
       "name": "Kompaktowy podgląd drużyny",
-      "version": "1.0.4",
+      "version": "1.0.5",
       "file": "modules/compact-party.js",
       "description": "Dodaje avatary, poprawne poziomy, profesje i czytelne statusy do natywnego panelu drużyny."
     }

@@ -14,7 +14,7 @@ const PROFESSION_SHORT_NAMES = { m: 'Mag', w: 'Woj', p: 'Pal', t: 'Trop', h: 'Ł
 export default {
   id: MODULE_ID,
   name: 'Kompaktowy podgląd drużyny',
-  version: '1.0.4',
+  version: '1.0.5',
   description: 'Dodaje avatary, poprawne poziomy, profesje i czytelne statusy do natywnego panelu drużyny.',
   icon: '👥',
 
@@ -83,10 +83,29 @@ export default {
       return `https://micc.garmory-cdn.cloud/obrazki/postacie/${path}`;
     }
 
-    function statusFor(row, member, live) {
+    function normalizeName(value) {
+      return String(value ?? '').trim().toLocaleLowerCase('pl');
+    }
+
+    function isBattleParticipant(id, member) {
+      const battle = window.Engine?.battle;
+      if (!battle || battle.endBattle !== false || battle.endBattleForMe !== false) return false;
+      const expectedName = normalizeName(member?.nick);
+      const warriors = battle.warriorsList && typeof battle.warriorsList === 'object'
+        ? Object.values(battle.warriorsList)
+        : [];
+      return warriors.some(warrior => {
+        if (!warrior || Number(warrior.npc) === 1) return false;
+        const warriorIds = [warrior.id, warrior.hid, warrior.charId, warrior.heroId].map(Number);
+        if (warriorIds.includes(id)) return true;
+        return expectedName && normalizeName(warrior.name ?? warrior.nick) === expectedName;
+      });
+    }
+
+    function statusFor(row, member, live, id) {
       if (member?.stasis) return { label: 'Staza', className: 'ycp-stasis' };
       if (member?.stasisIncoming) return { label: 'Nadchodzi staza', className: 'ycp-stasis' };
-      if (live && !member?.isHero && !row.classList.contains('enabled')) return { label: 'W walce', className: 'ycp-fighting' };
+      if (isBattleParticipant(id, member)) return { label: 'W walce', className: 'ycp-fighting' };
       if (live || member?.isHero || row.classList.contains('enabled')) return { label: 'Na mapie', className: 'ycp-on-map' };
       return { label: 'Poza mapą', className: 'ycp-away' };
     }
@@ -141,7 +160,7 @@ export default {
       const live = liveCharacter(id, member);
       const level = Number(live?.lvl);
       const profession = PROFESSION_NAMES[professionCode(member, live)] ?? '';
-      const status = statusFor(row, member, live);
+      const status = statusFor(row, member, live, id);
       const metaParts = [Number.isFinite(level) && level > 0 && level < 1000 ? `${level} lvl` : '', profession].filter(Boolean);
       const signature = JSON.stringify([member.icon, ...metaParts, status.className]);
       if (row.dataset.ycpSignature === signature) return;
