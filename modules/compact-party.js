@@ -14,7 +14,7 @@ const PROFESSION_SHORT_NAMES = { m: 'Mag', w: 'Woj', p: 'Pal', t: 'Trop', h: 'Ł
 export default {
   id: MODULE_ID,
   name: 'Kompaktowy podgląd drużyny',
-  version: '1.0.5',
+  version: '1.0.6',
   description: 'Dodaje avatary, poprawne poziomy, profesje i czytelne statusy do natywnego panelu drużyny.',
   icon: '👥',
 
@@ -87,6 +87,29 @@ export default {
       return String(value ?? '').trim().toLocaleLowerCase('pl');
     }
 
+    function currentMapPlayers() {
+      const ids = new Set();
+      const names = new Set();
+      const add = character => {
+        const data = character?.d ?? character;
+        const id = Number(data?.id);
+        const name = normalizeName(data?.nick);
+        if (Number.isFinite(id)) ids.add(id);
+        if (name) names.add(name);
+      };
+
+      add(window.Engine?.hero);
+      try {
+        const drawable = window.Engine?.others?.getDrawableList?.();
+        if (Array.isArray(drawable)) {
+          drawable.forEach(character => {
+            if (character?.isPlayer === true && character?.d?.nick) add(character);
+          });
+        }
+      } catch (_) {}
+      return { ids, names };
+    }
+
     function isBattleParticipant(id, member) {
       const battle = window.Engine?.battle;
       if (!battle || battle.endBattle !== false || battle.endBattleForMe !== false) return false;
@@ -102,11 +125,13 @@ export default {
       });
     }
 
-    function statusFor(row, member, live, id) {
+    function statusFor(member, id, mapPlayers) {
       if (member?.stasis) return { label: 'Staza', className: 'ycp-stasis' };
       if (member?.stasisIncoming) return { label: 'Nadchodzi staza', className: 'ycp-stasis' };
       if (isBattleParticipant(id, member)) return { label: 'W walce', className: 'ycp-fighting' };
-      if (live || member?.isHero || row.classList.contains('enabled')) return { label: 'Na mapie', className: 'ycp-on-map' };
+      if (mapPlayers.ids.has(id) || mapPlayers.names.has(normalizeName(member?.nick))) {
+        return { label: 'Na mapie', className: 'ycp-on-map' };
+      }
       return { label: 'Poza mapą', className: 'ycp-away' };
     }
 
@@ -152,7 +177,7 @@ export default {
       }));
     }
 
-    function syncRow(row, members) {
+    function syncRow(row, members, mapPlayers) {
       const id = memberId(row);
       if (id == null) return;
       const member = members.get(id) ?? members.get(String(id));
@@ -160,9 +185,9 @@ export default {
       const live = liveCharacter(id, member);
       const level = Number(live?.lvl);
       const profession = PROFESSION_NAMES[professionCode(member, live)] ?? '';
-      const status = statusFor(row, member, live, id);
+      const status = statusFor(member, id, mapPlayers);
       const metaParts = [Number.isFinite(level) && level > 0 && level < 1000 ? `${level} lvl` : '', profession].filter(Boolean);
-      const signature = JSON.stringify([member.icon, ...metaParts, status.className]);
+      const signature = JSON.stringify([member.icon, ...metaParts, status.className, status.label]);
       if (row.dataset.ycpSignature === signature) return;
       row.dataset.ycpSignature = signature;
 
@@ -200,7 +225,8 @@ export default {
       if (!windowElement) return;
       windowElement.classList.add(ROOT_CLASS);
       const members = partyMembers();
-      windowElement.querySelectorAll('.party-member').forEach(row => syncRow(row, members));
+      const mapPlayers = currentMapPlayers();
+      windowElement.querySelectorAll('.party-member').forEach(row => syncRow(row, members, mapPlayers));
       syncProfessionSummary(windowElement, members);
     }
 
