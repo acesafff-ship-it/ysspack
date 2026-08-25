@@ -1,6 +1,7 @@
 const MODULE_ID = 'compact-party';
 const STYLE_ID = 'yss-compact-party-style';
 const ROOT_CLASS = 'yss-compact-party';
+const PROFESSION_MEMORY_KEY = 'ysspack_compact_party_professions_v1';
 const PROFESSION_NAMES = {
   m: 'Mag',
   w: 'Wojownik',
@@ -14,7 +15,7 @@ const PROFESSION_SHORT_NAMES = { m: 'Mag', w: 'Woj', p: 'Pal', t: 'Trop', h: 'Ł
 export default {
   id: MODULE_ID,
   name: 'Kompaktowy podgląd drużyny',
-  version: '1.0.8',
+  version: '1.0.9',
   description: 'Dodaje avatary, poprawne poziomy, profesje i czytelne statusy do natywnego panelu drużyny.',
   icon: '👥',
 
@@ -23,6 +24,14 @@ export default {
 
     let stopped = false;
     let framePending = false;
+    let professionMemory = { byId: {}, byName: {} };
+    try {
+      const saved = JSON.parse(localStorage.getItem(PROFESSION_MEMORY_KEY) || '{}');
+      professionMemory = {
+        byId: saved?.byId && typeof saved.byId === 'object' ? saved.byId : {},
+        byName: saved?.byName && typeof saved.byName === 'object' ? saved.byName : {}
+      };
+    } catch (_) {}
 
     const style = document.createElement('style');
     style.id = STYLE_ID;
@@ -137,16 +146,57 @@ export default {
       return { label: 'Poza mapą', className: 'ycp-away' };
     }
 
-    function professionCode(member, live) {
-      const direct = String(live?.prof ?? member?.profession ?? '').toLowerCase();
-      if (PROFESSION_NAMES[direct]) return direct;
+    function battleProfession(id, member) {
+      const expectedName = normalizeName(member?.nick);
+      const list = window.Engine?.battle?.warriorsList;
+      const warriors = list && typeof list === 'object' ? Object.values(list) : [];
+      const warrior = warriors.find(entry => {
+        if (!entry || Number(entry.npc) === 1) return false;
+        const ids = [entry.id, entry.hid, entry.charId, entry.heroId].map(Number);
+        return ids.includes(id) || (expectedName && normalizeName(entry.name ?? entry.nick) === expectedName);
+      });
+      return warrior?.prof ?? warrior?.profession ?? '';
+    }
+
+    function rememberProfession(id, member, code) {
+      if (!PROFESSION_NAMES[code]) return;
+      const idKey = Number.isFinite(id) ? String(id) : '';
+      const nameKey = normalizeName(member?.nick);
+      if ((!idKey || professionMemory.byId[idKey] === code)
+        && (!nameKey || professionMemory.byName[nameKey] === code)) return;
+      if (idKey) professionMemory.byId[idKey] = code;
+      if (nameKey) professionMemory.byName[nameKey] = code;
+      try { localStorage.setItem(PROFESSION_MEMORY_KEY, JSON.stringify(professionMemory)); } catch (_) {}
+    }
+
+    function normalizeProfession(value) {
+      const text = String(value ?? '').trim().toLocaleLowerCase('pl');
+      if (PROFESSION_NAMES[text]) return text;
+      return ({
+        mag: 'm', wojownik: 'w', paladyn: 'p', tropiciel: 't',
+        'łowca': 'h', lowca: 'h', 'tancerz ostrzy': 'b'
+      })[text] ?? '';
+    }
+
+    function professionCode(member, live, id) {
+      const direct = [live?.prof, member?.prof, member?.profession, battleProfession(id, member)]
+        .map(normalizeProfession)
+        .find(Boolean) ?? '';
+      if (direct) {
+        rememberProfession(id, member, direct);
+        return direct;
+      }
+      const remembered = professionMemory.byId[String(id)] ?? professionMemory.byName[normalizeName(member?.nick)];
+      if (PROFESSION_NAMES[remembered]) return remembered;
       const icon = String(member?.icon ?? live?.icon ?? '').toLowerCase();
-      if (/\/(mage|mag)\//.test(icon)) return 'm';
-      if (/\/(woj|war)\//.test(icon)) return 'w';
-      if (/\/pal\//.test(icon)) return 'p';
-      if (/\/(trop|tracker)\//.test(icon)) return 't';
-      if (/\/(hun|lowca|hunter)\//.test(icon)) return 'h';
-      if (/\/(bd|blade)\//.test(icon)) return 'b';
+      const inferred = /\/(mage|mag)\//.test(icon) ? 'm'
+        : /\/(woj|war)\//.test(icon) ? 'w'
+          : /\/pal\//.test(icon) ? 'p'
+            : /\/(trop|tracker)\//.test(icon) ? 't'
+              : /\/(hun|lowca|hunter)\//.test(icon) ? 'h'
+                : /\/(bd|blade)\//.test(icon) ? 'b' : '';
+      if (inferred) rememberProfession(id, member, inferred);
+      if (inferred) return inferred;
       return '';
     }
 
@@ -154,7 +204,7 @@ export default {
       const counts = new Map();
       for (const [rawId, member] of members) {
         const id = Number(rawId);
-        const code = professionCode(member, liveCharacter(id, member)) || '?';
+        const code = professionCode(member, liveCharacter(id, member), id) || '?';
         counts.set(code, (counts.get(code) ?? 0) + 1);
       }
       const order = ['m', 'w', 'p', 't', 'h', 'b', '?'];
@@ -202,7 +252,7 @@ export default {
       if (!member) return;
       const live = liveCharacter(id, member);
       const level = Number(live?.lvl);
-      const profession = PROFESSION_NAMES[professionCode(member, live)] ?? '';
+      const profession = PROFESSION_NAMES[professionCode(member, live, id)] ?? '';
       const status = statusFor(member, id, mapPlayers);
       const metaParts = [Number.isFinite(level) && level > 0 && level < 1000 ? `${level} lvl` : '', profession].filter(Boolean);
       const signature = JSON.stringify([member.icon, ...metaParts, status.className, status.label]);
