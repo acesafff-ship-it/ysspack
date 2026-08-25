@@ -15,7 +15,7 @@ const PROFESSION_SHORT_NAMES = { m: 'Mag', w: 'Woj', p: 'Pal', t: 'Trop', h: 'Ł
 export default {
   id: MODULE_ID,
   name: 'Kompaktowy podgląd drużyny',
-  version: '1.0.11',
+  version: '1.0.12',
   description: 'Dodaje avatary, poprawne poziomy, profesje i czytelne statusy do natywnego panelu drużyny.',
   icon: '👥',
 
@@ -36,21 +36,19 @@ export default {
     const style = document.createElement('style');
     style.id = STYLE_ID;
     style.textContent = `
-      .party-window.${ROOT_CLASS}{width:210px!important}
-      .party-window.${ROOT_CLASS} .players-content{width:100%!important;box-sizing:border-box!important}
       .party-window.${ROOT_CLASS} .party-member{height:38px!important;min-height:38px!important}
       .party-window.${ROOT_CLASS} .party-member>.border-blink{height:36px!important;bottom:2px!important}
-      .party-window.${ROOT_CLASS} .party-member>.table-wrapper{position:relative!important;display:block!important;width:194px!important;height:38px!important}
+      .party-window.${ROOT_CLASS} .party-member>.table-wrapper{position:relative!important;display:block!important;width:226px!important;height:38px!important}
       .party-window.${ROOT_CLASS} .party-member .ycp-avatar{position:absolute;left:4px;top:6px;width:26px;height:24px;background-position:0 0;background-size:104px 156px;background-repeat:no-repeat;pointer-events:none}
-      .party-window.${ROOT_CLASS} .party-member .nickname{position:absolute!important;left:33px!important;top:2px!important;width:82px!important;height:16px!important;line-height:16px!important;overflow:hidden!important;white-space:nowrap!important}
+      .party-window.${ROOT_CLASS} .party-member .nickname{position:absolute!important;left:38px!important;top:2px!important;width:105px!important;height:16px!important;line-height:16px!important;overflow:hidden!important;white-space:nowrap!important}
       .party-window.${ROOT_CLASS} .party-member .nickname-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
       .party-window.${ROOT_CLASS} .party-member .party-options{position:absolute!important;right:1px!important;top:1px!important;z-index:2}
       .party-window.${ROOT_CLASS} .party-member .party__crown{position:absolute!important;right:17px!important;top:1px!important;z-index:2}
       .party-window.${ROOT_CLASS} .party-member .stasis-icon,
       .party-window.${ROOT_CLASS} .party-member .stasis-incoming-icon{position:absolute!important;right:33px!important;top:1px!important;z-index:2}
-      .party-window.${ROOT_CLASS} .party-member .hp{position:absolute!important;right:2px!important;bottom:3px!important;width:68px!important;height:12px!important}
-      .party-window.${ROOT_CLASS} .party-member .ycp-meta{position:absolute;left:33px;bottom:3px;width:82px;height:13px;overflow:hidden;color:#ddd;font:700 10px/13px Arial,sans-serif;text-shadow:0 1px #000;white-space:nowrap;text-overflow:ellipsis;pointer-events:none}
-      .party-window.${ROOT_CLASS} .party-member .ycp-status{position:absolute;right:30px;top:4px;max-width:52px;height:12px;overflow:hidden;color:#77d86a;font:700 9px/12px Arial,sans-serif;text-shadow:0 1px #000;white-space:nowrap;text-overflow:ellipsis;z-index:3;pointer-events:none}
+      .party-window.${ROOT_CLASS} .party-member .hp{position:absolute!important;right:2px!important;bottom:3px!important;width:78px!important;height:12px!important}
+      .party-window.${ROOT_CLASS} .party-member .ycp-meta{position:absolute;left:38px;bottom:3px;width:105px;height:13px;overflow:hidden;color:#ddd;font:700 10px/13px Arial,sans-serif;text-shadow:0 1px #000;white-space:nowrap;text-overflow:ellipsis;pointer-events:none}
+      .party-window.${ROOT_CLASS} .party-member .ycp-status{position:absolute;right:34px;top:4px;max-width:58px;height:12px;overflow:hidden;color:#77d86a;font:700 9px/12px Arial,sans-serif;text-shadow:0 1px #000;white-space:nowrap;text-overflow:ellipsis;z-index:3;pointer-events:none}
       .party-window.${ROOT_CLASS} .party-member .ycp-status.ycp-fighting{color:#f2a52b}
       .party-window.${ROOT_CLASS} .party-member .ycp-status.ycp-away{color:#aaa}
       .party-window.${ROOT_CLASS} .party-member .ycp-status.ycp-stasis{color:#d79cff}
