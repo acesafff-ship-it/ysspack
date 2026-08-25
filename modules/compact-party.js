@@ -14,7 +14,7 @@ const PROFESSION_SHORT_NAMES = { m: 'Mag', w: 'Woj', p: 'Pal', t: 'Trop', h: 'Ł
 export default {
   id: MODULE_ID,
   name: 'Kompaktowy podgląd drużyny',
-  version: '1.0.7',
+  version: '1.0.8',
   description: 'Dodaje avatary, poprawne poziomy, profesje i czytelne statusy do natywnego panelu drużyny.',
   icon: '👥',
 
@@ -180,8 +180,8 @@ export default {
       const send = document.createElement('button');
       send.type = 'button';
       send.className = 'ycp-prof-send';
-      send.textContent = 'Wyślij /g';
-      send.title = 'Wyślij liczebność profesji na czat grupowy';
+      send.textContent = 'Wstaw /g';
+      send.title = 'Wstaw liczebność profesji do czatu grupowego; wyślij Enterem';
       send.addEventListener('click', () => {
         const details = order
           .filter(code => counts.get(code))
@@ -190,7 +190,7 @@ export default {
         const input = window.Engine?.chatController?.getChatInputWrapper?.();
         if (!input || !details) return;
         input.setInput?.(`/g Profesje: ${details}`);
-        input.getDataAndSendRequest?.();
+        input.focus?.();
       });
       summary.replaceChildren(...cells, send);
     }
