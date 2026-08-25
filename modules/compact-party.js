@@ -9,12 +9,12 @@ const PROFESSION_NAMES = {
   h: 'Łowca',
   b: 'Tancerz ostrzy'
 };
-const PROFESSION_SHORT_NAMES = { m: 'Mag', w: 'Woj', p: 'Pal', t: 'Trop', h: 'Łow', b: 'TO' };
+const PROFESSION_SHORT_NAMES = { m: 'Mag', w: 'Woj', p: 'Pal', t: 'Trop', h: 'Łow', b: 'Tanc' };
 
 export default {
   id: MODULE_ID,
   name: 'Kompaktowy podgląd drużyny',
-  version: '1.0.6',
+  version: '1.0.7',
   description: 'Dodaje avatary, poprawne poziomy, profesje i czytelne statusy do natywnego panelu drużyny.',
   icon: '👥',
 
@@ -47,6 +47,8 @@ export default {
       .party-window.${ROOT_CLASS} .ycp-prof-summary{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:3px;margin:2px 3px 4px;padding:3px;border:1px solid #555;background:rgba(0,0,0,.35);min-height:16px;box-sizing:border-box}
       .party-window.${ROOT_CLASS} .ycp-prof-count{display:inline-flex;align-items:center;gap:2px;padding:1px 4px;border:1px solid #6c6c6c;border-radius:2px;background:#292929;color:#ddd;font:700 9px/12px Arial,sans-serif;text-shadow:0 1px #000;white-space:nowrap}
       .party-window.${ROOT_CLASS} .ycp-prof-count strong{color:#ffdc65;font-size:10px}
+      .party-window.${ROOT_CLASS} .ycp-prof-send{padding:1px 5px;border:1px solid #88712e;border-radius:2px;background:#3d351d;color:#ffe271;font:700 9px/12px Arial,sans-serif;text-shadow:0 1px #000;cursor:pointer}
+      .party-window.${ROOT_CLASS} .ycp-prof-send:hover{background:#554923;color:#fff1a6}
     `;
     document.head.appendChild(style);
 
@@ -167,14 +169,30 @@ export default {
       }
       if (summary.dataset.signature === signature) return;
       summary.dataset.signature = signature;
-      summary.replaceChildren(...order.filter(code => counts.get(code)).map(code => {
+      const cells = order.filter(code => counts.get(code)).map(code => {
         const cell = document.createElement('span');
         cell.className = 'ycp-prof-count';
         const fullName = code === '?' ? 'Nierozpoznana profesja' : PROFESSION_NAMES[code];
         cell.title = fullName;
         cell.innerHTML = `${PROFESSION_SHORT_NAMES[code] ?? '?'} <strong>${counts.get(code)}</strong>`;
         return cell;
-      }));
+      });
+      const send = document.createElement('button');
+      send.type = 'button';
+      send.className = 'ycp-prof-send';
+      send.textContent = 'Wyślij /g';
+      send.title = 'Wyślij liczebność profesji na czat grupowy';
+      send.addEventListener('click', () => {
+        const details = order
+          .filter(code => counts.get(code))
+          .map(code => `${PROFESSION_SHORT_NAMES[code] ?? '?'} ${counts.get(code)}`)
+          .join(' | ');
+        const input = window.Engine?.chatController?.getChatInputWrapper?.();
+        if (!input || !details) return;
+        input.setInput?.(`/g Profesje: ${details}`);
+        input.getDataAndSendRequest?.();
+      });
+      summary.replaceChildren(...cells, send);
     }
 
     function syncRow(row, members, mapPlayers) {
