@@ -15,7 +15,7 @@ const PROFESSION_SHORT_NAMES = { m: 'Mag', w: 'Woj', p: 'Pal', t: 'Trop', h: 'Ł
 export default {
   id: MODULE_ID,
   name: 'Kompaktowy podgląd drużyny',
-  version: '1.0.9',
+  version: '1.0.10',
   description: 'Dodaje avatary, poprawne poziomy, profesje i czytelne statusy do natywnego panelu drużyny.',
   icon: '👥',
 
@@ -39,7 +39,7 @@ export default {
       .party-window.${ROOT_CLASS} .party-member{height:38px!important;min-height:38px!important}
       .party-window.${ROOT_CLASS} .party-member>.border-blink{height:36px!important;bottom:2px!important}
       .party-window.${ROOT_CLASS} .party-member>.table-wrapper{position:relative!important;display:block!important;width:226px!important;height:38px!important}
-      .party-window.${ROOT_CLASS} .party-member .ycp-avatar{position:absolute;left:2px;top:4px;width:32px;height:28px;background-position:0 0;background-repeat:no-repeat;pointer-events:none}
+      .party-window.${ROOT_CLASS} .party-member .ycp-avatar{position:absolute;left:7px;top:8px;width:22px;height:20px;background-position:0 0;background-size:88px 132px;background-repeat:no-repeat;pointer-events:none}
       .party-window.${ROOT_CLASS} .party-member .nickname{position:absolute!important;left:38px!important;top:2px!important;width:105px!important;height:16px!important;line-height:16px!important;overflow:hidden!important;white-space:nowrap!important}
       .party-window.${ROOT_CLASS} .party-member .nickname-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
       .party-window.${ROOT_CLASS} .party-member .party-options{position:absolute!important;right:1px!important;top:1px!important;z-index:2}
