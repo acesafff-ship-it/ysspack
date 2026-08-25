@@ -1,6 +1,6 @@
 {
   "name": "YssPack",
-  "version": "0.15.68",
+  "version": "0.15.69",
   "author": "Król Yss",
   "modules": [
     {
@@ -30,13 +30,6 @@
       "version": "2.0.14",
       "file": "modules/auction-assistant.js",
       "description": "Automatycznie pobiera ceny przedmiotu bez otwierania listy aukcji."
-    },
-    {
-      "id": "character-storage",
-      "name": "Magazyn Postaci",
-      "version": "1.4.3",
-      "file": "modules/character-storage.js",
-      "description": "Zapamiętuje i wyświetla zawartość toreb własnych postaci."
     },
     {
       "id": "player-actions",
