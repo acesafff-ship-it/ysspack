@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Margonem — Asystent Aukcji
 // @namespace    krol-yss.margonem.auction-assistant
-// @version      2.0.14
+// @version      2.0.15
 // @description  Automatycznie pobiera ceny przedmiotu wybranego do sprzedaży bez otwierania listy aukcji.
 // @author       Król Yss
 // @match        https://*.margonem.pl/*
@@ -664,7 +664,7 @@
   }
 
   const observer = new MutationObserver(queueUpdate);
-  observer.observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "style"] });
+  observer.observe(document.documentElement, { childList: true, subtree: true });
   window.addEventListener("resize", queueUpdate);
   setInterval(queueUpdate, 750);
   queueUpdate();
