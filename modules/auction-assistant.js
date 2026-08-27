@@ -10,15 +10,11 @@ function prepareSource(original) {
   );
   source = source.replace(
     '  let running = false;',
-    '  let running = false;\n  let ysspackStopped = false;\n  let ysspackInterval = 0;'
+    '  let running = false;\n  let ysspackStopped = false;'
   );
   source = source.replace(
     '  function queueUpdate() {\n    if (queued) return;',
     '  function queueUpdate() {\n    if (ysspackStopped || queued) return;'
-  );
-  source = source.replace(
-    '  setInterval(queueUpdate, 750);',
-    '  ysspackInterval = setInterval(queueUpdate, 750);'
   );
   source = source.replace(
     /\n  queueUpdate\(\);\s*\n\}\)\(\);\s*$/,
@@ -26,7 +22,7 @@ function prepareSource(original) {
   window.${CLEANUP_KEY} = () => {
     ysspackStopped = true;
     observer.disconnect();
-    clearInterval(ysspackInterval);
+    clearInterval(refreshInterval);
     clearTimeout(lookupTimer);
     clearTimeout(iconHydrationTimer);
     window.removeEventListener("resize", queueUpdate);
@@ -55,7 +51,7 @@ async function loadAndRun() {
 export default {
   id: 'auction-assistant',
   name: 'Asystent Aukcji',
-  version: '2.0.15',
+  version: '2.0.16',
   description: 'Automatycznie pobiera ceny przedmiotu bez otwierania listy aukcji.',
   icon: '⚖',
 

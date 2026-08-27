@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Margonem — Asystent Aukcji
 // @namespace    krol-yss.margonem.auction-assistant
-// @version      2.0.15
+// @version      2.0.16
 // @description  Automatycznie pobiera ceny przedmiotu wybranego do sprzedaży bez otwierania listy aukcji.
 // @author       Król Yss
 // @match        https://*.margonem.pl/*
@@ -17,7 +17,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "2.0.14";
+  const VERSION = "2.0.16";
   const PANEL_ID = "kyaa-panel";
   const STYLE_ID = "kyaa-style";
   const UNDERCUT_ENABLED_KEY = "kyaa-undercut-enabled";
@@ -43,6 +43,7 @@
   let iconHydrationTimer = 0;
   let queued = false;
   let running = false;
+  let refreshInterval = 0;
 
   function readSetting(key, fallback) {
     try {
@@ -619,9 +620,18 @@
     panel.style.top = `${Math.max(6, Math.min(rect.top, innerHeight - height - 6))}px`;
   }
 
+  function setRefreshActive(active) {
+    if (active && !refreshInterval) refreshInterval = setInterval(queueUpdate, 750);
+    if (!active && refreshInterval) {
+      clearInterval(refreshInterval);
+      refreshInterval = 0;
+    }
+  }
+
   function updatePanel() {
     const sellWindow = getSellWindow();
     const auctionWindow = getAuctionWindow();
+    setRefreshActive(Boolean(sellWindow || auctionWindow || running));
     if (!sellWindow && !(auctionWindow && activeSelection) && !running) {
       panel?.remove();
       clearTimeout(lookupTimer);
@@ -666,6 +676,5 @@
   const observer = new MutationObserver(queueUpdate);
   observer.observe(document.documentElement, { childList: true, subtree: true });
   window.addEventListener("resize", queueUpdate);
-  setInterval(queueUpdate, 750);
   queueUpdate();
 })();

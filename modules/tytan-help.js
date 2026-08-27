@@ -4,7 +4,7 @@ const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, character =>
 export default {
   id: 'tytan-help',
   name: 'TytanHelp',
-  version: '1.0.8',
+  version: '1.0.9',
   description: 'Pokazuje HP, odporności, umiejętność, naładowanie i cel ataku Kolosów oraz Tytanów.',
   icon: '⚔',
 
@@ -176,6 +176,11 @@ export default {
 
     function update() {
       if (stopped) return;
+      const battle = window.Engine?.battle;
+      if (!battle || battle.endBattle !== false || battle.endBattleForMe !== false) {
+        stopBattleUpdates();
+        return;
+      }
       if (document.hidden || dragging) return;
       ensureUi();
       const active = new Set();
@@ -194,21 +199,43 @@ export default {
     }
 
     let updateTimer = 0;
-    const startupTimer = setInterval(() => {
-      if (window.Engine?.battle) {
-        clearInterval(startupTimer);
-        ensureUi();
-        update();
-        updateTimer = setInterval(update, 250);
+    let reconcileQueued = false;
+
+    function stopBattleUpdates() {
+      clearInterval(updateTimer);
+      updateTimer = 0;
+      labels.forEach(label => label.remove());
+      labels.clear();
+      document.getElementById(rootId)?.remove();
+    }
+
+    function reconcileBattleState() {
+      reconcileQueued = false;
+      if (stopped) return;
+      const battle = window.Engine?.battle;
+      const active = battle && battle.endBattle === false && battle.endBattleForMe === false;
+      if (!active) {
+        stopBattleUpdates();
+        return;
       }
-    }, 100);
+      if (updateTimer) return;
+      ensureUi();
+      update();
+      updateTimer = setInterval(update, 250);
+    }
+
+    const battleObserver = new MutationObserver(() => {
+      if (reconcileQueued) return;
+      reconcileQueued = true;
+      queueMicrotask(reconcileBattleState);
+    });
+    battleObserver.observe(document.body, { childList: true, subtree: true });
+    reconcileBattleState();
 
     return () => {
       stopped = true;
-      clearInterval(startupTimer);
-      clearInterval(updateTimer);
-      labels.clear();
-      document.getElementById(rootId)?.remove();
+      battleObserver.disconnect();
+      stopBattleUpdates();
       document.getElementById(styleId)?.remove();
     };
   }
