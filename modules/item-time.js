@@ -6,13 +6,14 @@ const EQUIPPED_BLESSING_SLOT_ID = 10;
 export default {
   id: 'item-time',
   name: 'Minuty i sekundy przedmiotu',
-  version: '2.3.1',
+  version: '2.3.2',
   description: 'Pokazuje dokładny czas błogosławieństwa na ikonie i w tooltipie.',
   icon: '⏱',
 
   start() {
     if (location.hostname === 'www.margonem.pl') return () => {};
     const ttlTimers = new Map();
+    const trackedItems = new Set();
     let hoveredItemId = null;
 
     const style = document.createElement('style');
@@ -63,7 +64,16 @@ export default {
       return hours > 0 ? `${hours}:${String(minutes).padStart(2, '0')}:${String(rest).padStart(2, '0')}` : `${minutes}:${String(rest).padStart(2, '0')}`;
     };
 
-    const updateBadges = () => document.querySelectorAll(".item[class*='item-id-']").forEach(element => {
+    const trackItems = root => {
+      if (root instanceof Element && root.matches('.item')) trackedItems.add(root);
+      root.querySelectorAll?.('.item').forEach(element => trackedItems.add(element));
+    };
+
+    const updateBadges = () => trackedItems.forEach(element => {
+      if (!element.isConnected) {
+        trackedItems.delete(element);
+        return;
+      }
       const itemId = element.className.match(ITEM_ID_RE)?.[1];
       const remaining = itemId ? getRemainingSeconds(itemId) : null;
       let badge = element.querySelector(`:scope>.${BADGE_CLASS}`);
@@ -100,11 +110,22 @@ export default {
         update();
       });
     };
-    const onMouseOver = event => { const id = getItemId(event.target); if (id) hoveredItemId = id; };
+    const onMouseOver = event => {
+      const id = getItemId(event.target);
+      if (!id) return;
+      hoveredItemId = id;
+      queueUpdate();
+    };
     document.addEventListener('mouseover', onMouseOver, true);
-    const observer = new MutationObserver(queueUpdate);
-    observer.observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
-    const timer = window.setInterval(queueUpdate, 250);
+    const observer = new MutationObserver(records => {
+      records.forEach(record => record.addedNodes.forEach(node => {
+        if (node instanceof Element) trackItems(node);
+      }));
+      queueUpdate();
+    });
+    observer.observe(document.documentElement, { childList: true, subtree: true });
+    trackItems(document);
+    const timer = window.setInterval(queueUpdate, 1000);
     queueUpdate();
 
     return () => {
@@ -116,6 +137,7 @@ export default {
       document.querySelectorAll(`.${BADGE_CLASS}`).forEach(element => element.remove());
       document.querySelectorAll(`.${BADGE_CLASS}-host`).forEach(element => element.classList.remove(`${BADGE_CLASS}-host`));
       ttlTimers.clear();
+      trackedItems.clear();
     };
   }
 };

@@ -1,6 +1,6 @@
 {
   "name": "YssPack",
-  "version": "0.15.69",
+  "version": "0.15.70",
   "author": "Król Yss",
   "modules": [
     {
@@ -13,7 +13,7 @@
     {
       "id": "item-time",
       "name": "Minuty i sekundy przedmiotu",
-      "version": "2.3.1",
+      "version": "2.3.2",
       "file": "modules/item-time.js",
       "description": "Pokazuje dokładny czas błogosławieństwa na ikonie i w tooltipie."
     },
@@ -48,7 +48,7 @@
     {
       "id": "tytan-help",
       "name": "TytanHelp",
-      "version": "1.0.7",
+      "version": "1.0.8",
       "file": "modules/tytan-help.js",
       "description": "Pokazuje HP, odporności, umiejętność, naładowanie i cel ataku Kolosów oraz Tytanów."
     },
@@ -62,7 +62,7 @@
     {
       "id": "compact-party",
       "name": "Kompaktowy podgląd drużyny",
-      "version": "1.0.12",
+      "version": "1.0.13",
       "file": "modules/compact-party.js",
       "description": "Dodaje avatary, poprawne poziomy, profesje i czytelne statusy do natywnego panelu drużyny."
     }

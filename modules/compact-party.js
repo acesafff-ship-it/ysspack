@@ -15,7 +15,7 @@ const PROFESSION_SHORT_NAMES = { m: 'Mag', w: 'Woj', p: 'Pal', t: 'Trop', h: 'Ł
 export default {
   id: MODULE_ID,
   name: 'Kompaktowy podgląd drużyny',
-  version: '1.0.12',
+  version: '1.0.13',
   description: 'Dodaje avatary, poprawne poziomy, profesje i czytelne statusy do natywnego panelu drużyny.',
   icon: '👥',
 
@@ -24,6 +24,7 @@ export default {
 
     let stopped = false;
     let framePending = false;
+    let observedPartyWindow = null;
     let professionMemory = { byId: {}, byName: {} };
     try {
       const saved = JSON.parse(localStorage.getItem(PROFESSION_MEMORY_KEY) || '{}');
@@ -290,6 +291,18 @@ export default {
       framePending = false;
       if (stopped) return;
       const windowElement = document.querySelector('.party-window');
+      if (windowElement !== observedPartyWindow) {
+        partyObserver.disconnect();
+        observedPartyWindow = windowElement;
+        if (observedPartyWindow) {
+          partyObserver.observe(observedPartyWindow, {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: ['class', 'style']
+          });
+        }
+      }
       if (!windowElement) return;
       windowElement.classList.add(ROOT_CLASS);
       const members = partyMembers();
@@ -304,14 +317,26 @@ export default {
       requestAnimationFrame(sync);
     }
 
-    const observer = new MutationObserver(scheduleSync);
-    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'style'] });
+    const partyObserver = new MutationObserver(scheduleSync);
+    const rootObserver = new MutationObserver(records => {
+      const partyChanged = records.some(record => [...record.addedNodes, ...record.removedNodes].some(node =>
+        node instanceof Element && (
+          node.matches('.party-window')
+          || node.querySelector?.('.party-window')
+          || node === observedPartyWindow
+          || (observedPartyWindow && node.contains?.(observedPartyWindow))
+        )
+      ));
+      if (partyChanged || !observedPartyWindow?.isConnected) scheduleSync();
+    });
+    rootObserver.observe(document.body, { childList: true, subtree: true });
     const timer = setInterval(scheduleSync, 1000);
     scheduleSync();
 
     return () => {
       stopped = true;
-      observer.disconnect();
+      partyObserver.disconnect();
+      rootObserver.disconnect();
       clearInterval(timer);
       document.querySelectorAll(`.party-window.${ROOT_CLASS}`).forEach(windowElement => {
         windowElement.classList.remove(ROOT_CLASS);

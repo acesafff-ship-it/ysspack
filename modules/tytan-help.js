@@ -4,7 +4,7 @@ const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, character =>
 export default {
   id: 'tytan-help',
   name: 'TytanHelp',
-  version: '1.0.7',
+  version: '1.0.8',
   description: 'Pokazuje HP, odporności, umiejętność, naładowanie i cel ataku Kolosów oraz Tytanów.',
   icon: '⚔',
 
@@ -17,7 +17,6 @@ export default {
     const fmt = new Intl.NumberFormat('pl-PL', { maximumFractionDigits: 0 });
     const percent = new Intl.NumberFormat('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     let stopped = false;
-    let lastUpdate = 0;
     let offset = loadOffset();
     let dragging = null;
 
@@ -175,11 +174,9 @@ export default {
       label.hidden = false;
     }
 
-    function frame(now) {
+    function update() {
       if (stopped) return;
-      requestAnimationFrame(frame);
-      if (document.hidden || dragging || now - lastUpdate < 200) return;
-      lastUpdate = now;
+      if (document.hidden || dragging) return;
       ensureUi();
       const active = new Set();
       for (const warrior of opponents()) {
@@ -196,17 +193,20 @@ export default {
       }
     }
 
-    const timer = setInterval(() => {
+    let updateTimer = 0;
+    const startupTimer = setInterval(() => {
       if (window.Engine?.battle) {
-        clearInterval(timer);
+        clearInterval(startupTimer);
         ensureUi();
-        requestAnimationFrame(frame);
+        update();
+        updateTimer = setInterval(update, 250);
       }
     }, 100);
 
     return () => {
       stopped = true;
-      clearInterval(timer);
+      clearInterval(startupTimer);
+      clearInterval(updateTimer);
       labels.clear();
       document.getElementById(rootId)?.remove();
       document.getElementById(styleId)?.remove();
