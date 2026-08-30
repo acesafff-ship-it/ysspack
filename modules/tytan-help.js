@@ -30,7 +30,7 @@ export function formatTurns(count) {
 export default {
   id: 'tytan-help',
   name: 'TytanHelp',
-  version: '1.0.11',
+  version: '1.0.12',
   description: 'Pokazuje HP, odporności, umiejętność, naładowanie i cel ataku Kolosów oraz Tytanów.',
   icon: '⚔',
 
@@ -41,7 +41,7 @@ export default {
     const styleId = 'ysspack-tytan-help-style';
     const labels = new Map();
     const fmt = new Intl.NumberFormat('pl-PL', { maximumFractionDigits: 0 });
-    const percent = new Intl.NumberFormat('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const percent = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2, useGrouping: false });
     let stopped = false;
     let offset = loadOffset();
     let dragging = null;
