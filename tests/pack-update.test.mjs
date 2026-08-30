@@ -25,3 +25,10 @@ test('module details contain no pack update controls', () => {
   assert.ok(check.includes('renderPackUpdate()'));
   assert.ok(!check.includes('renderModuleDetails()'));
 });
+
+test('module icon URLs are cache-busted with the pack version', () => {
+  const iconUrls = source.slice(source.indexOf('const versionedAssetUrl'), source.indexOf('const panel ='));
+  assert.ok(iconUrls.includes("url.searchParams.set('v', PACK_VERSION)"));
+  assert.ok(iconUrls.includes('enabled: versionedAssetUrl'));
+  assert.ok(iconUrls.includes('disabled: versionedAssetUrl'));
+});

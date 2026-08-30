@@ -4,7 +4,7 @@ if (!host || document.querySelector('#ysspack')) {
   throw new Error('[YssPack] Loader nie jest aktywny albo panel został już uruchomiony.');
 }
 
-const PACK_VERSION = '0.15.85';
+const PACK_VERSION = '0.15.86';
 const UPDATE_MANIFEST_URL = new URL('manifest.json', import.meta.url).href;
 const UPDATE_INSTALL_URL = new URL('YssPack.user.js', import.meta.url).href;
 const STORAGE_PREFIX = 'ysspack_';
@@ -54,6 +54,11 @@ const isEnabled = id => Boolean(read(moduleKey(id, 'enabled'), false));
 const getSetting = (id, key, fallback) => read(moduleKey(id, `setting_${key}`), fallback);
 const setSetting = (id, key, value) => write(moduleKey(id, `setting_${key}`), value);
 const logoUrl = new URL('assets/logo-ysspack-puzzle.png', import.meta.url).href;
+const versionedAssetUrl = path => {
+  const url = new URL(path, import.meta.url);
+  url.searchParams.set('v', PACK_VERSION);
+  return url.href;
+};
 const moduleIconUrls = Object.fromEntries([
   'bestiary',
   'item-time',
@@ -65,8 +70,8 @@ const moduleIconUrls = Object.fromEntries([
   'compact-party',
   'tytan-help'
 ].map(id => [id, {
-  enabled: new URL(`assets/module-${id}-enabled.png`, import.meta.url).href,
-  disabled: new URL(`assets/module-${id}-disabled.png`, import.meta.url).href
+  enabled: versionedAssetUrl(`assets/module-${id}-enabled.png`),
+  disabled: versionedAssetUrl(`assets/module-${id}-disabled.png`)
 }]));
 const moduleIconUrl = (id, enabled = isEnabled(id)) => moduleIconUrls[id]?.[enabled ? 'enabled' : 'disabled'] || logoUrl;
 
