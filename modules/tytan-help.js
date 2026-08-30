@@ -1,10 +1,22 @@
 const number = value => Number.isFinite(Number(value)) ? Number(value) : null;
 const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
 
+export function readSuperCast(warrior) {
+  const cast = warrior?.super_cast;
+  if (!cast || typeof cast !== 'object') return null;
+  const name = String(cast.name ?? '').trim();
+  if (!name) return null;
+  const total = cast.total_turns == null ? null : number(cast.total_turns);
+  const turn = cast.turn == null ? null : number(cast.turn);
+  const progress = total === 0 ? 100
+    : total > 0 && turn !== null ? Math.max(0, Math.min(100, turn / total * 100)) : null;
+  return { name, progress: progress === null ? null : Math.floor(progress) };
+}
+
 export default {
   id: 'tytan-help',
   name: 'TytanHelp',
-  version: '1.0.9',
+  version: '1.0.10',
   description: 'Pokazuje HP, odporności, umiejętność, naładowanie i cel ataku Kolosów oraz Tytanów.',
   icon: '⚔',
 
@@ -57,29 +69,6 @@ export default {
       if (!element) return null;
       const rect = element.getBoundingClientRect();
       return { x: rect.left + rect.width / 2, y: rect.top };
-    }
-
-    function charge(warrior) {
-      const root = warrior?.$?.[0];
-      if (!(root instanceof Element)) return null;
-      const bar = root.querySelector('.super-cast.stat-bar');
-      const inner = bar?.querySelector('.inner');
-      if (!bar || !inner || getComputedStyle(bar).display === 'none') return null;
-      return Math.max(0, Math.min(100, inner.getBoundingClientRect().width / Math.max(1, bar.clientWidth || bar.getBoundingClientRect().width) * 100));
-    }
-
-    function skill(warrior) {
-      const name = String(warrior?.name || '').trim();
-      const root = warrior?.$?.[0];
-      if (!name || !(root instanceof Element) || !root.querySelector('.warrior-buffs-wrapper .buff, .buffs-wrapper .buff')) return null;
-      const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const pattern = new RegExp(`^${escaped}\\s+wykonuje\\s+(.+?)[.!]?$`, 'i');
-      const entries = [...document.querySelectorAll('.battle-msg.attack2, .battle-msg.attack')];
-      for (let index = entries.length - 1; index >= 0; index -= 1) {
-        const found = (entries[index].textContent || '').replace(/\s+/g, ' ').trim().match(pattern);
-        if (found?.[1] && found[1].length <= 90) return found[1].trim();
-      }
-      return null;
     }
 
     function target(warrior) {
@@ -154,8 +143,9 @@ export default {
       const max = Math.max(1, number(warrior.hp?.max) || 1);
       const hpPercent = number(warrior.hp?.hpp);
       const healthPercent = hpPercent == null ? hp / max * 100 : hpPercent;
-      const usedSkill = skill(warrior);
-      const loaded = charge(warrior);
+      const cast = readSuperCast(warrior);
+      const usedSkill = cast?.name;
+      const loaded = cast?.progress;
       const focused = target(warrior);
       const armorDestroyed = warrior.ac && warrior.ac.destroyed !== undefined;
       const html = `<div class="yth-name">${escapeHtml(warrior.name || type)} (${escapeHtml(`${number(warrior.lvl) || '?'}${warrior.prof || ''}`)})</div>

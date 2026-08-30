@@ -1,6 +1,6 @@
 {
   "name": "YssPack",
-  "version": "0.15.72",
+  "version": "0.15.73",
   "author": "Król Yss",
   "modules": [
     {
@@ -48,7 +48,7 @@
     {
       "id": "tytan-help",
       "name": "TytanHelp",
-      "version": "1.0.9",
+      "version": "1.0.10",
       "file": "modules/tytan-help.js",
       "description": "Pokazuje HP, odporności, umiejętność, naładowanie i cel ataku Kolosów oraz Tytanów."
     },
