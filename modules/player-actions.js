@@ -23,7 +23,7 @@ const normalize = value => String(value || '').replace(/\s+/g, ' ').trim().toLow
 export default {
   id: 'player-actions',
   name: 'Kolorowe akcje gracza',
-  version: '1.3.1',
+  version: '1.3.2',
   description: 'Pozwala wybrać widoczne akcje gracza i niezależnie ustawić kolor każdej pozycji menu.',
   icon: '🎨',
   settings: [
@@ -92,6 +92,7 @@ export default {
     document.documentElement.appendChild(style);
 
     const mark = element => {
+      if (element.closest('#ysspack')) return;
       let target = element;
       while (target.parentElement && normalize(target.parentElement.textContent) === normalize(target.textContent)) {
         target = target.parentElement;
@@ -104,6 +105,7 @@ export default {
 
     const scan = root => {
       if (!(root instanceof Element || root instanceof Document)) return;
+      if (root instanceof Element && root.closest('#ysspack')) return;
       if (root instanceof Element && ACTIONS.has(normalize(root.textContent))) mark(root);
       root.querySelectorAll?.('*').forEach(element => {
         if (ACTIONS.has(normalize(element.textContent))) mark(element);
