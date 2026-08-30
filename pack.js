@@ -4,7 +4,7 @@ if (!host || document.querySelector('#ysspack')) {
   throw new Error('[YssPack] Loader nie jest aktywny albo panel został już uruchomiony.');
 }
 
-const PACK_VERSION = '0.15.74';
+const PACK_VERSION = '0.15.75';
 const UPDATE_MANIFEST_URL = new URL('manifest.json', import.meta.url).href;
 const UPDATE_INSTALL_URL = new URL('YssPack.user.js', import.meta.url).href;
 const STORAGE_PREFIX = 'ysspack_';
@@ -81,7 +81,10 @@ panel.innerHTML = `
     </div>
   </div>
   <div class="content"><div class="inner-content">
-    <span class="mhp-version">v${PACK_VERSION}</span>
+    <div class="mhp-pack-toolbar" aria-label="Aktualizacja całego YssPacka">
+      <span class="mhp-pack-version">YssPack v${PACK_VERSION}</span>
+      <div class="mhp-pack-update" role="status" aria-live="polite"></div>
+    </div>
     <div class="mhp-layout">
       <section class="mhp-left-column">
         <div class="mhp-column-background interface-element-middle-3-background-stretch"></div>
@@ -111,6 +114,7 @@ const list = panel.querySelector('.mhp-list');
 const search = panel.querySelector('.mhp-search');
 const detailHeader = panel.querySelector('.mhp-detail-header');
 const detailBody = panel.querySelector('.mhp-detail-body');
+const packUpdate = panel.querySelector('.mhp-pack-update');
 let selectedModuleId = read('selected_module', modules[0]?.id || '');
 let updateState = { status: 'checking', latestVersion: PACK_VERSION };
 const savedPanelPosition = read('panel_position', null);
@@ -118,6 +122,7 @@ const savedPanelPosition = read('panel_position', null);
 applyPosition(panel, savedPanelPosition, { right: 70, top: 90 });
 panel.hidden = !Boolean(read('panel_open', true));
 
+renderPackUpdate();
 renderModules();
 modules.forEach(module => { if (isEnabled(module.id)) startModule(module); });
 checkPackVersion();
@@ -207,7 +212,6 @@ function renderModuleDetails() {
       <button class="mhp-detail-toggle button small ${enabled ? 'red' : 'green'}" type="button" aria-pressed="${enabled}">
         <span class="background"></span><span class="label">${enabled ? 'Wyłącz' : 'Włącz'}</span>
       </button>
-      ${renderUpdateStatus()}
     </div>
     <div class="mhp-description-label">Opis:</div>
     <div class="mhp-detail-description">${escapeHtml(module.description || '')}</div>
@@ -231,15 +235,19 @@ function renderModuleDetails() {
 
 function renderUpdateStatus() {
   if (updateState.status === 'outdated') {
-    return `<a class="mhp-update-status outdated" href="${escapeHtml(UPDATE_INSTALL_URL)}" target="_blank" rel="noopener noreferrer" title="Zainstaluj YssPack ${escapeHtml(updateState.latestVersion)}">Dostępna aktualizacja</a>`;
+    return `<a class="mhp-update-status outdated" href="${escapeHtml(UPDATE_INSTALL_URL)}" target="_blank" rel="noopener noreferrer" title="Zainstaluj YssPack ${escapeHtml(updateState.latestVersion)} — aktualizacja całej paczki">Aktualizuj YssPack</a>`;
   }
   if (updateState.status === 'current') {
-    return '<span class="mhp-update-status current">Wersja aktualna</span>';
+    return '<span class="mhp-update-status current">YssPack jest aktualny</span>';
   }
   if (updateState.status === 'error') {
     return '<span class="mhp-update-status error">Nie udało się sprawdzić</span>';
   }
   return '<span class="mhp-update-status checking">Sprawdzanie wersji…</span>';
+}
+
+function renderPackUpdate() {
+  packUpdate.innerHTML = renderUpdateStatus();
 }
 
 async function checkPackVersion() {
@@ -257,7 +265,7 @@ async function checkPackVersion() {
     updateState = { status: 'error', latestVersion: PACK_VERSION };
     console.warn('[YssPack] Nie udało się sprawdzić aktualizacji:', error);
   }
-  renderModuleDetails();
+  renderPackUpdate();
 }
 
 function compareVersions(left, right) {

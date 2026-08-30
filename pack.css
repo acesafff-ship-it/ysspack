@@ -80,8 +80,41 @@
 .mhp-layout {
   position: relative;
   width: 528px;
-  height: 100%;
+  flex: 1 1 0;
+  min-height: 0;
 }
+
+#ysspack .mhp-pack-toolbar {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 34px;
+  padding: 5px 9px;
+  margin-bottom: 3px;
+  background: #282929;
+  border-bottom: 1px solid #8e8062;
+}
+
+#ysspack .mhp-pack-version { color: #ead9c0; font-weight: bold; }
+#ysspack .mhp-pack-update { text-align: right; }
+#ysspack .mhp-pack-update .mhp-update-status { text-shadow: none; }
+#ysspack .mhp-pack-update .current { color: #8fda83; }
+#ysspack .mhp-pack-update .checking,
+#ysspack .mhp-pack-update .error { color: #e2d2ae; }
+#ysspack .mhp-pack-update .outdated {
+  display: inline-block;
+  padding: 3px 8px;
+  border: 1px solid #c5ad6d;
+  border-radius: 4px;
+  background: #465329;
+  color: #fff0bd;
+  text-decoration: none;
+}
+#ysspack .mhp-pack-update .outdated:hover { background: #596b32; }
 
 .mhp-left-column,
 .mhp-right-column {
