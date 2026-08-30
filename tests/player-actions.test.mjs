@@ -15,7 +15,7 @@ test('does not color or hide YssPack settings while styling game actions', () =>
   const action = new FakeElement('Nawiguj');
   const document = new FakeDocument();
   document.createElement = () => new FakeElement('');
-  document.documentElement = { append() {} };
+  document.documentElement = { appendChild() {} };
   document.querySelectorAll = () => [setting, action];
   let onMutation;
   try {
