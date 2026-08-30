@@ -339,13 +339,11 @@
   padding: 0 !important;
   align-items: center !important;
   justify-content: center !important;
-  color: #f2f2ed;
-  font-family: Arial, sans-serif;
-  font-size: 12px;
-  font-weight: bold;
+  color: #e6d6bf;
+  font-size: 14px;
+  font-weight: normal;
   line-height: 1 !important;
   text-align: center;
-  text-shadow: 1px 1px #000, -1px 0 #000, 0 -1px #000;
 }
 
 .mhp-settings {
@@ -512,40 +510,14 @@
 }
 
 .mhp-detail-toggle.button {
-  position: relative;
   display: flex !important;
   width: auto !important;
-  min-width: 76px;
-  height: 30px !important;
+  min-width: 62px;
+  height: 28px !important;
   margin: 0;
-  padding: 4px 9px !important;
   align-items: center;
   justify-content: center;
-  border: 2px solid #090a09 !important;
-  border-radius: 2px !important;
-  background-image: none !important;
-  box-shadow:
-    0 0 0 1px #c7c9c7,
-    0 0 0 2px #191b19,
-    inset 0 0 0 2px var(--mhp-toggle-edge),
-    inset 0 0 0 3px #101510,
-    inset 0 1px rgba(255, 255, 255, .18) !important;
   cursor: pointer;
-  image-rendering: pixelated;
-}
-
-.mhp-detail-toggle.button.green {
-  --mhp-toggle-edge: #71bd50;
-  background: linear-gradient(#376e32, #173f1d 52%, #102f16) !important;
-}
-
-.mhp-detail-toggle.button.red {
-  --mhp-toggle-edge: #d24f48;
-  background: linear-gradient(#843630, #571b19 52%, #3c1010) !important;
-}
-
-.mhp-detail-toggle.button > .background {
-  display: none !important;
 }
 
 .mhp-toggle-row {
@@ -571,6 +543,31 @@
   color: #a51e1e;
   cursor: pointer;
   text-decoration: underline;
+}
+
+.mhp-update-status.outdated.button {
+  display: inline-flex !important;
+  width: auto !important;
+  min-width: 122px;
+  height: 28px !important;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.mhp-update-status.outdated.button .label {
+  position: relative !important;
+  inset: auto !important;
+  display: flex !important;
+  width: 100% !important;
+  height: 100% !important;
+  padding: 0 8px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: #e6d6bf;
+  font-size: 12px;
+  line-height: 1 !important;
+  white-space: nowrap;
 }
 
 .mhp-update-status.outdated:hover {

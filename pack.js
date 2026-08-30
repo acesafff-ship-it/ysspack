@@ -4,7 +4,7 @@ if (!host || document.querySelector('#ysspack')) {
   throw new Error('[YssPack] Loader nie jest aktywny albo panel został już uruchomiony.');
 }
 
-const PACK_VERSION = '0.15.82';
+const PACK_VERSION = '0.15.83';
 const UPDATE_MANIFEST_URL = new URL('manifest.json', import.meta.url).href;
 const UPDATE_INSTALL_URL = new URL('YssPack.user.js', import.meta.url).href;
 const STORAGE_PREFIX = 'ysspack_';
@@ -235,7 +235,7 @@ function renderModuleDetails() {
 
 function renderUpdateStatus() {
   if (updateState.status === 'outdated') {
-    return `<a class="mhp-update-status outdated" href="${escapeHtml(UPDATE_INSTALL_URL)}" target="_blank" rel="noopener noreferrer" title="Zainstaluj YssPack ${escapeHtml(updateState.latestVersion)} — aktualizacja całej paczki">Aktualizuj YssPack</a>`;
+    return `<a class="mhp-update-status outdated button small green" href="${escapeHtml(UPDATE_INSTALL_URL)}" target="_blank" rel="noopener noreferrer" title="Zainstaluj YssPack ${escapeHtml(updateState.latestVersion)} — aktualizacja całej paczki"><span class="background"></span><span class="label">Aktualizuj YssPack</span></a>`;
   }
   if (updateState.status === 'current') {
     return '<span class="mhp-update-status current">YssPack jest aktualny</span>';
