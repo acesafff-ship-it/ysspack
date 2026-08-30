@@ -1,6 +1,6 @@
 {
   "name": "YssPack",
-  "version": "0.15.76",
+  "version": "0.15.77",
   "author": "Król Yss",
   "modules": [
     {
@@ -55,7 +55,7 @@
     {
       "id": "battle-log-reader",
       "name": "Czytelny log walki",
-      "version": "1.0.3",
+      "version": "1.0.4",
       "file": "modules/battle-log-reader.js",
       "description": "Pogrubia wyróżnione akcje i efekty w oryginalnym logu walki."
     },
