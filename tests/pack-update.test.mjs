@@ -29,6 +29,7 @@ test('module details contain no pack update controls', () => {
 test('module icon URLs are cache-busted with the pack version', () => {
   const iconUrls = source.slice(source.indexOf('const versionedAssetUrl'), source.indexOf('const panel ='));
   assert.ok(iconUrls.includes("url.searchParams.set('v', PACK_VERSION)"));
+  assert.ok(iconUrls.includes("const logoUrl = versionedAssetUrl('assets/logo-ysspack-puzzle.png')"));
   assert.ok(iconUrls.includes('enabled: versionedAssetUrl'));
   assert.ok(iconUrls.includes('disabled: versionedAssetUrl'));
 });

@@ -4,7 +4,7 @@ if (!host || document.querySelector('#ysspack')) {
   throw new Error('[YssPack] Loader nie jest aktywny albo panel został już uruchomiony.');
 }
 
-const PACK_VERSION = '0.15.87';
+const PACK_VERSION = '0.15.88';
 const UPDATE_MANIFEST_URL = new URL('manifest.json', import.meta.url).href;
 const UPDATE_INSTALL_URL = new URL('YssPack.user.js', import.meta.url).href;
 const STORAGE_PREFIX = 'ysspack_';
@@ -53,12 +53,12 @@ const moduleKey = (id, suffix) => `module_${id}_${suffix}`;
 const isEnabled = id => Boolean(read(moduleKey(id, 'enabled'), false));
 const getSetting = (id, key, fallback) => read(moduleKey(id, `setting_${key}`), fallback);
 const setSetting = (id, key, value) => write(moduleKey(id, `setting_${key}`), value);
-const logoUrl = new URL('assets/logo-ysspack-puzzle.png', import.meta.url).href;
 const versionedAssetUrl = path => {
   const url = new URL(path, import.meta.url);
   url.searchParams.set('v', PACK_VERSION);
   return url.href;
 };
+const logoUrl = versionedAssetUrl('assets/logo-ysspack-puzzle.png');
 const moduleIconUrls = Object.fromEntries([
   'bestiary',
   'item-time',
