@@ -10,13 +10,27 @@ export function readSuperCast(warrior) {
   const turn = cast.turn == null ? null : number(cast.turn);
   const progress = total === 0 ? 100
     : total > 0 && turn !== null ? Math.max(0, Math.min(100, turn / total * 100)) : null;
-  return { name, progress: progress === null ? null : Math.floor(progress) };
+  const remaining = total === 0 ? 0 : total > 0 && turn !== null
+    ? Math.max(0, Math.ceil(total - Math.max(0, turn))) : null;
+  return { name, progress: progress === null ? null : Math.floor(progress), remaining };
+}
+
+const statFormatter = new Intl.NumberFormat('pl-PL', { maximumFractionDigits: 0 });
+export function formatStat(stat, unit = '') {
+  const base = Math.round(number(stat?.cur) || 0);
+  const bonus = Math.round(number(stat?.bonus) || 0);
+  return `${statFormatter.format(base)}${unit}${bonus ? ` (${bonus > 0 ? '+' : ''}${statFormatter.format(bonus)}${unit})` : ''}`;
+}
+
+export function formatTurns(count) {
+  const word = count === 1 ? 'tura' : count % 10 >= 2 && count % 10 <= 4 && (count % 100 < 12 || count % 100 > 14) ? 'tury' : 'tur';
+  return `${count} ${word}`;
 }
 
 export default {
   id: 'tytan-help',
   name: 'TytanHelp',
-  version: '1.0.10',
+  version: '1.0.11',
   description: 'Pokazuje HP, odporności, umiejętność, naładowanie i cel ataku Kolosów oraz Tytanów.',
   icon: '⚔',
 
@@ -41,10 +55,6 @@ export default {
 
     function saveOffset() {
       localStorage.setItem('ysspack-tytan-help-offset', JSON.stringify(offset));
-    }
-
-    function statValue(stat) {
-      return Math.round((number(stat?.cur) || 0) + (number(stat?.bonus) || 0));
     }
 
     function bossType(warrior) {
@@ -150,10 +160,10 @@ export default {
       const armorDestroyed = warrior.ac && warrior.ac.destroyed !== undefined;
       const html = `<div class="yth-name">${escapeHtml(warrior.name || type)} (${escapeHtml(`${number(warrior.lvl) || '?'}${warrior.prof || ''}`)})</div>
         <div class="yth-row">Życie: ${fmt.format(hp)} / ${fmt.format(max)} (${percent.format(healthPercent)}%)</div>
-        <div class="yth-row">Pancerz: ${fmt.format(statValue(warrior.ac))}${armorDestroyed ? ' <span class="yth-destroyed">— zniszczony</span>' : ''}</div><div class="yth-row">Odporności:</div>
-        <div class="yth-res"><span class="yth-fire">${statValue(warrior.resfire)}%</span><span class="yth-light">${statValue(warrior.reslight)}%</span><span class="yth-frost">${statValue(warrior.resfrost)}%</span><span class="yth-poison">${statValue(warrior.act)}%</span></div>
+        <div class="yth-row">Pancerz: ${formatStat(warrior.ac)}${armorDestroyed ? ' <span class="yth-destroyed">— zniszczony</span>' : ''}</div><div class="yth-row">Odporności:</div>
+        <div class="yth-res"><span class="yth-fire">${formatStat(warrior.resfire, '%')}</span><span class="yth-light">${formatStat(warrior.reslight, '%')}</span><span class="yth-frost">${formatStat(warrior.resfrost, '%')}</span><span class="yth-poison">${formatStat(warrior.act, '%')}</span></div>
         ${usedSkill ? `<div class="yth-row yth-power">Umiejętność: ${escapeHtml(usedSkill)}</div>` : ''}
-        ${loaded == null ? '' : `<div class="yth-row yth-power">Naładowano: ${Math.round(loaded)}%</div>`}
+        ${loaded == null ? '' : `<div class="yth-row yth-power">Naładowano: ${Math.round(loaded)}%${cast.remaining == null ? '' : ` • pozostało: ${formatTurns(cast.remaining)}`}</div>`}
         ${focused ? `<div class="yth-row">Cel ataku: ${escapeHtml(focused)}</div>` : ''}`;
       if (label.dataset.ythHtml !== html) {
         label.innerHTML = html;
