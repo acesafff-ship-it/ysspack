@@ -4,7 +4,7 @@ if (!host || document.querySelector('#ysspack')) {
   throw new Error('[YssPack] Loader nie jest aktywny albo panel został już uruchomiony.');
 }
 
-const PACK_VERSION = '0.15.91';
+const PACK_VERSION = '0.15.92';
 const UPDATE_MANIFEST_URL = new URL('manifest.json', import.meta.url).href;
 const UPDATE_INSTALL_URL = new URL('YssPack.user.js', import.meta.url).href;
 const STORAGE_PREFIX = 'ysspack_';
@@ -324,8 +324,16 @@ function moduleContext(module) {
     GM_setValue: host.GM_setValue,
     GM_deleteValue: host.GM_deleteValue,
     getSetting: (key, fallback) => getSetting(module.id, key, fallback),
-    setSetting: (key, value) => setSetting(module.id, key, value)
+    setSetting: (key, value) => setSetting(module.id, key, value),
+    onError: error => failModule(module, error)
   };
+}
+
+function failModule(module, error) {
+  console.error(`[YssPack] Błąd modułu ${module.name}:`, error);
+  stopModule(module.id);
+  write(moduleKey(module.id, 'enabled'), false);
+  renderModules();
 }
 
 function startModule(module) {
@@ -334,9 +342,7 @@ function startModule(module) {
     const cleanup = module.start?.(moduleContext(module));
     cleanups.set(module.id, typeof cleanup === 'function' ? cleanup : () => {});
   } catch (error) {
-    console.error(`[YssPack] Błąd modułu ${module.name}:`, error);
-    write(moduleKey(module.id, 'enabled'), false);
-    renderModules();
+    failModule(module, error);
   }
 }
 

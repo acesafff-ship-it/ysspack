@@ -30,7 +30,7 @@ export function formatTurns(count) {
 export default {
   id: 'tytan-help',
   name: 'TytanHelp',
-  version: '1.0.12',
+  version: '1.0.13',
   description: 'Pokazuje HP, odporności, umiejętność, naładowanie i cel ataku Kolosów oraz Tytanów.',
   icon: '⚔',
 
@@ -224,7 +224,14 @@ export default {
       updateTimer = setInterval(update, 250);
     }
 
-    const battleObserver = new MutationObserver(() => {
+    const battleObserver = new MutationObserver(records => {
+      const battleChanged = records.some(record =>
+        (record.target instanceof Element && record.target.closest('.battle-controller'))
+        || [...record.addedNodes, ...record.removedNodes].some(node =>
+          node instanceof Element && (node.matches('.battle-controller') || node.querySelector?.('.battle-controller'))
+        )
+      );
+      if (!battleChanged) return;
       if (reconcileQueued) return;
       reconcileQueued = true;
       queueMicrotask(reconcileBattleState);

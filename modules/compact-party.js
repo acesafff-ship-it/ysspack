@@ -15,7 +15,7 @@ const PROFESSION_SHORT_NAMES = { m: 'Mag', w: 'Woj', p: 'Pal', t: 'Trop', h: 'Ł
 export default {
   id: MODULE_ID,
   name: 'Kompaktowy podgląd drużyny',
-  version: '1.0.13',
+  version: '1.0.14',
   description: 'Dodaje avatary, poprawne poziomy, profesje i czytelne statusy do natywnego panelu drużyny.',
   icon: '👥',
 
@@ -295,12 +295,7 @@ export default {
         partyObserver.disconnect();
         observedPartyWindow = windowElement;
         if (observedPartyWindow) {
-          partyObserver.observe(observedPartyWindow, {
-            childList: true,
-            subtree: true,
-            attributes: true,
-            attributeFilter: ['class', 'style']
-          });
+          partyObserver.observe(observedPartyWindow, { childList: true, subtree: true });
         }
       }
       if (!windowElement) return;

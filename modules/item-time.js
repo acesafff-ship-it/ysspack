@@ -6,7 +6,7 @@ const EQUIPPED_BLESSING_SLOT_ID = 10;
 export default {
   id: 'item-time',
   name: 'Minuty i sekundy przedmiotu',
-  version: '2.3.2',
+  version: '2.3.3',
   description: 'Pokazuje dokładny czas błogosławieństwa na ikonie i w tooltipie.',
   icon: '⏱',
 
@@ -116,7 +116,13 @@ export default {
       hoveredItemId = id;
       queueUpdate();
     };
+    const onMouseOut = event => {
+      const item = event.target?.closest?.('.item');
+      if (!item || item.contains(event.relatedTarget)) return;
+      if (hoveredItemId === getItemId(item)) hoveredItemId = null;
+    };
     document.addEventListener('mouseover', onMouseOver, true);
+    document.addEventListener('mouseout', onMouseOut, true);
     const observer = new MutationObserver(records => {
       records.forEach(record => record.addedNodes.forEach(node => {
         if (node instanceof Element) trackItems(node);
@@ -133,6 +139,7 @@ export default {
       window.clearInterval(timer);
       if (updateFrame) cancelAnimationFrame(updateFrame);
       document.removeEventListener('mouseover', onMouseOver, true);
+      document.removeEventListener('mouseout', onMouseOut, true);
       style.remove();
       document.querySelectorAll(`.${BADGE_CLASS}`).forEach(element => element.remove());
       document.querySelectorAll(`.${BADGE_CLASS}-host`).forEach(element => element.classList.remove(`${BADGE_CLASS}-host`));

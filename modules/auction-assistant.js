@@ -1,6 +1,7 @@
 const SOURCE_URL = new URL('../sources/auction-assistant.user.js', import.meta.url);
 const CLEANUP_KEY = '__YSSPACK_AUCTION_ASSISTANT_CLEANUP__';
 const FLAG_KEY = '__YSSPACK_AUCTION_ASSISTANT__';
+let loadGeneration = 0;
 
 function prepareSource(original) {
   let source = original;
@@ -41,28 +42,34 @@ function prepareSource(original) {
 
 export { prepareSource };
 
-async function loadAndRun() {
+async function loadAndRun(shouldRun) {
   const response = await fetch(`${SOURCE_URL.href}?t=${Date.now()}`, { cache: 'no-store' });
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
   const source = prepareSource(await response.text());
+  if (!shouldRun()) return false;
   new Function(`${source}\n//# sourceURL=YssPack-Asystent-Aukcji.user.js`)();
+  return true;
 }
 
 export default {
   id: 'auction-assistant',
   name: 'Asystent Aukcji',
-  version: '2.0.16',
+  version: '2.0.17',
   description: 'Automatycznie pobiera ceny przedmiotu bez otwierania listy aukcji.',
   icon: '⚖',
 
-  start() {
+  start(context = {}) {
     if (location.hostname === 'www.margonem.pl') return () => {};
     let stopped = false;
-    loadAndRun()
-      .then(() => { if (stopped) window[CLEANUP_KEY]?.(); })
-      .catch(error => console.error('[YssPack] Asystent Aukcji:', error));
+    const generation = ++loadGeneration;
+    loadAndRun(() => !stopped && generation === loadGeneration)
+      .then(started => { if (started && (stopped || generation !== loadGeneration)) window[CLEANUP_KEY]?.(); })
+      .catch(error => {
+        if (!stopped && generation === loadGeneration) context.onError?.(error);
+      });
     return () => {
       stopped = true;
+      if (generation === loadGeneration) loadGeneration += 1;
       window[CLEANUP_KEY]?.();
     };
   }

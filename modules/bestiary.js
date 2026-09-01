@@ -1,7 +1,8 @@
 const MODULE_ID = 'bestiary';
-const SOURCE_URL = 'https://raw.githubusercontent.com/acesafff-ship-it/margohelp-bestiariusz/54fb9f1f22cf5eb130a65f9fc800a50558bc36b0/MargoHelp-Bestiariusz.user.js';
+const SOURCE_URL = 'https://raw.githubusercontent.com/acesafff-ship-it/margohelp-bestiariusz/main/MargoHelp-Bestiariusz.user.js';
 const GLOBAL_FLAG = '__KROL_YSS_FORUM_ELITE_ITEMS__';
 const PRESENCE_FLAG = '__KROL_YSS_BESTIARY_PRESENCE__';
+const LIFECYCLE_FLAG = '__KROL_YSS_BESTIARY_LIFECYCLE__';
 const UI_SELECTORS = [
   '#ky-forum-e2',
   '.kyf-launch',
@@ -16,7 +17,8 @@ function findUi() {
 }
 
 function hideUi() {
-  window[PRESENCE_FLAG]?.stop?.();
+  if (window[LIFECYCLE_FLAG]?.suspend) window[LIFECYCLE_FLAG].suspend();
+  else window[PRESENCE_FLAG]?.stop?.();
   findUi().forEach(element => {
     if (!Object.hasOwn(element.dataset, 'ysspackDisplay')) {
       element.dataset.ysspackDisplay = element.style.display || '';
@@ -32,7 +34,8 @@ function showUi() {
     if (display) element.style.display = display;
     delete element.dataset.ysspackDisplay;
   });
-  window[PRESENCE_FLAG]?.start?.();
+  if (window[LIFECYCLE_FLAG]?.resume) window[LIFECYCLE_FLAG].resume();
+  else window[PRESENCE_FLAG]?.start?.();
 }
 
 function downloadSource(request) {
@@ -71,7 +74,7 @@ function executeBestiary(source, context) {
 export default {
   id: MODULE_ID,
   name: 'Bestiariusz Podręczny',
-  version: '2.2.55',
+  version: '2.2.60',
   description: 'Elity, Elity II, Herosi, Kolosi i Tytani wraz z przedmiotami, trasami i kalkulatorem łupu.',
   icon: 'B',
 
@@ -89,7 +92,7 @@ export default {
           if (stopped) hideUi();
         })
         .catch(error => {
-          console.error('[YssPack] Nie udało się uruchomić Bestiariusza:', error);
+          if (!stopped) context.onError?.(error);
         });
     }
 

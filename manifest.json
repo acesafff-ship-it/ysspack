@@ -1,19 +1,19 @@
 {
   "name": "YssPack",
-  "version": "0.15.91",
+  "version": "0.15.92",
   "author": "Król Yss",
   "modules": [
     {
       "id": "bestiary",
       "name": "Bestiariusz Podręczny",
-      "version": "2.2.55",
+      "version": "2.2.60",
       "file": "modules/bestiary.js",
       "description": "Elity, Elity II, Herosi, Kolosi i Tytani wraz z przedmiotami, trasami i kalkulatorem łupu."
     },
     {
       "id": "item-time",
       "name": "Minuty i sekundy przedmiotu",
-      "version": "2.3.2",
+      "version": "2.3.3",
       "file": "modules/item-time.js",
       "description": "Pokazuje dokładny czas błogosławieństwa na ikonie i w tooltipie."
     },
@@ -27,14 +27,14 @@
     {
       "id": "auction-assistant",
       "name": "Asystent Aukcji",
-      "version": "2.0.16",
+      "version": "2.0.17",
       "file": "modules/auction-assistant.js",
       "description": "Automatycznie pobiera ceny przedmiotu bez otwierania listy aukcji."
     },
     {
       "id": "player-actions",
       "name": "Kolorowe akcje gracza",
-      "version": "1.3.2",
+      "version": "1.3.3",
       "file": "modules/player-actions.js",
       "description": "Pozwala wybrać widoczne akcje gracza i niezależnie ustawić kolor każdej pozycji menu."
     },
@@ -48,7 +48,7 @@
     {
       "id": "tytan-help",
       "name": "TytanHelp",
-      "version": "1.0.12",
+      "version": "1.0.13",
       "file": "modules/tytan-help.js",
       "description": "Pokazuje HP, odporności, umiejętność, naładowanie i cel ataku Kolosów oraz Tytanów."
     },
@@ -62,7 +62,7 @@
     {
       "id": "compact-party",
       "name": "Kompaktowy podgląd drużyny",
-      "version": "1.0.13",
+      "version": "1.0.14",
       "file": "modules/compact-party.js",
       "description": "Dodaje avatary, poprawne poziomy, profesje i czytelne statusy do natywnego panelu drużyny."
     }

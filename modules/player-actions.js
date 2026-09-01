@@ -18,12 +18,13 @@ const ACTIONS = new Map([
   ['zmień strój', 'outfit']
 ]);
 
+const CANDIDATE_SELECTOR = 'button,a,[role="button"],.menu-item,.option,.button,li';
 const normalize = value => String(value || '').replace(/\s+/g, ' ').trim().toLowerCase();
 
 export default {
   id: 'player-actions',
   name: 'Kolorowe akcje gracza',
-  version: '1.3.2',
+  version: '1.3.3',
   description: 'Pozwala wybrać widoczne akcje gracza i niezależnie ustawić kolor każdej pozycji menu.',
   icon: '🎨',
   settings: [
@@ -107,7 +108,7 @@ export default {
       if (!(root instanceof Element || root instanceof Document)) return;
       if (root instanceof Element && root.closest('#ysspack')) return;
       if (root instanceof Element && ACTIONS.has(normalize(root.textContent))) mark(root);
-      root.querySelectorAll?.('*').forEach(element => {
+      root.querySelectorAll?.(CANDIDATE_SELECTOR).forEach(element => {
         if (ACTIONS.has(normalize(element.textContent))) mark(element);
       });
     };
@@ -118,7 +119,7 @@ export default {
         if (node instanceof Element) scan(node);
       }));
     });
-    observer.observe(document.documentElement, { childList: true, subtree: true });
+    observer.observe(document.body, { childList: true, subtree: true });
 
     return () => {
       observer.disconnect();
