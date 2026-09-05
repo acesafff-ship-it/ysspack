@@ -31,3 +31,27 @@ test('bestiary uses the current standalone source and lifecycle', async () => {
   assert.match(source, /margohelp-bestiariusz\/main\/MargoHelp-Bestiariusz\.user\.js/);
   assert.match(source, /__KROL_YSS_BESTIARY_LIFECYCLE__/);
 });
+
+test('pack modules load in parallel and cache by release version', async () => {
+  const [loader, pack] = await Promise.all([read('YssPack.user.js'), read('pack.js')]);
+  assert.match(pack, /Promise\.all\(moduleFiles\.map/);
+  assert.doesNotMatch(pack, /moduleCacheKey/);
+  assert.doesNotMatch(loader, /const cacheKey/);
+});
+
+test('auction assistant removes document listeners and limits DOM observation', async () => {
+  const [source, wrapper] = await Promise.all([
+    read('sources/auction-assistant.user.js'), read('modules/auction-assistant.js')
+  ]);
+  assert.match(source, /onRememberItemPointerDown/);
+  assert.match(source, /observer\.observe\(document\.body/);
+  assert.match(wrapper, /removeEventListener\("pointerdown", onRememberItemPointerDown/);
+  assert.match(wrapper, /removeEventListener\("click", onRememberItemClick/);
+});
+
+test('chat icon retries and removed views are cleaned up', async () => {
+  const source = await read('modules/chat-item-icons.js');
+  assert.match(source, /const retryTimers = new Set/);
+  assert.match(source, /function releaseRemovedTree/);
+  assert.match(source, /retryTimers\.forEach\(clearTimeout\)/);
+});

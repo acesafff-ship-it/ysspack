@@ -1,6 +1,7 @@
 const SOURCE_URL = new URL('../sources/character-storage.user.js', import.meta.url);
 const CLEANUP_KEY = '__YSSPACK_CHARACTER_STORAGE_CLEANUP__';
 const FLAG_KEY = '__YSSPACK_CHARACTER_STORAGE__';
+let loadGeneration = 0;
 
 function prepareSource(original) {
   let source = original;
@@ -47,28 +48,34 @@ function prepareSource(original) {
 
 export { prepareSource };
 
-async function loadAndRun() {
+async function loadAndRun(shouldRun) {
   const response = await fetch(`${SOURCE_URL.href}?t=${Date.now()}`, { cache: 'no-store' });
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
   const source = prepareSource(await response.text());
+  if (!shouldRun()) return false;
   new Function(`${source}\n//# sourceURL=YssPack-Magazyn-Postaci.user.js`)();
+  return true;
 }
 
 export default {
   id: 'character-storage',
   name: 'Magazyn Postaci',
-  version: '1.4.3',
+  version: '1.4.4',
   description: 'Zapamiętuje i wyświetla zawartość toreb własnych postaci.',
   icon: '🎒',
 
-  start() {
+  start(context = {}) {
     if (location.hostname === 'www.margonem.pl') return () => {};
     let stopped = false;
-    loadAndRun()
-      .then(() => { if (stopped) window[CLEANUP_KEY]?.(); })
-      .catch(error => console.error('[YssPack] Magazyn Postaci:', error));
+    const generation = ++loadGeneration;
+    loadAndRun(() => !stopped && generation === loadGeneration)
+      .then(started => { if (started && (stopped || generation !== loadGeneration)) window[CLEANUP_KEY]?.(); })
+      .catch(error => {
+        if (!stopped && generation === loadGeneration) context.onError?.(error);
+      });
     return () => {
       stopped = true;
+      if (generation === loadGeneration) loadGeneration += 1;
       window[CLEANUP_KEY]?.();
     };
   }

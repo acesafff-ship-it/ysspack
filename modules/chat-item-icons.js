@@ -9,7 +9,7 @@ const wait = milliseconds => new Promise(resolve => setTimeout(resolve, millisec
 export default {
   id: MODULE_ID,
   name: 'Ikony przedmiotów na czacie',
-  version: '1.3.7',
+  version: '1.3.8',
   description: 'Automatycznie zastępuje nazwy podlinkowanych przedmiotów na czacie ich natywnymi ikonami.',
   icon: '◆',
 
@@ -26,6 +26,7 @@ export default {
     const retryCounts = new WeakMap();
     const rendered = new Map();
     const formattedLootSections = new Set();
+    const retryTimers = new Set();
 
     const interfaceLayer = document.querySelector('.interface-layer');
     if (interfaceLayer?.scrollTop) interfaceLayer.scrollTop = 0;
@@ -279,7 +280,11 @@ export default {
           const retryCount = retryCounts.get(element) ?? 0;
           if (retryCount < 5) {
             retryCounts.set(element, retryCount + 1);
-            setTimeout(() => enqueue(element), 500 + retryCount * 500);
+            const timer = setTimeout(() => {
+              retryTimers.delete(timer);
+              enqueue(element);
+            }, 500 + retryCount * 500);
+            retryTimers.add(timer);
           }
         }
         pending.delete(element);
@@ -294,6 +299,7 @@ export default {
     }
 
     function enqueue(root = document) {
+      if (stopped) return;
       const elements = root.matches?.(LINK_SELECTOR)
         ? [root]
         : [...root.querySelectorAll?.(LINK_SELECTOR) ?? []];
@@ -308,10 +314,33 @@ export default {
       }
     }
 
+    function releaseRemovedTree(root) {
+      if (!(root instanceof Element)) return;
+      const renderedElements = root.matches(`${LINK_SELECTOR}.${READY_CLASS}`)
+        ? [root]
+        : [...root.querySelectorAll(`${LINK_SELECTOR}.${READY_CLASS}`)];
+      renderedElements.forEach(element => {
+        const native = rendered.get(element);
+        if (native) {
+          try { native.manager?.deleteViewIconIfExist?.(native.item.id, native.viewType); } catch (_) {}
+          rendered.delete(element);
+        }
+        pending.delete(element);
+        queued.delete(element);
+      });
+      const sections = root.matches('.message-section')
+        ? [root]
+        : [...root.querySelectorAll('.message-section')];
+      sections.forEach(section => formattedLootSections.delete(section));
+    }
+
     const observer = new MutationObserver(records => {
-      records.forEach(record => record.addedNodes.forEach(node => {
-        if (node.nodeType === Node.ELEMENT_NODE) enqueue(node);
-      }));
+      records.forEach(record => {
+        record.addedNodes.forEach(node => {
+          if (node.nodeType === Node.ELEMENT_NODE) enqueue(node);
+        });
+        record.removedNodes.forEach(releaseRemovedTree);
+      });
     });
     observer.observe(document.body, { childList: true, subtree: true });
     document.addEventListener('pointerdown', onPossibleSessionAction, true);
@@ -326,6 +355,8 @@ export default {
       window.removeEventListener('pagehide', pauseFetching, true);
       window.removeEventListener('beforeunload', pauseFetching, true);
       queued.clear();
+      retryTimers.forEach(clearTimeout);
+      retryTimers.clear();
       rendered.forEach(({ manager, item, viewType }, element) => {
         try { manager?.deleteViewIconIfExist?.(item.id, viewType); } catch (_) { /* bez wpływu na wyłączenie */ }
         if (element.isConnected) {

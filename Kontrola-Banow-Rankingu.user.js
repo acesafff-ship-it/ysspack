@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Margonem — Kontrola banów rankingu
 // @namespace    krol-yss.margonem.ranking-ban-scanner
-// @version      1.0.0
+// @version      1.0.3
 // @description  Sprawdza bany graczy nieaktywnych co najmniej 24 godziny na bieżącej stronie rankingu.
 // @author       Król Yss
 // @match        https://www.margonem.pl/ladder/*/players*
@@ -15,7 +15,7 @@
   window.__YSS_RANKING_BAN_SCANNER__ = true;
 
   try {
-    const url = `https://acesafff-ship-it.github.io/ysspack/modules/ranking-ban-scanner.js?t=${Date.now()}`;
+    const url = 'https://acesafff-ship-it.github.io/ysspack/modules/ranking-ban-scanner.js?v=1.0.3';
     const module = await import(url);
     window.__YSS_RANKING_BAN_SCANNER_CLEANUP__ = module.default.start();
   } catch (error) {

@@ -1,6 +1,6 @@
 {
   "name": "YssPack",
-  "version": "0.15.92",
+  "version": "0.15.93",
   "author": "Król Yss",
   "modules": [
     {
@@ -13,35 +13,35 @@
     {
       "id": "item-time",
       "name": "Minuty i sekundy przedmiotu",
-      "version": "2.3.3",
+      "version": "2.3.4",
       "file": "modules/item-time.js",
       "description": "Pokazuje dokładny czas błogosławieństwa na ikonie i w tooltipie."
     },
     {
       "id": "chat-item-icons",
       "name": "Ikony przedmiotów na czacie",
-      "version": "1.3.7",
+      "version": "1.3.8",
       "file": "modules/chat-item-icons.js",
       "description": "Automatycznie zastępuje nazwy podlinkowanych przedmiotów na czacie ich natywnymi ikonami."
     },
     {
       "id": "auction-assistant",
       "name": "Asystent Aukcji",
-      "version": "2.0.17",
+      "version": "2.0.18",
       "file": "modules/auction-assistant.js",
       "description": "Automatycznie pobiera ceny przedmiotu bez otwierania listy aukcji."
     },
     {
       "id": "player-actions",
       "name": "Kolorowe akcje gracza",
-      "version": "1.3.3",
+      "version": "1.3.4",
       "file": "modules/player-actions.js",
       "description": "Pozwala wybrać widoczne akcje gracza i niezależnie ustawić kolor każdej pozycji menu."
     },
     {
       "id": "ranking-ban-scanner",
       "name": "Kontrola banów rankingu",
-      "version": "1.0.2",
+      "version": "1.0.3",
       "file": "modules/ranking-ban-scanner.js",
       "description": "Sprawdza bany graczy nieaktywnych co najmniej 24 godziny na bieżącej stronie rankingu."
     },

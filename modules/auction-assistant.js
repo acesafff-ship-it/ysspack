@@ -26,6 +26,8 @@ function prepareSource(original) {
     clearInterval(refreshInterval);
     clearTimeout(lookupTimer);
     clearTimeout(iconHydrationTimer);
+    document.removeEventListener("pointerdown", onRememberItemPointerDown, true);
+    document.removeEventListener("click", onRememberItemClick, true);
     window.removeEventListener("resize", queueUpdate);
     panel?.remove();
     document.getElementById(STYLE_ID)?.remove();
@@ -54,7 +56,7 @@ async function loadAndRun(shouldRun) {
 export default {
   id: 'auction-assistant',
   name: 'Asystent Aukcji',
-  version: '2.0.17',
+  version: '2.0.18',
   description: 'Automatycznie pobiera ceny przedmiotu bez otwierania listy aukcji.',
   icon: '⚖',
 

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Margonem — Asystent Aukcji
 // @namespace    krol-yss.margonem.auction-assistant
-// @version      2.0.16
+// @version      2.0.18
 // @description  Automatycznie pobiera ceny przedmiotu wybranego do sprzedaży bez otwierania listy aukcji.
 // @author       Król Yss
 // @match        https://*.margonem.pl/*
@@ -17,7 +17,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "2.0.16";
+  const VERSION = "2.0.18";
   const PANEL_ID = "kyaa-panel";
   const STYLE_ID = "kyaa-style";
   const UNDERCUT_ENABLED_KEY = "kyaa-undercut-enabled";
@@ -223,8 +223,10 @@
     }
   }
 
-  document.addEventListener("pointerdown", (event) => rememberItemName(event.target), true);
-  document.addEventListener("click", (event) => rememberItemName(event.target), true);
+  const onRememberItemPointerDown = (event) => rememberItemName(event.target);
+  const onRememberItemClick = (event) => rememberItemName(event.target);
+  document.addEventListener("pointerdown", onRememberItemPointerDown, true);
+  document.addEventListener("click", onRememberItemClick, true);
 
   function readSelection() {
     const item = getSellWindow()?.querySelector(".auction-off-item-panel .item");
@@ -673,8 +675,23 @@
     });
   }
 
-  const observer = new MutationObserver(queueUpdate);
-  observer.observe(document.documentElement, { childList: true, subtree: true });
+  function isAuctionWindow(element) {
+    const gameWindow = element?.closest?.(".c-window");
+    const title = normalize(gameWindow?.querySelector(".header-label .text")?.textContent);
+    return title === normalize("Aukcje") || title === normalize("Wystaw przedmiot");
+  }
+
+  const observer = new MutationObserver((records) => {
+    const relevant = records.some((record) => isAuctionWindow(record.target) ||
+      [...record.addedNodes, ...record.removedNodes].some((node) => {
+        if (!(node instanceof Element)) return false;
+        if (isAuctionWindow(node)) return true;
+        return [...(node.querySelectorAll?.(".c-window") || [])].some(isAuctionWindow);
+      })
+    );
+    if (relevant) queueUpdate();
+  });
+  observer.observe(document.body, { childList: true, subtree: true });
   window.addEventListener("resize", queueUpdate);
   queueUpdate();
 })();

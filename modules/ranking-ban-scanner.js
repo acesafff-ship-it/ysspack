@@ -169,6 +169,14 @@ function makeScanner() {
     progress.style.width = '0%';
 
     const cache = readCache();
+    let cachePruned = false;
+    Object.entries(cache).forEach(([accountId, result]) => {
+      if (!Number(result?.checkedAt) || Date.now() - Number(result.checkedAt) >= CACHE_TTL) {
+        delete cache[accountId];
+        cachePruned = true;
+      }
+    });
+    if (cachePruned) writeCache(cache);
     let done = 0;
     let bans = 0;
     let errors = 0;
@@ -239,7 +247,7 @@ function makeScanner() {
 export default {
   id: MODULE_ID,
   name: 'Kontrola banów rankingu',
-  version: '1.0.2',
+  version: '1.0.3',
   description: 'Sprawdza bany graczy nieaktywnych co najmniej 24 godziny na bieżącej stronie rankingu.',
   icon: '⛔',
   start() {

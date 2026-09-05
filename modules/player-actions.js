@@ -24,7 +24,7 @@ const normalize = value => String(value || '').replace(/\s+/g, ' ').trim().toLow
 export default {
   id: 'player-actions',
   name: 'Kolorowe akcje gracza',
-  version: '1.3.3',
+  version: '1.3.4',
   description: 'Pozwala wybrać widoczne akcje gracza i niezależnie ustawić kolor każdej pozycji menu.',
   icon: '🎨',
   settings: [
@@ -115,9 +115,17 @@ export default {
 
     scan(document);
     const observer = new MutationObserver(mutations => {
-      mutations.forEach(mutation => mutation.addedNodes.forEach(node => {
-        if (node instanceof Element) scan(node);
-      }));
+      mutations.forEach(mutation => {
+        mutation.addedNodes.forEach(node => {
+          if (node instanceof Element) scan(node);
+        });
+        mutation.removedNodes?.forEach(node => {
+          if (!(node instanceof Element)) return;
+          marked.forEach(element => {
+            if (element === node || node.contains(element)) marked.delete(element);
+          });
+        });
+      });
     });
     observer.observe(document.body, { childList: true, subtree: true });
 

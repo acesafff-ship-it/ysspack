@@ -1,11 +1,11 @@
 // ==UserScript==
 // @name         YssPack
 // @namespace    acesaff-ysspack
-// @version      0.15.92
+// @version      0.15.93
 // @description  YssPack — panel dodatków działający bezpośrednio w Margonem.
 // @author       Król Yss
 // @homepageURL  https://www.margonem.pl/profile/view,10050726#char_5601,luvia
-// @icon         https://acesafff-ship-it.github.io/ysspack/assets/logo-ysspack-puzzle.png?v=0.15.92
+// @icon         https://acesafff-ship-it.github.io/ysspack/assets/logo-ysspack-puzzle.png?v=0.15.93
 // @updateURL    https://raw.githubusercontent.com/acesafff-ship-it/ysspack/main/YssPack.user.js
 // @downloadURL  https://raw.githubusercontent.com/acesafff-ship-it/ysspack/main/YssPack.user.js
 // @match        https://*.margonem.pl/*
@@ -31,11 +31,9 @@
   if (document.yssPack?.loaderVersion) return;
 
   const BASE_URL = 'https://acesafff-ship-it.github.io/ysspack/';
-  const LOADER_VERSION = '0.15.92';
+  const LOADER_VERSION = '0.15.93';
   const onMainSite = location.hostname === 'www.margonem.pl';
   if (onMainSite && !/^\/ladder(?:\/[^/]+)?(?:\/players)?\/?$/i.test(location.pathname)) return;
-  const now = new Date();
-  const cacheKey = [now.getFullYear(), String(now.getMonth() + 1).padStart(2, '0'), String(now.getDate()).padStart(2, '0')].join('');
 
   document.yssPack = {
     baseUrl: BASE_URL,
@@ -49,12 +47,12 @@
 
   const stylesheet = document.createElement('link');
   stylesheet.rel = 'stylesheet';
-  stylesheet.href = `${BASE_URL}pack.css?t=${LOADER_VERSION}-${cacheKey}`;
+  stylesheet.href = `${BASE_URL}pack.css?v=${LOADER_VERSION}`;
   stylesheet.dataset.yssPack = 'style';
 
   const script = document.createElement('script');
   script.type = 'module';
-  script.src = `${BASE_URL}pack.js?t=${LOADER_VERSION}-${cacheKey}`;
+  script.src = `${BASE_URL}pack.js?v=${LOADER_VERSION}`;
   script.dataset.yssPack = 'script';
   script.addEventListener('error', () => console.error('[YssPack] Nie udało się pobrać pack.js. Sprawdź publikację GitHub Pages.'));
 

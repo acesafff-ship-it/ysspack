@@ -4,13 +4,11 @@ if (!host || document.querySelector('#ysspack')) {
   throw new Error('[YssPack] Loader nie jest aktywny albo panel został już uruchomiony.');
 }
 
-const PACK_VERSION = '0.15.92';
+const PACK_VERSION = '0.15.93';
 const UPDATE_MANIFEST_URL = new URL('manifest.json', import.meta.url).href;
 const UPDATE_INSTALL_URL = new URL('YssPack.user.js', import.meta.url).href;
 const STORAGE_PREFIX = 'ysspack_';
 const WIDGET_KEY = 'addon_ysspack';
-const today = new Date();
-const moduleCacheKey = [today.getFullYear(), String(today.getMonth() + 1).padStart(2, '0'), String(today.getDate()).padStart(2, '0')].join('');
 const moduleFiles = [
   'modules/bestiary.js',
   'modules/item-time.js',
@@ -25,16 +23,18 @@ const moduleFiles = [
 const modules = [];
 const cleanups = new Map();
 
-for (const file of moduleFiles) {
+const importedModules = await Promise.all(moduleFiles.map(async file => {
   try {
     const url = new URL(file, import.meta.url);
-    url.searchParams.set('t', `${PACK_VERSION}-${moduleCacheKey}`);
+    url.searchParams.set('v', PACK_VERSION);
     const imported = await import(url.href);
-    if (imported.default?.id) modules.push(imported.default);
+    return imported.default?.id ? imported.default : null;
   } catch (error) {
     console.error(`[YssPack] Nie udało się wczytać modułu ${file}:`, error);
+    return null;
   }
-}
+}));
+modules.push(...importedModules.filter(Boolean));
 
 const read = (key, fallback) => {
   try {

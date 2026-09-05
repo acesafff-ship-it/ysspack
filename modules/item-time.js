@@ -6,7 +6,7 @@ const EQUIPPED_BLESSING_SLOT_ID = 10;
 export default {
   id: 'item-time',
   name: 'Minuty i sekundy przedmiotu',
-  version: '2.3.3',
+  version: '2.3.4',
   description: 'Pokazuje dokładny czas błogosławieństwa na ikonie i w tooltipie.',
   icon: '⏱',
 
@@ -64,9 +64,14 @@ export default {
       return hours > 0 ? `${hours}:${String(minutes).padStart(2, '0')}:${String(rest).padStart(2, '0')}` : `${minutes}:${String(rest).padStart(2, '0')}`;
     };
 
+    const trackItem = element => {
+      const itemId = element.className.match(ITEM_ID_RE)?.[1];
+      if (itemId && getRemainingSeconds(itemId) !== null) trackedItems.add(element);
+    };
+
     const trackItems = root => {
-      if (root instanceof Element && root.matches('.item')) trackedItems.add(root);
-      root.querySelectorAll?.('.item').forEach(element => trackedItems.add(element));
+      if (root instanceof Element && root.matches('.item')) trackItem(root);
+      root.querySelectorAll?.('.item').forEach(trackItem);
     };
 
     const updateBadges = () => trackedItems.forEach(element => {
@@ -80,6 +85,7 @@ export default {
       if (remaining === null) {
         badge?.remove();
         element.classList.remove(`${BADGE_CLASS}-host`);
+        trackedItems.delete(element);
         return;
       }
       if (!badge) {
@@ -124,12 +130,18 @@ export default {
     document.addEventListener('mouseover', onMouseOver, true);
     document.addEventListener('mouseout', onMouseOut, true);
     const observer = new MutationObserver(records => {
+      let relevant = false;
       records.forEach(record => record.addedNodes.forEach(node => {
-        if (node instanceof Element) trackItems(node);
+        if (!(node instanceof Element)) return;
+        const hasItems = node.matches('.item') || node.querySelector?.('.item');
+        const hasTooltip = node.matches('.tip-layer,.sticky-tips-layer,.tip-item-stat-ttl,.tip-item-stat-expires')
+          || node.querySelector?.('.tip-item-stat-ttl,.tip-item-stat-expires');
+        if (hasItems) trackItems(node);
+        relevant ||= Boolean(hasItems || hasTooltip);
       }));
-      queueUpdate();
+      if (relevant) queueUpdate();
     });
-    observer.observe(document.documentElement, { childList: true, subtree: true });
+    observer.observe(document.body, { childList: true, subtree: true });
     trackItems(document);
     const timer = window.setInterval(queueUpdate, 1000);
     queueUpdate();
