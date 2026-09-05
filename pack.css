@@ -18,8 +18,8 @@
   box-sizing: content-box !important;
   color: #fff;
   border: solid transparent !important;
-  border-width: 32px 20px !important;
-  border-image: url("assets/game-window-frame.png") 32 20 fill / 1 / 0 stretch !important;
+  border-width: 32px 20px 24px !important;
+  border-image: url("assets/game-window-frame.png") 32 20 24 fill / 1 / 0 stretch !important;
   background: transparent !important;
   border-radius: 12px !important;
   filter: drop-shadow(0 4px 7px #000);
@@ -29,12 +29,11 @@
 #ysspack > .content {
   position: absolute !important;
   z-index: 1;
-  inset: 0 0 -6px !important;
+  inset: 0 !important;
   width: auto !important;
   height: auto !important;
   padding: 0 !important;
   overflow: hidden !important;
-  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 6px), calc(100% - 10px) calc(100% - 6px), calc(100% - 10px) 100%, 10px 100%, 10px calc(100% - 6px), 0 calc(100% - 6px));
   color: #fff !important;
   background: transparent !important;
 }
@@ -121,7 +120,7 @@
 .mhp-right-column {
   position: absolute;
   top: -2px;
-  bottom: -11px;
+  bottom: -5px;
   min-width: 0;
   min-height: 0;
 }
@@ -653,7 +652,7 @@
   width: calc(100% - 4px) !important;
   height: calc(100% - 4px) !important;
   margin: 0 !important;
-  background-image: url('https://acesafff-ship-it.github.io/ysspack/assets/logo-ysspack-puzzle.png?v=0.15.96') !important;
+  background-image: url('https://acesafff-ship-it.github.io/ysspack/assets/logo-ysspack-puzzle.png?v=0.15.97') !important;
   background-position: center !important;
   background-repeat: no-repeat !important;
   background-size: contain !important;
