@@ -34,6 +34,7 @@
   height: auto !important;
   padding: 0 !important;
   overflow: hidden !important;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 6px), calc(100% - 10px) calc(100% - 6px), calc(100% - 10px) 100%, 10px 100%, 10px calc(100% - 6px), 0 calc(100% - 6px));
   color: #fff !important;
   background: transparent !important;
 }
@@ -652,7 +653,7 @@
   width: calc(100% - 4px) !important;
   height: calc(100% - 4px) !important;
   margin: 0 !important;
-  background-image: url('https://acesafff-ship-it.github.io/ysspack/assets/logo-ysspack-puzzle.png?v=0.15.95') !important;
+  background-image: url('https://acesafff-ship-it.github.io/ysspack/assets/logo-ysspack-puzzle.png?v=0.15.96') !important;
   background-position: center !important;
   background-repeat: no-repeat !important;
   background-size: contain !important;
