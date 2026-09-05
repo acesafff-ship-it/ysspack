@@ -29,7 +29,7 @@
 #ysspack > .content {
   position: absolute !important;
   z-index: 1;
-  inset: 0 !important;
+  inset: 0 0 -6px !important;
   width: auto !important;
   height: auto !important;
   padding: 0 !important;
@@ -652,7 +652,7 @@
   width: calc(100% - 4px) !important;
   height: calc(100% - 4px) !important;
   margin: 0 !important;
-  background-image: url('https://acesafff-ship-it.github.io/ysspack/assets/logo-ysspack-puzzle.png?v=0.15.94') !important;
+  background-image: url('https://acesafff-ship-it.github.io/ysspack/assets/logo-ysspack-puzzle.png?v=0.15.95') !important;
   background-position: center !important;
   background-repeat: no-repeat !important;
   background-size: contain !important;
