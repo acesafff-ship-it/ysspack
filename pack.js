@@ -4,7 +4,7 @@ if (!host || document.querySelector('#ysspack')) {
   throw new Error('[YssPack] Loader nie jest aktywny albo panel został już uruchomiony.');
 }
 
-const PACK_VERSION = '0.15.98';
+const PACK_VERSION = '0.15.99';
 const UPDATE_MANIFEST_URL = new URL('manifest.json', import.meta.url).href;
 const UPDATE_INSTALL_URL = new URL('YssPack.user.js', import.meta.url).href;
 const STORAGE_PREFIX = 'ysspack_';
@@ -87,7 +87,7 @@ panel.innerHTML = `
   </div>
   <div class="content"><div class="inner-content">
     <div class="mhp-pack-toolbar" aria-label="Aktualizacja całego YssPacka">
-      <span class="mhp-pack-version">YssPack v${PACK_VERSION}</span>
+      <span class="mhp-pack-version"><strong>YssPack</strong><small>v${PACK_VERSION}</small></span>
       <div class="mhp-pack-update" role="status" aria-live="polite"></div>
     </div>
     <div class="mhp-layout">
