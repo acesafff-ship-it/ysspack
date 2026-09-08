@@ -9,7 +9,7 @@ const wait = milliseconds => new Promise(resolve => setTimeout(resolve, millisec
 export default {
   id: MODULE_ID,
   name: 'Ikony przedmiotów na czacie',
-  version: '1.3.8',
+  version: '1.3.9',
   description: 'Automatycznie zastępuje nazwy podlinkowanych przedmiotów na czacie ich natywnymi ikonami.',
   icon: '◆',
 
@@ -304,6 +304,13 @@ export default {
         ? [root]
         : [...root.querySelectorAll?.(LINK_SELECTOR) ?? []];
       elements.forEach(element => {
+        if (element.classList.contains(READY_CLASS)
+          && (!rendered.has(element) || !element.querySelector(':scope > .yss-chat-native-item'))) {
+          element.textContent = originalText(element);
+          element.classList.remove(READY_CLASS);
+          element.removeAttribute('aria-label');
+          rendered.delete(element);
+        }
         if (!pending.has(element) && !queued.has(element) && !element.classList.contains(READY_CLASS)) {
           queued.add(element);
         }
@@ -315,7 +322,9 @@ export default {
     }
 
     function releaseRemovedTree(root) {
-      if (!(root instanceof Element)) return;
+      // MutationObserver reports DOM moves as removal + insertion. Loot formatting
+      // moves ready links into wrappers, so only release views that truly left DOM.
+      if (!(root instanceof Element) || root.isConnected) return;
       const renderedElements = root.matches(`${LINK_SELECTOR}.${READY_CLASS}`)
         ? [root]
         : [...root.querySelectorAll(`${LINK_SELECTOR}.${READY_CLASS}`)];

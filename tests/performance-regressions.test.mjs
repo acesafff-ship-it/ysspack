@@ -53,5 +53,7 @@ test('chat icon retries and removed views are cleaned up', async () => {
   const source = await read('modules/chat-item-icons.js');
   assert.match(source, /const retryTimers = new Set/);
   assert.match(source, /function releaseRemovedTree/);
+  assert.match(source, /\|\| root\.isConnected\) return/);
+  assert.match(source, /!element\.querySelector\(':scope > \.yss-chat-native-item'\)/);
   assert.match(source, /retryTimers\.forEach\(clearTimeout\)/);
 });
