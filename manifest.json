@@ -1,6 +1,6 @@
 {
   "name": "YssPack",
-  "version": "0.15.101",
+  "version": "0.15.102",
   "author": "Król Yss",
   "modules": [
     {
@@ -61,10 +61,10 @@
     },
     {
       "id": "compact-party",
-      "name": "Kompaktowy podgląd drużyny",
-      "version": "1.0.14",
+      "name": "Czytelny podgląd grupy",
+      "version": "1.1.0",
       "file": "modules/compact-party.js",
-      "description": "Dodaje avatary, poprawne poziomy, profesje i czytelne statusy do natywnego panelu drużyny."
+      "description": "Ulepsza nowy natywny panel grupy: wyróżnia stan członków i pokazuje dokładne HP po najechaniu."
     }
   ]
 }

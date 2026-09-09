@@ -57,3 +57,12 @@ test('chat icon retries and removed views are cleaned up', async () => {
   assert.match(source, /!element\.querySelector\(':scope > \.yss-chat-native-item'\)/);
   assert.match(source, /retryTimers\.forEach\(clearTimeout\)/);
 });
+
+test('compact party enhances the new native panel without duplicating it', async () => {
+  const source = await read('modules/compact-party.js');
+  assert.match(source, /\.member-hp-bar/);
+  assert.match(source, /\.hp-points/);
+  assert.match(source, /attributeFilter: \['bar-percent', 'style'\]/);
+  assert.doesNotMatch(source, /createElement\('div'\)/);
+  assert.doesNotMatch(source, /setInterval/);
+});
