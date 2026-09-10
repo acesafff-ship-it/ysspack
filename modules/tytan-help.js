@@ -27,11 +27,59 @@ export function formatTurns(count) {
   return `${count} ${word}`;
 }
 
+const EFFECT_FIELDS = ['effect', 'effects', 'buff', 'buffs', 'debuff', 'debuffs', 'state', 'states', 'status', 'statuses', 'modifier', 'modifiers'];
+const EFFECT_NAME_FIELDS = ['name', 'label', 'title', 'effectName', 'effect_name', 'type', 'id'];
+
+function normalizedEffectName(value) {
+  return String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+}
+
+function effectAmount(effect) {
+  const value = number(effect?.stacks ?? effect?.stack ?? effect?.count ?? effect?.amount ?? effect?.value);
+  return value !== null && value > 0 ? Math.floor(value) : 1;
+}
+
+function scanEffectValue(value, counters, visited, depth = 0, hint = '') {
+  if (value == null || depth > 4) return;
+  if (typeof value === 'number') {
+    const name = normalizedEffectName(hint);
+    const amount = value > 0 ? Math.floor(value) : 1;
+    if (/szadz|frostbite/.test(name)) counters.szadz += amount;
+    if (/aura/.test(name)) counters.aury += amount;
+    return;
+  }
+  if (typeof value === 'string') {
+    const name = normalizedEffectName(`${hint} ${value}`);
+    if (/szadz|frostbite/.test(name)) counters.szadz += 1;
+    if (/aura/.test(name)) counters.aury += 1;
+    return;
+  }
+  if (typeof value !== 'object' || visited.has(value)) return;
+  visited.add(value);
+  const name = EFFECT_NAME_FIELDS.map(field => value[field]).find(field => typeof field === 'string' || typeof field === 'number');
+  const normalized = normalizedEffectName(`${hint} ${name ?? ''}`);
+  const amount = effectAmount(value);
+  if (/szadz|frostbite/.test(normalized)) counters.szadz += amount;
+  if (/aura/.test(normalized)) counters.aury += amount;
+  if (name !== undefined) return;
+  Object.entries(value).forEach(([key, child]) => scanEffectValue(child, counters, visited, depth + 1, key));
+}
+
+export function readBattleEffectCounters(battle) {
+  const counters = { szadz: 0, aury: 0 };
+  const warriors = Object.values(battle?.warriorsList ?? {});
+  const visited = new WeakSet();
+  warriors.forEach(warrior => {
+    EFFECT_FIELDS.forEach(field => scanEffectValue(warrior?.[field], counters, visited, 0, field));
+  });
+  return counters;
+}
+
 export default {
   id: 'tytan-help',
   name: 'TytanHelp',
-  version: '1.0.13',
-  description: 'Pokazuje HP, odporności, umiejętność, naładowanie i cel ataku Kolosów oraz Tytanów.',
+  version: '1.0.14',
+  description: 'Pokazuje HP, odporności, umiejętność, naładowanie, efekty i cel ataku Kolosów oraz Tytanów.',
   icon: '⚔',
 
   start() {
@@ -95,7 +143,7 @@ export default {
         style.textContent = `
           #${rootId}{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden}
           #${rootId} .yth-tip{position:absolute;transform:translate(-50%,-100%);box-sizing:border-box;width:260px;padding:14px 15px 15px;border:0;border-radius:4px;outline:0;background:rgba(0,0,0,.7);box-shadow:#010101 0 0 0 1px,#ccc 0 0 0 2px,#0c0d0d 0 0 0 3px,rgba(12,13,13,.4) 2px 2px 3px 3px;color:#f2f2f2!important;font:700 12.8px/16.64px Arimo,Calibri,"Segoe UI",Arial,sans-serif;text-align:center;text-shadow:0 1px 1px #000;pointer-events:auto;cursor:grab;contain:layout paint;will-change:transform}
-          #${rootId} .yth-name{margin:0 0 5px;padding:0 0 3px;border-bottom:1px solid rgba(255,255,255,.2);color:#fff}.yth-row{min-height:16px;text-align:center;overflow-wrap:anywhere}.yth-res{display:flex;justify-content:center;gap:5px;margin:1px 0 3px}.yth-fire{color:#ff3b30}.yth-light{color:#ffe033}.yth-frost{color:#42a5ff}.yth-poison{color:#45e35a}.yth-power{color:#ffd15c}.yth-destroyed{color:#ff9b72}`;
+          #${rootId} .yth-name{margin:0 0 5px;padding:0 0 3px;border-bottom:1px solid rgba(255,255,255,.2);color:#fff}.yth-row{min-height:16px;text-align:center;overflow-wrap:anywhere}.yth-res{display:flex;justify-content:center;gap:5px;margin:1px 0 3px}.yth-fire{color:#ff3b30}.yth-light{color:#ffe033}.yth-frost{color:#42a5ff}.yth-poison{color:#45e35a}.yth-power{color:#ffd15c}.yth-destroyed{color:#ff9b72}.yth-effects{display:flex;justify-content:center;gap:5px;margin:3px 0 1px}.yth-effect{padding:1px 5px;border:1px solid rgba(255,255,255,.25);border-radius:3px;background:rgba(255,255,255,.08);font-size:11px}.yth-effect-frost{color:#8dd4ff}.yth-effect-aura{color:#98ef81}`;
         document.head.appendChild(style);
       }
       let root = document.getElementById(rootId);
@@ -148,7 +196,7 @@ export default {
       labels.forEach(label => { label.style.transform = transform; });
     }
 
-    function render(label, warrior, type, position) {
+    function render(label, warrior, type, position, effects) {
       const hp = Math.max(0, number(warrior.hp?.cur) || 0);
       const max = Math.max(1, number(warrior.hp?.max) || 1);
       const hpPercent = number(warrior.hp?.hpp);
@@ -158,10 +206,12 @@ export default {
       const loaded = cast?.progress;
       const focused = target(warrior);
       const armorDestroyed = warrior.ac && warrior.ac.destroyed !== undefined;
+      const effectHtml = effects.szadz || effects.aury ? `<div class="yth-effects">${effects.szadz ? `<span class="yth-effect yth-effect-frost">Szadź: ${effects.szadz}</span>` : ''}${effects.aury ? `<span class="yth-effect yth-effect-aura">Aury: ${effects.aury}</span>` : ''}</div>` : '';
       const html = `<div class="yth-name">${escapeHtml(warrior.name || type)} (${escapeHtml(`${number(warrior.lvl) || '?'}${warrior.prof || ''}`)})</div>
         <div class="yth-row">Życie: ${fmt.format(hp)} / ${fmt.format(max)} (${percent.format(healthPercent)}%)</div>
         <div class="yth-row">Pancerz: ${formatStat(warrior.ac)}${armorDestroyed ? ' <span class="yth-destroyed">— zniszczony</span>' : ''}</div><div class="yth-row">Odporności:</div>
         <div class="yth-res"><span class="yth-fire">${formatStat(warrior.resfire, '%')}</span><span class="yth-light">${formatStat(warrior.reslight, '%')}</span><span class="yth-frost">${formatStat(warrior.resfrost, '%')}</span><span class="yth-poison">${formatStat(warrior.act, '%')}</span></div>
+        ${effectHtml}
         ${usedSkill ? `<div class="yth-row yth-power">Umiejętność: ${escapeHtml(usedSkill)}</div>` : ''}
         ${loaded == null ? '' : `<div class="yth-row yth-power">Naładowano: ${Math.round(loaded)}%${cast.remaining == null ? '' : ` • pozostało: ${formatTurns(cast.remaining)}`}</div>`}
         ${focused ? `<div class="yth-row">Cel ataku: ${escapeHtml(focused)}</div>` : ''}`;
@@ -171,6 +221,7 @@ export default {
       }
       label.style.left = `${Math.round(position.x)}px`;
       label.style.top = `${Math.round(position.y)}px`;
+      label.dataset.ythEffects = JSON.stringify(effects);
       label.hidden = false;
     }
 
@@ -183,13 +234,14 @@ export default {
       }
       if (document.hidden || dragging) return;
       ensureUi();
+      const effects = readBattleEffectCounters(battle);
       const active = new Set();
       for (const warrior of opponents()) {
         const type = bossType(warrior);
         const position = type && anchor(warrior);
         if (!type || !position) continue;
         const id = `boss:${warrior.id}`;
-        render(labelFor(id), warrior, type, position);
+        render(labelFor(id), warrior, type, position, effects);
         active.add(id);
       }
       for (const [id, label] of labels) {

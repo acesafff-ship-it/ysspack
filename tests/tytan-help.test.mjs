@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readSuperCast, formatStat, formatTurns } from '../modules/tytan-help.js';
+import { readSuperCast, formatStat, formatTurns, readBattleEffectCounters } from '../modules/tytan-help.js';
 
 test('reads the current cast, including zero progress', () => {
   assert.deepEqual(readSuperCast({ super_cast: { name: 'Tryptyk płonący', turn: 0, total_turns: 3 } }), { name: 'Tryptyk płonący', progress: 0, remaining: 3 });
@@ -44,4 +44,14 @@ test('handles instant, string, invalid and out-of-range progress', () => {
   assert.equal(read(1, undefined), null);
   assert.equal(read('invalid', 2), null);
   assert.equal(readSuperCast({ super_cast: { name: ' ' } }), null);
+});
+
+test('counts active Szadź and Aura effects from battle warriors', () => {
+  const battle = {
+    warriorsList: {
+      1: { effects: { szadz: 2, aura_szybkosci: 1 } },
+      2: { buffs: [{ name: 'Szadź', stacks: 1 }, { label: 'Aura ochrony' }] }
+    }
+  };
+  assert.deepEqual(readBattleEffectCounters(battle), { szadz: 3, aury: 2 });
 });
