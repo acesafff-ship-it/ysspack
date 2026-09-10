@@ -8,8 +8,8 @@ const STATE_CLASSES = [
 export default {
   id: MODULE_ID,
   name: 'Czytelny podgląd grupy',
-  version: '1.1.0',
-  description: 'Ulepsza nowy natywny panel grupy: wyróżnia stan członków i pokazuje dokładne HP po najechaniu.',
+  version: '1.1.1',
+  description: 'Ulepsza nowy natywny panel grupy: stale pokazuje dokładne HP i koloruje stan od zielonego do czerwonego.',
   icon: '👥',
 
   start() {
@@ -22,12 +22,24 @@ export default {
     style.id = STYLE_ID;
     style.textContent = `
       .party-window.${ROOT_CLASS} .party-member{transition:filter .12s ease,box-shadow .12s ease!important}
+      .party-window.${ROOT_CLASS} .party-member .member-hp-bar{
+        background-color:hsl(var(--ycp-hp-hue,0) 68% 27% / .72)!important
+      }
       .party-window.${ROOT_CLASS} .party-member .hp-percent{font-weight:800!important;text-shadow:0 1px #000!important}
       .party-window.${ROOT_CLASS} .party-member.ycp-hp-healthy .hp-percent{color:#91e778!important}
       .party-window.${ROOT_CLASS} .party-member.ycp-hp-low .hp-percent{color:#ffd15a!important}
       .party-window.${ROOT_CLASS} .party-member.ycp-hp-critical .hp-percent{color:#ff6a62!important}
-      .party-window.${ROOT_CLASS} .party-member:hover .hp-percent{display:none!important}
-      .party-window.${ROOT_CLASS} .party-member:hover .hp-points{display:block!important;color:#f5f5f5!important;font-weight:700!important;text-shadow:0 1px #000!important;white-space:nowrap!important}
+      .party-window.${ROOT_CLASS} .party-member .bottom-row{position:relative!important}
+      .party-window.${ROOT_CLASS} .party-member .hp-points{
+        display:block!important;
+        position:absolute!important;
+        left:31px!important;
+        bottom:0!important;
+        color:#f5f5f5!important;
+        font:700 9px/12px Arial,sans-serif!important;
+        text-shadow:0 1px #000!important;
+        white-space:nowrap!important
+      }
       .party-window.${ROOT_CLASS} .party-member.ycp-out-of-range{box-shadow:inset 3px 0 #c99739!important;filter:saturate(.72)}
       .party-window.${ROOT_CLASS} .party-member.ycp-stasis{box-shadow:inset 3px 0 #a878d6!important}
       .party-window.${ROOT_CLASS} .party-member.ycp-hp-critical:not(.ycp-out-of-range):not(.ycp-stasis){box-shadow:inset 3px 0 #d54b45!important}`;
@@ -50,7 +62,12 @@ export default {
     function syncRow(row) {
       row.classList.remove(...STATE_CLASSES);
       const hp = hpPercent(row);
-      if (hp !== null) row.classList.add(hp <= 25 ? 'ycp-hp-critical' : hp <= 65 ? 'ycp-hp-low' : 'ycp-hp-healthy');
+      if (hp !== null) {
+        row.style.setProperty('--ycp-hp-hue', String(Math.round(hp * 1.2)));
+        row.classList.add(hp <= 25 ? 'ycp-hp-critical' : hp <= 65 ? 'ycp-hp-low' : 'ycp-hp-healthy');
+      } else {
+        row.style.removeProperty('--ycp-hp-hue');
+      }
       if (isShown(row.querySelector('.out-of-range-icon'))) row.classList.add('ycp-out-of-range');
       if (isShown(row.querySelector('.stasis-icon, .stasis-incoming-icon'))) row.classList.add('ycp-stasis');
     }
@@ -99,7 +116,10 @@ export default {
       rootObserver.disconnect();
       document.querySelectorAll(`.party-window.${ROOT_CLASS}`).forEach(windowElement => {
         windowElement.classList.remove(ROOT_CLASS);
-        windowElement.querySelectorAll('.party-member').forEach(row => row.classList.remove(...STATE_CLASSES));
+        windowElement.querySelectorAll('.party-member').forEach(row => {
+          row.classList.remove(...STATE_CLASSES);
+          row.style.removeProperty('--ycp-hp-hue');
+        });
       });
       style.remove();
     };
