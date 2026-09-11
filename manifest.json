@@ -1,6 +1,6 @@
 {
   "name": "YssPack",
-  "version": "0.15.106",
+  "version": "0.15.107",
   "author": "Król Yss",
   "modules": [
     {
@@ -62,9 +62,9 @@
     {
       "id": "compact-party",
       "name": "Czytelny podgląd grupy",
-      "version": "1.2.1",
+      "version": "1.2.2",
       "file": "modules/compact-party.js",
-      "description": "Pokazuje stale dokładne HP członków grupy w nowym natywnym panelu."
+      "description": "Pokazuje stale większe dokładne HP członków grupy, kolorowane od zielonego do czerwonego."
     }
   ]
 }

@@ -63,6 +63,8 @@ test('compact party enhances the new native panel without duplicating it', async
   assert.match(source, /\.hp-points/);
   assert.match(source, /\.hp-percent\{display:none!important\}/);
   assert.match(source, /\.member-hp-bar\{background:transparent!important\}/);
+  assert.match(source, /--ycp-hp-hue/);
+  assert.match(source, /font:800 11px\/12px/);
   assert.doesNotMatch(source, /createElement\('div'\)/);
   assert.doesNotMatch(source, /setInterval/);
 });

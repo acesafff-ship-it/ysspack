@@ -5,8 +5,8 @@ const ROOT_CLASS = 'yss-compact-party';
 export default {
   id: MODULE_ID,
   name: 'Czytelny podgląd grupy',
-  version: '1.2.1',
-  description: 'Pokazuje stale dokładne HP członków grupy w nowym natywnym panelu.',
+  version: '1.2.2',
+  description: 'Pokazuje stale większe dokładne HP członków grupy, kolorowane od zielonego do czerwonego.',
   icon: '👥',
 
   start() {
@@ -27,23 +27,47 @@ export default {
         left:0!important;
         bottom:0!important;
         color:#f5f5f5!important;
-        font:700 9px/12px Arial,sans-serif!important;
+        color:hsl(var(--ycp-hp-hue, 0) 82% 66%)!important;
+        font:800 11px/12px Arial,sans-serif!important;
         text-shadow:0 1px #000!important;
         white-space:nowrap!important
       }
       `;
     document.head.appendChild(style);
 
+    function hpPercent(row) {
+      const raw = row.querySelector('.member-hp-bar')?.getAttribute('bar-percent');
+      if (raw !== null && raw !== undefined && raw !== '') {
+        const value = Number(raw);
+        if (Number.isFinite(value)) return Math.max(0, Math.min(100, value));
+      }
+      const match = row.querySelector('.hp-percent')?.textContent?.match(/\d+(?:[.,]\d+)?/);
+      return match ? Math.max(0, Math.min(100, Number(match[0].replace(',', '.')))) : null;
+    }
+
+    function syncRow(row) {
+      const hp = hpPercent(row);
+      if (hp === null) row.style.removeProperty('--ycp-hp-hue');
+      else row.style.setProperty('--ycp-hp-hue', String(Math.round(hp * 1.2)));
+    }
+
     function sync() {
       framePending = false;
       if (stopped) return;
       const windowElement = document.querySelector('.party-window');
       if (windowElement !== observedPartyWindow) {
+        partyObserver.disconnect();
         observedPartyWindow?.classList.remove(ROOT_CLASS);
         observedPartyWindow = windowElement;
+        if (observedPartyWindow) {
+          partyObserver.observe(observedPartyWindow, {
+            childList: true, subtree: true, attributes: true, attributeFilter: ['bar-percent']
+          });
+        }
       }
       if (!windowElement) return;
       windowElement.classList.add(ROOT_CLASS);
+      windowElement.querySelectorAll('.party-member').forEach(syncRow);
     }
 
     function scheduleSync() {
@@ -52,6 +76,7 @@ export default {
       requestAnimationFrame(sync);
     }
 
+    const partyObserver = new MutationObserver(scheduleSync);
     const rootObserver = new MutationObserver(records => {
       const partyChanged = records.some(record => [...record.addedNodes, ...record.removedNodes].some(node =>
         node instanceof Element && (
@@ -66,9 +91,11 @@ export default {
 
     return () => {
       stopped = true;
+      partyObserver.disconnect();
       rootObserver.disconnect();
       document.querySelectorAll(`.party-window.${ROOT_CLASS}`).forEach(windowElement => {
         windowElement.classList.remove(ROOT_CLASS);
+        windowElement.querySelectorAll('.party-member').forEach(row => row.style.removeProperty('--ycp-hp-hue'));
       });
       style.remove();
     };
