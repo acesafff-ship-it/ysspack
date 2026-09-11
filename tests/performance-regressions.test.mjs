@@ -62,6 +62,7 @@ test('compact party enhances the new native panel without duplicating it', async
   const source = await read('modules/compact-party.js');
   assert.match(source, /\.hp-points/);
   assert.match(source, /\.hp-percent\{display:none!important\}/);
+  assert.match(source, /\.member-hp-bar\{background:transparent!important\}/);
   assert.doesNotMatch(source, /createElement\('div'\)/);
   assert.doesNotMatch(source, /setInterval/);
 });

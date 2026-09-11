@@ -5,7 +5,7 @@ const ROOT_CLASS = 'yss-compact-party';
 export default {
   id: MODULE_ID,
   name: 'Czytelny podgląd grupy',
-  version: '1.2.0',
+  version: '1.2.1',
   description: 'Pokazuje stale dokładne HP członków grupy w nowym natywnym panelu.',
   icon: '👥',
 
@@ -19,6 +19,7 @@ export default {
     style.id = STYLE_ID;
     style.textContent = `
       .party-window.${ROOT_CLASS} .party-member .bottom-row{position:relative!important}
+      .party-window.${ROOT_CLASS} .party-member .member-hp-bar{background:transparent!important}
       .party-window.${ROOT_CLASS} .party-member .hp-percent{display:none!important}
       .party-window.${ROOT_CLASS} .party-member .hp-points{
         display:block!important;
