@@ -60,11 +60,8 @@ test('chat icon retries and removed views are cleaned up', async () => {
 
 test('compact party enhances the new native panel without duplicating it', async () => {
   const source = await read('modules/compact-party.js');
-  assert.match(source, /\.member-hp-bar/);
   assert.match(source, /\.hp-points/);
-  assert.match(source, /--ycp-hp-hue/);
-  assert.match(source, /hsl\(var\(--ycp-hp-hue,0\) 68% 27% \/ \.72\)/);
-  assert.match(source, /attributeFilter: \['bar-percent', 'style'\]/);
+  assert.match(source, /\.hp-percent\{display:none!important\}/);
   assert.doesNotMatch(source, /createElement\('div'\)/);
   assert.doesNotMatch(source, /setInterval/);
 });
